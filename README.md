@@ -21,6 +21,8 @@ File [pom.xml](pom.xml) defines a Maven project. It includes two dependencies: *
 
 - [BingSearchMain](src/main/java/annotatorstub/main/BingSearchMain.java) contains an example usage of the Bing search API. To run it, you must insert a valid key to the Bing API, which can be obtained for free (up to 5000 queries per month) [here](http://datamarket.azure.com/dataset/bing/search).
 
+- [WATFeaturesMain](src/main/java/annotatorstub/main/WATFeaturesMain.java) shows how to call the WAT Api to gather data that might be useful for your annotator: the link probability that a text appear as anchor (link probability) and two measures of relatedness among two entities: Milne-Witten and Jaccard on in-link. This API has a caching mechanism too (that you'll notice if you run the main twice).
+
 ##Tips
 - For training your annotator, you can access the training portion of the GERDAQ dataset. It is divided in two parts: trainingA and trainingB. The BAT-Framework provides all methods to generate datasets in class **DatasetBuilder**.
 - The BAT-Framework has a bunch of methods that you might find useful. Have a look at classes [DumpData](https://github.com/marcocor/bat-framework/blob/master/src/main/java/it/unipi/di/acube/batframework/utils/DumpData.java) and [DumpResults](https://github.com/marcocor/bat-framework/blob/master/src/main/java/it/unipi/di/acube/batframework/utils/DumpResults.java).
