@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import it.unipi.di.acube.batframework.utils.Pair;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 public class WATRelatednessComputer implements Serializable {
 	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -18,6 +19,8 @@ public class WATRelatednessComputer implements Serializable {
 	private static WATRelatednessComputer instance = new WATRelatednessComputer();
 	private Object2DoubleOpenHashMap<Pair<Integer,Integer>> cacheJaccard = new Object2DoubleOpenHashMap<>();
 	private Object2DoubleOpenHashMap<Pair<Integer,Integer>> cacheMW = new Object2DoubleOpenHashMap<>();
+	private Object2DoubleOpenHashMap<Pair<String,Integer>> cacheComm = new Object2DoubleOpenHashMap<>();
+	private Object2ObjectOpenHashMap<String, int[]> cacheAnchors = new Object2ObjectOpenHashMap<>();
 	private Object2DoubleOpenHashMap<String> cacheLp = new Object2DoubleOpenHashMap<>();
 	private static long flushCounter = 0;
 	private static final int FLUSH_EVERY = 200;
@@ -100,6 +103,49 @@ public class WATRelatednessComputer implements Serializable {
 		if (!instance.cacheLp.containsKey(anchor))
 			instance.cacheLp.put(anchor, queryJsonLp(anchor));
 		return instance.cacheLp.get(anchor);
+	}
+
+	public static double getCommonness(String anchor, int wid) {
+		if (!instance.cacheAnchors.containsKey(anchor))
+			queryJsonComm(anchor);
+
+		Pair<String, Integer> key = new Pair<>(anchor, wid);
+		if (!instance.cacheComm.containsKey(key))
+			return 0.0;
+		return instance.cacheComm.get(key);
+	}
+
+	public static int[] getLinks(String anchor) {
+		if (!instance.cacheAnchors.containsKey(anchor))
+			queryJsonComm(anchor);
+		return instance.cacheAnchors.get(anchor);
+	}
+
+	private static void queryJsonComm(String anchor) {
+		instance.cacheAnchors.put(anchor, new int[]{});
+		try {
+			String url = String.format(URL_TEMPLATE_SPOT, URLEncoder.encode(anchor, "utf-8"));
+			LOG.debug("Querying {}", url);
+			JSONObject obj = Utils.httpQueryJson(url);
+			instance.increaseFlushCounter();
+			JSONArray spots = obj.getJSONArray("spots");
+			for (int i = 0; i < spots.length(); i++) {
+				JSONObject objI = spots.getJSONObject(i);
+				JSONArray ranking = objI.getJSONArray("ranking");
+				String anchorC = objI.getString("spot");
+				int[] candidates = new int[ranking.length()];
+				instance.cacheAnchors.put(anchorC, candidates);
+				for (int j = 0; j < ranking.length(); j++) {
+					JSONObject candidate = ranking.getJSONObject(j);
+					int widC = candidate.getInt("id");
+					candidates[j] = widC;
+					double commonnessC = candidate.getDouble("commonness");
+					instance.cacheComm.put(new Pair<String, Integer>(anchor, widC), commonnessC);
+				}
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private static double queryJsonLp(String anchor) {

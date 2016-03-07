@@ -29,7 +29,14 @@ public class WATFeaturesMain {
 		LOG.info("MW relatedness between Germany and Angela Merkel: {}", WATRelatednessComputer.getMwRelatedness(germanyId, merkelId));
 		LOG.info("MW relatedness between Germany and Barack Obama: {}", WATRelatednessComputer.getMwRelatedness(germanyId, obamaId));
 		LOG.info("MW relatedness between Angela Merkel and Barack Obama: {}", WATRelatednessComputer.getMwRelatedness(merkelId, obamaId));
+		LOG.info("Probability that `obama' links to Barack Obama in Wikipedia: {}", WATRelatednessComputer.getCommonness("obama", obamaId));
+		LOG.info("Probability that `barack obama' links to Barack Obama in Wikipedia: {}", WATRelatednessComputer.getCommonness("barack obama", obamaId));
+		LOG.info("Probability that `barack' links to Barack Obama in Wikipedia: {}", WATRelatednessComputer.getCommonness("barack", obamaId));
+		LOG.info("Probability that `barack' links to Germany in Wikipedia: {}", WATRelatednessComputer.getCommonness("barack", germanyId));
 
+		for (int id : WATRelatednessComputer.getLinks("obama"))
+			LOG.info("'obama' links to {} with probability {}", api.getTitlebyId(id), WATRelatednessComputer.getCommonness("obama", id));
+	
 		api.flush();
 		WATRelatednessComputer.flush();
 	}
