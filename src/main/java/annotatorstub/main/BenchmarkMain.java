@@ -15,7 +15,6 @@ import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 
 import annotatorstub.annotator.FakeAnnotator;
 import annotatorstub.utils.Utils;
