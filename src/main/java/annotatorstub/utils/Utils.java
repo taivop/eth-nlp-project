@@ -96,12 +96,6 @@ public class Utils {
 	}
 
 	public static void printMetricsResultSet(String exp, MetricsResultSet rs, String annName){
-		System.out
-		.format(Locale.ENGLISH,
-				"%s\t mac-P/R/F1: %.3f\t%.3f\t%.3f TP/FP/FN: %d\t%d\t%d mic-P/R/F1: %.3f\t%.3f\t%.3f\t%s%n", exp,
-				rs.getMacroPrecision(), rs.getMacroRecall(),
-				rs.getMacroF1(), rs.getGlobalTp(),
-				rs.getGlobalFp(), rs.getGlobalFn(),rs.getMicroPrecision(), rs.getMicroRecall(),
-				rs.getMicroF1(), annName);
+		System.out.format(Locale.ENGLISH, "%s\t%s std-P/R/F1: %.3f/%.3f/%.3f\t%s%n", exp, rs, rs.getPrecisionStdDev(), rs.getRecallStdDev(), rs.getF1StdDev(), annName);
 	}
 }
