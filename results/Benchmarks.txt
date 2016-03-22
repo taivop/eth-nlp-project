@@ -1,0 +1,9 @@
+Simple Annotator:
+C2W	mac-P/R/F1: 0.361/0.208/0.172 mic-P/R/F1: 0.239/0.119/0.159 TP/FP/FN: 50/159/369 std-P/R/F1: 0.481/0.353/0.319	Simple yet uneffective query annotator
+A2W-SAM	mac-P/R/F1: 0.357/0.206/0.169 mic-P/R/F1: 0.234/0.117/0.156 TP/FP/FN: 49/160/370 std-P/R/F1: 0.480/0.353/0.318	Simple yet uneffective query annotator
+
+Baseline Annotator (22-03-2016):
+C2W	mac-P/R/F1: 0.498/0.567/0.460 mic-P/R/F1: 0.439/0.537/0.483 TP/FP/FN: 225/287/194 std-P/R/F1: 0.392/0.413/0.383	Simple baseline-1 annotator
+A2W-SAM	mac-P/R/F1: 0.482/0.551/0.445 mic-P/R/F1: 0.420/0.513/0.462 TP/FP/FN: 215/297/204 std-P/R/F1: 0.393/0.414/0.382	Simple baseline-1 annotator
+
+

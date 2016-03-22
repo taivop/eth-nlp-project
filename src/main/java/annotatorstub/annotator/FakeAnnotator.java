@@ -14,7 +14,7 @@ import it.unipi.di.acube.batframework.utils.ProblemReduction;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 
 public class FakeAnnotator implements Sa2WSystem {
-	private static long lastTime = -1;
+	protected static long lastTime = -1;
 	private static float threshold = -1f;
 	
 	public long getLastAnnotationTime() {
