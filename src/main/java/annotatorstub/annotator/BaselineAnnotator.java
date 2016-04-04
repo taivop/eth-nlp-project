@@ -26,15 +26,20 @@ public class BaselineAnnotator extends FakeAnnotator {
 		// do not link anything that is a substring of this set
 		// if "Queen Elizabeth" has been linked don't link "Queen" or
 		// "Elizabeth"
+		
 		HashSet<String> usedMentions = new HashSet<String>();
 
 		GreedyMentionIterator it = new GreedyMentionIterator(text);
 		while (it.hasNext()) {
 			MentionCandidate candidate = it.next();
 			String mention = candidate.getMention();
-
+			
+			if (mention.length()<2) {
+				continue;
+			}
+			
 			if (!usedMentions.stream().anyMatch(m -> m.contains(mention))) {
-				double mentionProbability = WATRelatednessComputer.getLp(candidate.getMention());
+				double mentionProbability = WATRelatednessComputer.getLp(mention);
 				if (mentionProbability > 0) {
 					usedMentions.add(mention);
 					// find Wikipedia article with highest commonness:

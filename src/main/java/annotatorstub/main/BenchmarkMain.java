@@ -23,7 +23,7 @@ import annotatorstub.utils.Utils;
 public class BenchmarkMain {
 	public static void main(String[] args) throws Exception {
 		WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
-		A2WDataset ds = DatasetBuilder.getGerdaqDevel();
+		A2WDataset ds = DatasetBuilder.getGerdaqTest();
 //		FakeAnnotator ann = new FakeAnnotator();
 		BaselineAnnotator ann = new BaselineAnnotator();
 

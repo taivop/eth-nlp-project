@@ -140,7 +140,7 @@ public class WATRelatednessComputer implements Serializable {
 					int widC = candidate.getInt("id");
 					candidates[j] = widC;
 					double commonnessC = candidate.getDouble("commonness");
-					instance.cacheComm.put(new Pair<String, Integer>(anchor, widC), commonnessC);
+					instance.cacheComm.put(new Pair<String, Integer>(anchorC, widC), commonnessC);
 				}
 			}
 		} catch (Exception e) {
