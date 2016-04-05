@@ -4,3 +4,7 @@
 .settings/
 *.cache
 *.bin
+
+# IntelliJ
+.idea
+*.iml
