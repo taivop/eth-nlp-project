@@ -7,6 +7,7 @@ import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
+import it.unipi.di.acube.batframework.utils.Pair;
 
 /**
  * Baseline annotator as described in the project description
@@ -27,26 +28,32 @@ public class BaselineAnnotator extends FakeAnnotator {
 		// if "Queen Elizabeth" has been linked don't link "Queen" or
 		// "Elizabeth"
 		
-		HashSet<String> usedMentions = new HashSet<String>();
+		HashSet<Pair<Integer,Integer>> usedMentions = new HashSet<Pair<Integer,Integer>>();
 
 		GreedyMentionIterator it = new GreedyMentionIterator(text);
 		while (it.hasNext()) {
 			MentionCandidate candidate = it.next();
 			String mention = candidate.getMention();
+			int mentionStart = candidate.getQueryStartPosition();
+			int mentionEnd = candidate.getQueryEndPosition();
 			
+			//TODO check
 			if (mention.length()<2) {
 				continue;
 			}
 			
-			if (!usedMentions.stream().anyMatch(m -> m.contains(mention))) {
+			//check to ignore nested mentions
+			if (usedMentions.stream().allMatch(m -> ((mentionStart < m.first || mentionStart > m.second) && 
+													 (mentionEnd < m.first || mentionEnd > m.second)))) {
 				double mentionProbability = WATRelatednessComputer.getLp(mention);
 				if (mentionProbability > 0) {
-					usedMentions.add(mention);
+					usedMentions.add(new Pair(mentionStart,mentionEnd));
 					// find Wikipedia article with highest commonness:
 					double highestScore = -1.0;
 					int wikiId = -1;
 					for (int id : WATRelatednessComputer.getLinks(mention)) {
-						double commonness = WATRelatednessComputer.getCommonness("obama", id);
+						//why put "obama" here??? better performance? if yes why not return first element?
+						double commonness = WATRelatednessComputer.getCommonness(mention, id);
 						if (commonness > highestScore) {
 							highestScore = commonness;
 							wikiId = id;
@@ -57,7 +64,7 @@ public class BaselineAnnotator extends FakeAnnotator {
 					}
 					scoredAnnotations
 							/*TODO-Bernhard: what is the last parameter in ScoredAnnotation for?*/
-							.add(new ScoredAnnotation(candidate.getQueryStartPosition(), mention.length(), wikiId, 0.1f) 
+							.add(new ScoredAnnotation(candidate.getQueryStartPosition(), mention.length(), wikiId, (float) highestScore) 
 					);
 				}
 			}

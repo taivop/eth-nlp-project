@@ -17,8 +17,7 @@ public class AnnotatorMain {
 		for (Annotation a : annotations) {
 			int wid = a.getConcept();
 			String title = WikipediaApiInterface.api().getTitlebyId(a.getConcept());
-			System.out
-			        .printf("found annotation: %s -> %s (id %d) link: http://en.wikipedia.org/wiki/index.html?curid=%d%n", query.substring(a.getPosition(), a.getPosition() + a.getLength()), title, wid, wid);
+			System.out.printf("found annotation: %s -> %s (id %d) link: http://en.wikipedia.org/wiki/index.html?curid=%d%n", query.substring(a.getPosition(), a.getPosition() + a.getLength()), title, wid, wid);
 		}
 		WikipediaApiInterface.api().flush();
 	}
