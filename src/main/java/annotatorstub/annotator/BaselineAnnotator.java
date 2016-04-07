@@ -37,7 +37,6 @@ public class BaselineAnnotator extends FakeAnnotator {
 			int mentionStart = candidate.getQueryStartPosition();
 			int mentionEnd = candidate.getQueryEndPosition();
 			
-			//TODO check
 			if (mention.length()<2) {
 				continue;
 			}
@@ -52,7 +51,6 @@ public class BaselineAnnotator extends FakeAnnotator {
 					double highestScore = -1.0;
 					int wikiId = -1;
 					for (int id : WATRelatednessComputer.getLinks(mention)) {
-						//why put "obama" here??? better performance? if yes why not return first element?
 						double commonness = WATRelatednessComputer.getCommonness(mention, id);
 						if (commonness > highestScore) {
 							highestScore = commonness;
