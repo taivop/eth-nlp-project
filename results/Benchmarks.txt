@@ -13,3 +13,8 @@ TEST SET:
 
 C2W	mac-P/R/F1: 0.491/0.542/0.448 mic-P/R/F1: 0.426/0.533/0.473 TP/FP/FN: 218/294/191 std-P/R/F1: 0.406/0.424/0.397	Simple baseline-1 annotator
 A2W-SAM	mac-P/R/F1: 0.469/0.520/0.426 mic-P/R/F1: 0.404/0.506/0.449 TP/FP/FN: 207/306/202 std-P/R/F1: 0.404/0.426/0.393	Simple baseline-1 annotator
+
+Baseline Annotator (07-04-2016):
+
+C2W	mac-P/R/F1: 0.491/0.543/0.449 mic-P/R/F1: 0.427/0.535/0.475 TP/FP/FN: 219/294/190 std-P/R/F1: 0.406/0.425/0.397	Simple baseline-1 annotator
+A2W-SAM	mac-P/R/F1: 0.467/0.517/0.424 mic-P/R/F1: 0.403/0.506/0.449 TP/FP/FN: 207/307/202 std-P/R/F1: 0.405/0.426/0.394	Simple baseline-1 annotator
