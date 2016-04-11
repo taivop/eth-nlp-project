@@ -19,6 +19,7 @@ import java.util.List;
 import annotatorstub.annotator.BaselineAnnotator;
 import annotatorstub.annotator.FakeAnnotator;
 import annotatorstub.utils.Utils;
+import annotatorstub.utils.WATRelatednessComputer;
 
 public class BenchmarkMain {
 	public static void main(String[] args) throws Exception {
@@ -26,7 +27,9 @@ public class BenchmarkMain {
 		A2WDataset ds = DatasetBuilder.getGerdaqTest();
 //		FakeAnnotator ann = new FakeAnnotator();
 		BaselineAnnotator ann = new BaselineAnnotator();
-
+	
+		WATRelatednessComputer.setCache("relatedness.cache");
+		
 		List<HashSet<Tag>> resTag = BenchmarkCache.doC2WTags(ann, ds);
 		List<HashSet<Annotation>> resAnn = BenchmarkCache.doA2WAnnotations(ann, ds);
 		DumpData.dumpCompareList(ds.getTextInstanceList(), ds.getA2WGoldStandardList(), resAnn, wikiApi);
@@ -41,6 +44,7 @@ public class BenchmarkMain {
 		
 		Utils.serializeResult(ann, ds, new File("annotations.bin"));
 		wikiApi.flush();
+		WATRelatednessComputer.flush();
 	}
 
 }
