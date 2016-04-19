@@ -1,0 +1,17 @@
+Results for TagMeAnnotator on GERAQ-TestSetA for varying the PRUNING_THRESHOLD parameter
+
+PRUNING_THRESHOLD=0.08
+C2W	mac-P/R/F1: 0.543/0.494/0.393 mic-P/R/F1: 0.390/0.469/0.426 TP/FP/FN: 207/324/234 std-P/R/F1: 0.389/0.417/0.354	Simple yet uneffective query annotator
+A2W-SAM	mac-P/R/F1: 0.517/0.464/0.367 mic-P/R/F1: 0.358/0.447/0.397 TP/FP/FN: 197/354/244 std-P/R/F1: 0.398/0.416/0.352	Simple yet uneffective query annotator
+
+PRUNING_THRESHOLD=0.15
+mac-P/R/F1: 0.628/0.442/0.391 mic-P/R/F1: 0.444/0.413/0.428 TP/FP/FN: 182/228/259 std-P/R/F1: 0.401/0.417/0.377	Tag-ME annotator
+A2W-SAM	mac-P/R/F1: 0.600/0.420/0.368 mic-P/R/F1: 0.405/0.395/0.400 TP/FP/FN: 174/256/267 std-P/R/F1: 0.407/0.414/0.372	Tag-ME annotator
+
+PRUNING_THRESHOLD=0.20
+C2W	mac-P/R/F1: 0.672/0.405/0.383 mic-P/R/F1: 0.468/0.365/0.410 TP/FP/FN: 161/183/280 std-P/R/F1: 0.398/0.410/0.386	Tag-ME annotator
+A2W-SAM	mac-P/R/F1: 0.642/0.387/0.361 mic-P/R/F1: 0.423/0.349/0.383 TP/FP/FN: 154/210/287 std-P/R/F1: 0.406/0.406/0.379	Tag-ME annotator
+
+PRUNING_THRESHOLD=0.25
+C2W	mac-P/R/F1: 0.714/0.363/0.353 mic-P/R/F1: 0.489/0.299/0.371 TP/FP/FN: 132/138/309 std-P/R/F1: 0.392/0.404/0.385	Tag-ME annotator
+A2W-SAM	mac-P/R/F1: 0.680/0.346/0.330 mic-P/R/F1: 0.436/0.286/0.345 TP/FP/FN: 126/163/315 std-P/R/F1: 0.403/0.399/0.376	Tag-ME annotator
