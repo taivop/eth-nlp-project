@@ -16,8 +16,13 @@ import java.util.Set;
 
 public class SmaphSAnnotator extends FakeAnnotator {
 
-
-    Set<Integer> epsilonSet1(String text) {
+    /**
+     * Returns a set of candidate entities.
+     *
+     * @param query the query as a string
+     * @return a set of integers, each corresponding to a Wikipedia ID of a candidate entity.
+     */
+    Set<Integer> epsilonSet1(String query) {
         return null;
     }
 
