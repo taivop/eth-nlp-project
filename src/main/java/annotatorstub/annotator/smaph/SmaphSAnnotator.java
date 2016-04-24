@@ -22,6 +22,13 @@ import java.util.Vector;
 
 public class SmaphSAnnotator extends FakeAnnotator {
 
+    WikipediaApiInterface wikiApi;
+
+    public SmaphSAnnotator() throws Exception {
+        this.wikiApi = WikipediaApiInterface.api();
+        WATRelatednessComputer.setCache("relatedness.cache");;
+    }
+
     /**
      * Returns a set of candidate entities from the output of TagMeAnnotator.
      *
@@ -50,16 +57,96 @@ public class SmaphSAnnotator extends FakeAnnotator {
         return new HashSet<Integer>();
     }
 
+
+    private static int minimum(int a, int b, int c) {
+        return Math.min(Math.min(a, b), c);
+    }
+
+    /**
+     * Calculate Levenshtein edit distance between strings a and b.
+     * @see https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Java
+     */
+    private static int ED(CharSequence a, CharSequence b) {
+        int[][] distance = new int[a.length() + 1][b.length() + 1];
+
+        for (int i = 0; i <= a.length(); i++)
+            distance[i][0] = i;
+        for (int j = 1; j <= b.length(); j++)
+            distance[0][j] = j;
+
+        for (int i = 1; i <= a.length(); i++)
+            for (int j = 1; j <= b.length(); j++)
+                distance[i][j] = minimum(
+                        distance[i - 1][j] + 1,
+                        distance[i][j - 1] + 1,
+                        distance[i - 1][j - 1] + ((a.charAt(i - 1) == b.charAt(j - 1)) ? 0 : 1));
+
+        return distance[a.length()][b.length()];
+    }
+
+    /**
+     * Calculate the MinED -- a measure of distance -- as described in the paper.
+     * @param a
+     * @param b
+     * @return
+     */
+    private static Double minED(String a, String b) {
+        String[] termsInA = a.split(" ");
+        String[] termsInB = b.split(" ");
+
+        Double minDistancesSum = 0.0;
+
+        for(String termInA : termsInA) {
+            String closestInB = "";
+            Double currentMinED = Double.POSITIVE_INFINITY;
+
+            for(String termInB : termsInB) {
+                Double editDistance = (double) ED(termInA, termInB);
+                if(editDistance < currentMinED) {
+                    closestInB = termInB;
+                    currentMinED = editDistance;
+                }
+            }
+
+            minDistancesSum += currentMinED;
+        }
+
+        return minDistancesSum / termsInA.length;
+    }
+
+    /**
+     * Remove a trailing parenthetical string, e.g. 'Swiss (nationality)' -> 'Swiss '.
+     * @param s string to truncate
+     * @return string without trailing stuff in parentheses
+     */
+    private static String removeFinalParentheticalString(String s) {
+        int lastOpeningParenIndex = s.lastIndexOf('(');
+        int lastClosingParenIndex = s.lastIndexOf(')');
+
+        if(lastClosingParenIndex > lastOpeningParenIndex) {     // Make sure the opening parenthesis is closed.
+            return s.substring(0, lastOpeningParenIndex);
+        } else {
+            return s;
+        }
+    }
+
+
     /**
      * Returns the SMAPH-S features for given entity. See table 4 in article.
      *
      * @param entity the Wikipedia ID of the entity
      * @return vector of per-entity features
      */
-    private Vector<Double> getEntityFeatures(Integer entity) {
-        // TODO have a hashmap for this so if we query the same entity again, we won't recalculate stuff.
+    private Vector<Double> getEntityFeatures(Integer entity, String query) throws IOException {
+        // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
+        Vector<Double> features = new Vector<>();
 
-        return new Vector<>();
+        Double f4_EDTitle = minED(wikiApi.getTitlebyId(entity), query);
+        Double f5_EDTitNP = minED(removeFinalParentheticalString(wikiApi.getTitlebyId(entity)), query);
+
+        features.add(1337.0);
+
+        return features;
     }
 
     /**
@@ -69,9 +156,13 @@ public class SmaphSAnnotator extends FakeAnnotator {
      * @param entity the Wikipedia ID of the entity
      * @return vector of per-pair features
      */
-    private Vector<Double> getMentionEntityFeatures(MentionCandidate mention, Integer entity) {
+    private Vector<Double> getMentionEntityFeatures(MentionCandidate mention, Integer entity, String query) {
         // TODO
-        return new Vector<>();
+        Vector<Double> features = new Vector<>();
+
+        features.add(42.0);
+
+        return features;
     }
 
     public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
@@ -95,12 +186,20 @@ public class SmaphSAnnotator extends FakeAnnotator {
             for(Integer entity : candidates) {
 
                 // Get both per-entity features and per-pair features.
-                Vector<Double> entityFeatures = getEntityFeatures(entity);
-                Vector<Double> mentionEntityFeatures = getMentionEntityFeatures(mention, entity);
+                Vector<Double> entityFeatures;
+                Vector<Double> mentionEntityFeatures;
+                try {
+                     entityFeatures = getEntityFeatures(entity, query);
+                     mentionEntityFeatures = getMentionEntityFeatures(mention, entity, query);
+                } catch(IOException e) {
+                    throw new AnnotationException(e.getMessage());
+                }
 
                 Vector<Double> features = new Vector<>();
                 features.addAll(entityFeatures);
                 features.addAll(mentionEntityFeatures);
+
+                System.out.printf("(%s, %d) features: %s\n", mention.getMention(), entity, features);
             }
         }
 
