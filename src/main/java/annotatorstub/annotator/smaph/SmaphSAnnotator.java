@@ -86,9 +86,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
     /**
      * Calculate the MinED -- a measure of distance -- as described in the paper.
-     * @param a
-     * @param b
-     * @return
      */
     private static Double minED(String a, String b) {
         String[] termsInA = a.split(" ");
@@ -143,7 +140,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         Double f4_EDTitle = minED(wikiApi.getTitlebyId(entity), query);
         Double f5_EDTitNP = minED(removeFinalParentheticalString(wikiApi.getTitlebyId(entity)), query);
-
+        
         features.add(1337.0);
 
         return features;
