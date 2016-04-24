@@ -140,7 +140,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         Double f4_EDTitle = minED(wikiApi.getTitlebyId(entity), query);
         Double f5_EDTitNP = minED(removeFinalParentheticalString(wikiApi.getTitlebyId(entity)), query);
-        
+
+        features.add(f4_EDTitle);
+        features.add(f5_EDTitNP);
         features.add(1337.0);
 
         return features;
