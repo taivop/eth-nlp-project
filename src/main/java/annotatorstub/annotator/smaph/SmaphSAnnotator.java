@@ -1,17 +1,16 @@
 package annotatorstub.annotator.smaph;
 
 import annotatorstub.annotator.FakeAnnotator;
-import annotatorstub.annotator.tagme.TagMeAnnotator;
 import annotatorstub.utils.WATRelatednessComputer;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
-import com.sun.tools.javac.util.Pair;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
@@ -27,34 +26,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
     public SmaphSAnnotator() throws Exception {
         this.wikiApi = WikipediaApiInterface.api();
         WATRelatednessComputer.setCache("relatedness.cache");;
-    }
-
-    /**
-     * Returns a set of candidate entities from the output of TagMeAnnotator.
-     *
-     * @param query the query as a string
-     * @return a set of integers, each corresponding to a Wikipedia ID of a candidate entity.
-     */
-    public Set<Integer> getMockEpsilonSet1(String query) {
-        HashSet<Integer> candidates = new HashSet<Integer>();
-
-        TagMeAnnotator ann = new TagMeAnnotator();
-        Set<ScoredAnnotation> scoredAnnotations = ann.solveSa2W(query);
-
-        for(ScoredAnnotation scoredAnnotation : scoredAnnotations) {
-            System.out.println(scoredAnnotation.getConcept());
-            candidates.add(scoredAnnotation.getConcept());
-        }
-
-        return candidates;
-    }
-
-    public Set<Integer> getMockEpsilonSet2(String query) {
-        return new HashSet<Integer>();
-    }
-
-    public Set<Integer> getMockEpsilonSet3(String query) {
-        return new HashSet<Integer>();
     }
 
 
@@ -127,6 +98,24 @@ public class SmaphSAnnotator extends FakeAnnotator {
         }
     }
 
+    /**
+     * Check if string is capitalised (positive examples: Taivo, Escher-Wyss Platz; negative: OMG, banana).
+     * TODO Not sure if all-caps strings ("OMG") should return true or not -- the article doesn't specify.
+     */
+    private static boolean isCapitalised(String s) {
+        String[] parts = s.split(" |-");
+        for(String part : parts) {
+            boolean firstLetterUpperCase = Character.isUpperCase(part.charAt(0));
+            boolean restLowerCase = part.substring(1) == part.substring(1).toLowerCase();
+
+            if(!firstLetterUpperCase || !restLowerCase) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
     /**
      * Returns the SMAPH-S features for given entity. See table 4 in article.
@@ -138,12 +127,40 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
         Vector<Double> features = new Vector<>();
 
+        Double f1_webTotal = SmaphSMockDataSources.getBingTotalResults().doubleValue();
+
         Double f4_EDTitle = minED(wikiApi.getTitlebyId(entity), query);
+
         Double f5_EDTitNP = minED(removeFinalParentheticalString(wikiApi.getTitlebyId(entity)), query);
 
+        Double f6_minEDBolds = Double.POSITIVE_INFINITY;
+        Double f7_captBolds = 0.0;
+        Double f8_boldTerms = 0.0;
+        List<String> boldPortions = SmaphSMockDataSources.getBingBoldPortions();
+        for(String boldPortion : boldPortions) {
+            Double currentMinED = minED(boldPortion, query);
+            if(currentMinED < f6_minEDBolds) {
+                f6_minEDBolds = currentMinED;
+            }
+
+            // Check if word is capitalised (first letter uppercase and the rest lowercase)
+            if(isCapitalised(boldPortion)) {
+                f7_captBolds += 1;
+            }
+
+            f8_boldTerms += boldPortion.length();
+        }
+        f8_boldTerms /= boldPortions.size();
+
+
+
+        features.add(f1_webTotal);
         features.add(f4_EDTitle);
         features.add(f5_EDTitNP);
-        features.add(1337.0);
+        features.add(f6_minEDBolds);
+        features.add(f7_captBolds);
+        features.add(f8_boldTerms);
+
 
         return features;
     }
@@ -168,9 +185,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         // Create set of candidate entities
         Set<Integer> candidates = new HashSet<Integer>();               // Epsilon_q in the paper
-        candidates.addAll(getMockEpsilonSet1(query));
-        candidates.addAll(getMockEpsilonSet2(query));
-        candidates.addAll(getMockEpsilonSet3(query));
+        candidates.addAll(SmaphSMockDataSources.getEpsilonSet1(query));
+        candidates.addAll(SmaphSMockDataSources.getEpsilonSet2(query));
+        candidates.addAll(SmaphSMockDataSources.getEpsilonSet3(query));
 
         // Find all potential mentions
         Set<MentionCandidate> mentions = new HashSet<>();                // Seg(q) in the paper
