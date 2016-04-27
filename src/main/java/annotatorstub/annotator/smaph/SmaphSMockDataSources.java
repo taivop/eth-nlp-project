@@ -69,6 +69,32 @@ public class SmaphSMockDataSources {
     public static List<String> getBingBoldPortions() { return new ArrayList<>(); }
 
 
+    /**
+     * The set of annotations (mention-entity pairs) found by our auxiliary annotator WAT in snippet s
+     * overlapping with a bold portion of the snippet.
+     * A(s) in article.
+     * @param s snippet to annotate
+     */
+    public static Set<ScoredAnnotation> getWATBoldAnnotations(String s) { return new HashSet<>(); }
+
+    /**
+     * Get the Wikipedia graph PageRank score of given entity.
+     */
+    public static Double getWikiPageRankScore(Integer entity) { return 0.0; }
 
 
+    /**
+     * Get the link probability of given mention in the Wikipedia corpus.
+     */
+    public static Double getWikiLinkProbability(String mention) { return 0.0; }
+
+    /**
+     * Get the commonness of given mention-entity pair in the Wikipedia corpus.
+     */
+    public static Double getWikiCommonness(String mention, int entity) { return 0.0; }
+
+    /**
+     * Get the ambiguity (number of distinct Wikipedia pages that the mention points to) in the Wikipedia corpus.
+     */
+    public static Double getWikiAmbiguity(String mention) { return 0.0; }
 }

@@ -4,15 +4,13 @@ import annotatorstub.annotator.FakeAnnotator;
 import annotatorstub.utils.WATRelatednessComputer;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
+import com.sun.tools.javac.util.Pair;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * SMAPH-S annotator from the paper "A Piggyback System for Joint Entity Mention Detection and Linking in Web Queries".
@@ -31,6 +29,14 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
     private static int minimum(int a, int b, int c) {
         return Math.min(Math.min(a, b), c);
+    }
+
+    private static Double average(Collection<Double> collection) {
+        Double sum = 0.0;
+        for(Double element : collection) {
+            sum += element;
+        }
+        return sum / collection.size();
     }
 
     /**
@@ -127,8 +133,12 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
         Vector<Double> features = new Vector<>();
 
-        Double f1_webTotal = SmaphSMockDataSources.getBingTotalResults().doubleValue();
 
+        //region Features drawn from all sources
+        Double f1_webTotal = SmaphSMockDataSources.getBingTotalResults().doubleValue();
+        //endregion
+
+        //region Drawn from sources Epsilon1 and Epsilon2
         Double f4_EDTitle = minED(wikiApi.getTitlebyId(entity), query);
 
         Double f5_EDTitNP = minED(removeFinalParentheticalString(wikiApi.getTitlebyId(entity)), query);
@@ -151,6 +161,71 @@ public class SmaphSAnnotator extends FakeAnnotator {
             f8_boldTerms += boldPortion.length();
         }
         f8_boldTerms /= boldPortions.size();
+        //endregion
+
+        //region Drawn from source Epsilon3
+        Double f9_freq = 0.0;
+        Double f10_avgRank = 0.0;
+
+        ArrayList<Pair<String, String>> mentionSnippetPairs = new ArrayList<>(); // Build the X(q) set of pairs (m, s).
+
+        int rankCounter = 0;
+        List<String> bingSnippets = SmaphSMockDataSources.getBingSnippets();
+        for(String snippet : bingSnippets) {
+            rankCounter++;
+
+            boolean snippetHasEntity = false;   // Do we find our desired entity in the annotations of this snippet?
+            for(ScoredAnnotation scoredAnnotation : SmaphSMockDataSources.getWATBoldAnnotations(snippet)) {
+
+                if(entity == scoredAnnotation.getConcept()) {
+                    snippetHasEntity = true;
+                }
+
+                String mention = query.substring(scoredAnnotation.getPosition(),
+                        scoredAnnotation.getPosition() + scoredAnnotation.getLength());
+                mentionSnippetPairs.add(new Pair<>(mention, snippet));
+            }
+
+            if(snippetHasEntity) {
+                f9_freq += 1;
+                f10_avgRank += rankCounter;
+            } else {
+                f10_avgRank += 25;          // Magic number 25: # results returned by Bing
+            }
+        }
+        f9_freq /= bingSnippets.size();
+        f10_avgRank /= 25;                  // Magic number 25: # results returned by Bing
+
+        Double f11_pageRank = SmaphSMockDataSources.getWikiPageRankScore(entity);
+
+
+        ArrayList<Double> linkProbabilities = new ArrayList<>();
+        ArrayList<Double> commonnesses = new ArrayList<>();
+        ArrayList<Double> ambiguities = new ArrayList<>();
+        ArrayList<Double> minEDs = new ArrayList<>();
+        for(Pair<String, String> mentionSnippetPair : mentionSnippetPairs) {
+            String mention = mentionSnippetPair.fst;
+            String snippet = mentionSnippetPair.snd;
+
+            linkProbabilities.add(SmaphSMockDataSources.getWikiLinkProbability(mention));
+            commonnesses.add(SmaphSMockDataSources.getWikiCommonness(mention, entity));
+            ambiguities.add(SmaphSMockDataSources.getWikiAmbiguity(mention));
+            minEDs.add(minED(mention, query));
+        }
+
+        Double f15_lp_min = Collections.min(linkProbabilities);
+        Double f16_lp_max = Collections.max(linkProbabilities);
+        Double f17_comm_min = Collections.min(commonnesses);
+        Double f18_comm_max = Collections.max(commonnesses);
+        Double f19_comm_avg = average(commonnesses);
+        Double f20_ambig_min = Collections.min(ambiguities);
+        Double f21_ambig_max = Collections.max(ambiguities);
+        Double f22_ambig_avg = average(ambiguities);
+        Double f23_mentMED_min = Collections.min(minEDs);
+        Double f24_mentMED_max = Collections.max(minEDs);
+
+        //endregion
+
 
 
 
@@ -160,7 +235,19 @@ public class SmaphSAnnotator extends FakeAnnotator {
         features.add(f6_minEDBolds);
         features.add(f7_captBolds);
         features.add(f8_boldTerms);
-
+        features.add(f9_freq);
+        features.add(f10_avgRank);
+        features.add(f11_pageRank);
+        features.add(f15_lp_min);
+        features.add(f16_lp_max);
+        features.add(f17_comm_min);
+        features.add(f18_comm_max);
+        features.add(f19_comm_avg);
+        features.add(f20_ambig_min);
+        features.add(f21_ambig_max);
+        features.add(f22_ambig_avg);
+        features.add(f23_mentMED_min);
+        features.add(f24_mentMED_max);
 
         return features;
     }
