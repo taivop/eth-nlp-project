@@ -20,19 +20,7 @@ public class SmaphSMockDataSources {
      * @param query the query as a string
      * @return a set of integers, each corresponding to a Wikipedia ID of a candidate entity.
      */
-    public static Set<Integer> getEpsilonSet1(String query) {
-        HashSet<Integer> candidates = new HashSet<>();
-
-        TagMeAnnotator ann = new TagMeAnnotator();
-        Set<ScoredAnnotation> scoredAnnotations = ann.solveSa2W(query);
-
-        for(ScoredAnnotation scoredAnnotation : scoredAnnotations) {
-            System.out.println(scoredAnnotation.getConcept());
-            candidates.add(scoredAnnotation.getConcept());
-        }
-
-        return candidates;
-    }
+    public static Set<Integer> getEpsilonSet1(String query) { return new HashSet<>(); }
 
     public static Set<Integer> getEpsilonSet2(String query) {
         return new HashSet<>();
