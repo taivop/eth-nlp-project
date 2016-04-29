@@ -151,11 +151,18 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
         Vector<Double> features = new Vector<>();
 
-        //region Features drawn from all sources
-        Double f1_webTotal = SmaphSMockDataSources.getBingTotalResults().doubleValue();
-        //endregion
+        // ====================================================================================
+        // region Features drawn from all sources
 
-        //region Drawn from sources Epsilon1 and Epsilon2
+        Double f1_webTotal = SmaphSMockDataSources.getBingTotalResults().doubleValue();
+
+        //endregion
+        // ------------------------------------------------------------------------------------
+
+
+
+        // ====================================================================================
+        //region Features drawn from sources Epsilon1 and Epsilon2
         Double f4_EDTitle = minED(wikiApi.getTitlebyId(entity), query);
 
         Double f5_EDTitNP = minED(removeFinalParentheticalString(wikiApi.getTitlebyId(entity)), query);
@@ -184,28 +191,40 @@ public class SmaphSAnnotator extends FakeAnnotator {
         }
         f8_boldTerms /= boldPortions.size();
         //endregion
+        // ------------------------------------------------------------------------------------
 
-        //region Drawn from source Epsilon3
+
+
+
+        // ====================================================================================
+        //region Features drawn from source Epsilon3
         Double f9_freq = 0.0;
         Double f10_avgRank = 0.0;
 
-        ArrayList<Pair<String, String>> mentionSnippetPairs = new ArrayList<>(); // Build the X(q) set of pairs (m, s).
+        // mentionSnippetPairs: the set X(q) of pairs (mention, snippet) as explained in the paper
+        ArrayList<Pair<String, String>> mentionSnippetPairs = new ArrayList<>();
 
-        int rankCounter = 0;
         // TODO bingSnippets doesn't need to be calculated again for every entity
+        // bingSnippets: snippets returned by querying bing with the original query
         List<String> bingSnippets = bingResult.getWebResults().stream().
                 map(snippet -> snippet.getDescription()).
                 collect(Collectors.toList());
-        List<Set<Integer>> bingSnippetEntities = candidateEntities.getEntitiesQuerySnippetsWATBySnippet();
+
+        // snippetEntities: for each snippet, the set of entitities that were found by annotating the snippet with WAT
+        List<Set<Integer>> snippetEntities = candidateEntities.getEntitiesQuerySnippetsWATBySnippet();
+
+        // WATSnippetAnnotations: for each snippet, the set of annotations found by annotating the snippet with WAT
         List<Set<ScoredAnnotation>> WATSnippetAnnotations = candidateEntities.getWATSnippetAnnotations();
+
+        int rankCounter = 0;
         for(String snippet : bingSnippets) {
             rankCounter++;
 
-            boolean snippetHasEntity = bingSnippetEntities.get(rankCounter-1).contains(entity); // Do we find our desired entity in the annotations of this snippet?
+            boolean snippetHasEntity = snippetEntities.get(rankCounter-1).contains(entity); // Do we find our desired entity in the annotations of this snippet?
             Set<ScoredAnnotation> WATannotations = WATSnippetAnnotations.get(rankCounter-1);
             for(ScoredAnnotation scoredAnnotation : WATannotations) {
 
-                String mention = query.substring(scoredAnnotation.getPosition(),
+                String mention = snippet.substring(scoredAnnotation.getPosition(),
                         scoredAnnotation.getPosition() + scoredAnnotation.getLength());
                 mentionSnippetPairs.add(new Pair<>(mention, snippet));
             }
@@ -249,9 +268,13 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f24_mentMED_max = Collections.max(minEDs);
 
         //endregion
+        // ------------------------------------------------------------------------------------
 
 
 
+
+        // ====================================================================================
+        //region Combine features into a vector
 
         features.add(f1_webTotal);
         features.add(f4_EDTitle);
@@ -272,6 +295,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
         features.add(f22_ambig_avg);
         features.add(f23_mentMED_min);
         features.add(f24_mentMED_max);
+
+        //endregion
+        // ------------------------------------------------------------------------------------
 
         return features;
     }
