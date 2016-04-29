@@ -20,6 +20,7 @@ import java.util.*;
 public class SmaphSAnnotator extends FakeAnnotator {
 
     WikipediaApiInterface wikiApi;
+    final int BINGTOPSNIPPETS = 25;
 
     public SmaphSAnnotator() throws Exception {
         this.wikiApi = WikipediaApiInterface.api();
@@ -190,11 +191,11 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 f9_freq += 1;
                 f10_avgRank += rankCounter;
             } else {
-                f10_avgRank += 25;          // Magic number 25: # results returned by Bing
+                f10_avgRank += BINGTOPSNIPPETS;
             }
         }
         f9_freq /= bingSnippets.size();
-        f10_avgRank /= 25;                  // Magic number 25: # results returned by Bing
+        f10_avgRank /= BINGTOPSNIPPETS;
 
         Double f11_pageRank = SmaphSMockDataSources.getWikiPageRankScore(entity);
 
