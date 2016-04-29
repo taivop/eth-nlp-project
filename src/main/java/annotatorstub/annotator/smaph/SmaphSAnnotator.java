@@ -147,7 +147,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
      * @param entity the Wikipedia ID of the entity
      * @return vector of per-entity features
      */
-    private Vector<Double> getEntityFeatures(Integer entity, String query) throws IOException {
+    private Vector<Double> getEntityFeatures(Integer entity, String query, BingResult bingResult) throws IOException {
         // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
         Vector<Double> features = new Vector<>();
 
@@ -163,7 +163,12 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f6_minEDBolds = Double.POSITIVE_INFINITY;
         Double f7_captBolds = 0.0;
         Double f8_boldTerms = 0.0;
-        List<String> boldPortions = SmaphSMockDataSources.getBingBoldPortions();
+
+        // TODO boldPortions doesn't need to be calculated again for every entity
+        List<String> boldPortions = bingResult.getWebResults().stream().
+                map(snippet -> snippet.getHighlightedWords()).
+                flatMap(l -> l.stream()).
+                collect(Collectors.toList());
         for(String boldPortion : boldPortions) {
             Double currentMinED = minED(boldPortion, query);
             if(currentMinED < f6_minEDBolds) {
@@ -187,7 +192,10 @@ public class SmaphSAnnotator extends FakeAnnotator {
         ArrayList<Pair<String, String>> mentionSnippetPairs = new ArrayList<>(); // Build the X(q) set of pairs (m, s).
 
         int rankCounter = 0;
-        List<String> bingSnippets = SmaphSMockDataSources.getBingSnippets();
+        // TODO bingSnippets doesn't need to be calculated again for every entity
+        List<String> bingSnippets = bingResult.getWebResults().stream().
+                map(snippet -> snippet.getDescription()).
+                collect(Collectors.toList());
         for(String snippet : bingSnippets) {
             rankCounter++;
 
@@ -341,7 +349,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 Vector<Double> entityFeatures;
                 Vector<Double> mentionEntityFeatures;
                 try {
-                     entityFeatures = getEntityFeatures(entityID, query);
+                     entityFeatures = getEntityFeatures(entityID, query, bingResult);
                      mentionEntityFeatures = getMentionEntityFeatures(mention, entityID, query);
                 } catch(IOException e) {
                     throw new AnnotationException(e.getMessage());
