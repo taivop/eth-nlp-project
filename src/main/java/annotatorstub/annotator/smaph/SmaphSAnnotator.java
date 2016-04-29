@@ -147,7 +147,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
      * @param entity the Wikipedia ID of the entity
      * @return vector of per-entity features
      */
-    private Vector<Double> getEntityFeatures(Integer entity, String query, BingResult bingResult) throws IOException {
+    private Vector<Double> getEntityFeatures(Integer entity, String query, BingResult bingResult, CandidateEntities candidateEntities) throws IOException {
         // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
         Vector<Double> features = new Vector<>();
 
@@ -196,15 +196,14 @@ public class SmaphSAnnotator extends FakeAnnotator {
         List<String> bingSnippets = bingResult.getWebResults().stream().
                 map(snippet -> snippet.getDescription()).
                 collect(Collectors.toList());
+        List<Set<Integer>> bingSnippetEntities = candidateEntities.getEntitiesQuerySnippetsWATBySnippet();
+        List<Set<ScoredAnnotation>> WATSnippetAnnotations = candidateEntities.getWATSnippetAnnotations();
         for(String snippet : bingSnippets) {
             rankCounter++;
 
-            boolean snippetHasEntity = false;   // Do we find our desired entity in the annotations of this snippet?
-            for(ScoredAnnotation scoredAnnotation : SmaphSMockDataSources.getWATBoldAnnotations(snippet)) {
-
-                if(entity == scoredAnnotation.getConcept()) {
-                    snippetHasEntity = true;
-                }
+            boolean snippetHasEntity = bingSnippetEntities.get(rankCounter-1).contains(entity); // Do we find our desired entity in the annotations of this snippet?
+            Set<ScoredAnnotation> WATannotations = WATSnippetAnnotations.get(rankCounter-1);
+            for(ScoredAnnotation scoredAnnotation : WATannotations) {
 
                 String mention = query.substring(scoredAnnotation.getPosition(),
                         scoredAnnotation.getPosition() + scoredAnnotation.getLength());
@@ -349,7 +348,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 Vector<Double> entityFeatures;
                 Vector<Double> mentionEntityFeatures;
                 try {
-                     entityFeatures = getEntityFeatures(entityID, query, bingResult);
+                     entityFeatures = getEntityFeatures(entityID, query, bingResult, candidateEntities);
                      mentionEntityFeatures = getMentionEntityFeatures(mention, entityID, query);
                 } catch(IOException e) {
                     throw new AnnotationException(e.getMessage());

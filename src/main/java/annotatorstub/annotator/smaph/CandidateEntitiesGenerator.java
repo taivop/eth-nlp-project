@@ -1,10 +1,7 @@
 package annotatorstub.annotator.smaph;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import annotatorstub.utils.bing.BingResult;
@@ -94,6 +91,8 @@ public class CandidateEntitiesGenerator {
 		Set<Integer> entitiesQuery = new HashSet<Integer>();
 		Set<Integer> entitiesQueryExtended = new HashSet<Integer>();
 		Set<Integer> entitiesQuerySnippetsWAT = new HashSet<Integer>();
+		List<Set<Integer>> entitiesQuerySnippetsWATBySnippet = new ArrayList<>();
+		List<Set<ScoredAnnotation>> WATSnippetAnnotations = new ArrayList<>();
 		
 		for (BingWebSnippet wikiResult : result.getWikipediaResults()) {
 			String wikiTitle = wikiResult.getTitle().replace(" - Wikipedia, the free encyclopedia", "")
@@ -163,12 +162,17 @@ public class CandidateEntitiesGenerator {
 				}
 				scoredAnnotations = scoredAnnotationsHighlighted;
 			}
-			entitiesQuerySnippetsWAT.addAll(scoredAnnotations.stream().map(s -> s.getConcept()).collect(Collectors.toSet()));
+			Set<Integer> foundWikiPages = scoredAnnotations.stream().map(s -> s.getConcept()).collect(Collectors.toSet());
+			entitiesQuerySnippetsWAT.addAll(foundWikiPages);
+			entitiesQuerySnippetsWATBySnippet.add(foundWikiPages);
+			WATSnippetAnnotations.add(scoredAnnotations);
 		}
 		
 		bce.setEntitiesQuery(entitiesQuery);
 		bce.setEntitiesQueryExtended(entitiesQueryExtended);
 		bce.setEntitiesQuerySnippetsWAT(entitiesQuerySnippetsWAT);
+		bce.setEntitiesQuerySnippetsWATBySnippet(entitiesQuerySnippetsWATBySnippet);
+		bce.setWATSnippetAnnotations(WATSnippetAnnotations);
 				
 		return bce;
 	}

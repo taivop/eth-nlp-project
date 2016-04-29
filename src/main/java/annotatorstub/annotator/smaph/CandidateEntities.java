@@ -1,5 +1,8 @@
 package annotatorstub.annotator.smaph;
 
+import it.unipi.di.acube.batframework.data.ScoredAnnotation;
+
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -28,6 +31,17 @@ public class CandidateEntities {
 	 */
 	private Set<Integer> entitiesQuerySnippetsWAT;
 
+	/**
+	 * same as entitiesQuerySnippetsWAT, but broken down by snippet, i.e. the i-th of the list contains the set of
+	 * wikipedia pages found in the i-th snippet
+	 */
+	private List<Set<Integer>> entitiesQuerySnippetsWATBySnippet;
+
+	/**
+	 * the annotations found for each snippet in the Bing results
+	 */
+	private List<Set<ScoredAnnotation>> WATSnippetAnnotations;
+
 	public Set<Integer> getEntitiesQuery() {
 		return entitiesQuery;
 	}
@@ -52,4 +66,15 @@ public class CandidateEntities {
 		this.entitiesQuerySnippetsWAT = entitiesQuerySnippetsWAT;
 	}
 
+	public List<Set<Integer>> getEntitiesQuerySnippetsWATBySnippet() { return entitiesQuerySnippetsWATBySnippet; }
+
+	public void setEntitiesQuerySnippetsWATBySnippet(List<Set<Integer>> entitiesQuerySnippetsWATBySnippet) {
+		this.entitiesQuerySnippetsWATBySnippet = entitiesQuerySnippetsWATBySnippet;
+	}
+
+	public List<Set<ScoredAnnotation>> getWATSnippetAnnotations() { return WATSnippetAnnotations; }
+
+	public void setWATSnippetAnnotations(List<Set<ScoredAnnotation>> WATSnippetAnnotations) {
+		this.WATSnippetAnnotations = WATSnippetAnnotations;
+	}
 }
