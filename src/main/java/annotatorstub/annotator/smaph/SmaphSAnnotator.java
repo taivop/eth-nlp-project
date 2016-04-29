@@ -2,15 +2,23 @@ package annotatorstub.annotator.smaph;
 
 import annotatorstub.annotator.FakeAnnotator;
 import annotatorstub.utils.WATRelatednessComputer;
+import annotatorstub.utils.bing.BingResult;
+import annotatorstub.utils.bing.BingSearchAPI;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
 import com.sun.tools.javac.util.Pair;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
+import it.unipi.di.acube.batframework.data.Tag;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.net.ConnectException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * SMAPH-S annotator from the paper "A Piggyback System for Joint Entity Mention Detection and Linking in Web Queries".
@@ -19,12 +27,21 @@ import java.util.*;
 
 public class SmaphSAnnotator extends FakeAnnotator {
 
-    WikipediaApiInterface wikiApi;
-    final int BINGTOPSNIPPETS = 25;
+    private static BingSearchAPI bingApi;
+    private WikipediaApiInterface wikiApi;
+    private CandidateEntitiesGenerator candidateEntitiesGenerator;
+    private static final int TOP_K_SNIPPETS = 25;
+    private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     public SmaphSAnnotator() throws Exception {
+        BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
+        bingApi = BingSearchAPI.getInstance();
+
         this.wikiApi = WikipediaApiInterface.api();
-        WATRelatednessComputer.setCache("relatedness.cache");;
+
+        candidateEntitiesGenerator = new CandidateEntitiesGenerator();
+
+        WATRelatednessComputer.setCache("relatedness.cache");
     }
 
 
@@ -134,7 +151,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
         Vector<Double> features = new Vector<>();
 
-
         //region Features drawn from all sources
         Double f1_webTotal = SmaphSMockDataSources.getBingTotalResults().doubleValue();
         //endregion
@@ -191,11 +207,11 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 f9_freq += 1;
                 f10_avgRank += rankCounter;
             } else {
-                f10_avgRank += BINGTOPSNIPPETS;
+                f10_avgRank += TOP_K_SNIPPETS;
             }
         }
         f9_freq /= bingSnippets.size();
-        f10_avgRank /= BINGTOPSNIPPETS;
+        f10_avgRank /= TOP_K_SNIPPETS;
 
         Double f11_pageRank = SmaphSMockDataSources.getWikiPageRankScore(entity);
 
@@ -271,11 +287,41 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
     public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
 
-        // Create set of candidate entities
-        Set<Integer> candidates = new HashSet<Integer>();               // Epsilon_q in the paper
-        candidates.addAll(SmaphSMockDataSources.getEpsilonSet1(query));
-        candidates.addAll(SmaphSMockDataSources.getEpsilonSet2(query));
-        candidates.addAll(SmaphSMockDataSources.getEpsilonSet3(query));
+        CandidateEntities candidateEntities;
+        BingResult bingResult;
+
+        //region Get bing results and create candidate entities set (union of E1, E2 and E3)
+        try {
+            bingResult = bingApi.query(query);
+            candidateEntities =
+                    candidateEntitiesGenerator.generateCandidateEntities(bingResult, TOP_K_SNIPPETS, CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP);
+        } catch (ConnectException e){
+            logger.warn(e.getMessage());
+            return new HashSet<ScoredAnnotation>();
+        }
+        catch (RuntimeException e){
+            if (e.getCause().getCause() instanceof IOException){
+                logger.warn(e.getMessage());
+                return new HashSet<ScoredAnnotation>();
+            }
+            else
+                throw new AnnotationException(e.getMessage());
+        }
+        catch (Exception e){
+            throw new AnnotationException(e.getMessage());
+        }
+
+        HashSet<Tag> entities = new HashSet<Tag>();
+
+        HashSet<Tag> entitiesQuery = (HashSet<Tag>) candidateEntities.getEntitiesQuery().stream().map(s -> new Tag(s)).collect(Collectors.toSet());
+        HashSet<Tag> entitiesQueryExtended = (HashSet<Tag>) candidateEntities.getEntitiesQueryExtended().stream().map(s -> new Tag(s)).collect(Collectors.toSet());
+        HashSet<Tag> entitiesQuerySnippetsTAGME = (HashSet<Tag>) candidateEntities.getEntitiesQuerySnippetsWAT().stream().map(s -> new Tag(s)).collect(Collectors.toSet());
+
+        entities.addAll(entitiesQuery);
+        entities.addAll(entitiesQueryExtended);
+        entities.addAll(entitiesQuerySnippetsTAGME);
+
+        //endregion
 
         // Find all potential mentions
         Set<MentionCandidate> mentions = new HashSet<>();                // Seg(q) in the paper
@@ -287,14 +333,16 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         // Calculate features for all possible pairs of <anchor, candidate entity>
         for(MentionCandidate mention : mentions) {
-            for(Integer entity : candidates) {
+            for(Tag entity : entities) {
+
+                Integer entityID = entity.getConcept();
 
                 // Get both per-entity features and per-pair features.
                 Vector<Double> entityFeatures;
                 Vector<Double> mentionEntityFeatures;
                 try {
-                     entityFeatures = getEntityFeatures(entity, query);
-                     mentionEntityFeatures = getMentionEntityFeatures(mention, entity, query);
+                     entityFeatures = getEntityFeatures(entityID, query);
+                     mentionEntityFeatures = getMentionEntityFeatures(mention, entityID, query);
                 } catch(IOException e) {
                     throw new AnnotationException(e.getMessage());
                 }
@@ -303,7 +351,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 features.addAll(entityFeatures);
                 features.addAll(mentionEntityFeatures);
 
-                System.out.printf("(%s, %d) features: %s\n", mention.getMention(), entity, features);
+                System.out.printf("(%s, %d) features: %s\n", mention.getMention(), entityID, features);
             }
         }
 
