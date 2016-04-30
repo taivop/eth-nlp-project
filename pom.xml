@@ -39,11 +39,17 @@
             <version>1.1.0</version>
         </dependency>
         <!-- SMILE Library for Scala -->
-        <!--dependency>
+        <dependency>
             <groupId>com.github.haifengl</groupId>
             <artifactId>smile-scala_2.11</artifactId>
             <version>1.1.0</version>
-        </dependency-->
+        </dependency>
+        <!-- Scala serialization -->
+        <dependency>
+            <groupId>com.thoughtworks.xstream</groupId>
+            <artifactId>xstream</artifactId>
+            <version>1.4.9</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
