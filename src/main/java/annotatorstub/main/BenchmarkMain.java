@@ -9,6 +9,7 @@ import it.unipi.di.acube.batframework.metrics.MetricsResultSet;
 import it.unipi.di.acube.batframework.metrics.StrongAnnotationMatch;
 import it.unipi.di.acube.batframework.metrics.StrongTagMatch;
 import it.unipi.di.acube.batframework.problems.A2WDataset;
+import it.unipi.di.acube.batframework.systemPlugins.WATAnnotator;
 import it.unipi.di.acube.batframework.utils.DumpData;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 
@@ -26,7 +27,8 @@ public class BenchmarkMain {
 		WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
 		A2WDataset ds = DatasetBuilder.getGerdaqTest();
 //		FakeAnnotator ann = new FakeAnnotator();
-		BaselineAnnotator ann = new BaselineAnnotator();
+//		BaselineAnnotator ann = new BaselineAnnotator();
+		WATAnnotator ann = new WATAnnotator("wikisense.mkapp.it", 80, "salsa-auth");
 	
 		WATRelatednessComputer.setCache("relatedness.cache");
 		
