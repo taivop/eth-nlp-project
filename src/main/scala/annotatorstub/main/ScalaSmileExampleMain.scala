@@ -2,10 +2,12 @@ package annotatorstub.main
 
 import java.io.{File, BufferedWriter, FileWriter}
 
+import com.thoughtworks.xstream.XStream
 import smile.classification._
 import smile.data._
 import smile.io._
 import smile.math.kernel.{GaussianKernel, LinearKernel}
+import smile.util.time
 import smile.validation._
 
 
@@ -65,9 +67,46 @@ object ScalaSmileExampleMain {
     println("Now training model on all data")
     val model = svm(x, y, kernel, C)
 
-    smile.
+    dumpObject("models/svm-iris-example.xml", model)
   }
 
+  /**
+   * Dumps a human-readable serialization of the object to the specific file.
+   *
+   * Warning: if the file exists, this method will overwrite it!
+   *
+   * While XML might not be the nicest format, this library works out of the box with Smile
+   * models, which is the most important thing at the moment.
+   */
+  def dumpObject(fileName: String, obj: Object): Unit = {
+    println(s"Dumping model to file '${fileName}'...")
+    val xStream = new XStream()
+    xStream.toXML(obj, new FileWriter(fileName))
+    println("Dump successful.")
+  }
+
+  /**
+   * Loads a serialized SVM and uses it to make some predictions.
+   */
+  def svmFromFileExample() = {
+    val modelFile = "models/svm-iris-example.xml"
+    println("Will load classifier.")
+    val classifier = time {
+      new XStream().fromXML(new File(modelFile)).asInstanceOf[SVM[Array[Double]]]
+    }
+    println("Classifier loaded successfully.")
+
+    val (x, y) = classificationData.unzipInt
+    val preds: Array[Int] = x.map(classifier.predict)
+    val correct = (preds zip y).count { case(predicted, expected) => predicted == expected }
+    val trainAccuracy = correct.toDouble / y.length
+    val trainError = 1 - trainAccuracy
+    println(s"Reloaded SVM train error ${trainError}")
+  }
+
+  /**
+   * Helper method to just dump a string to a file.
+   */
   def toFile(canonicalFilename: String, text: String): Unit = {
     val file = new File(canonicalFilename)
     val bw = new BufferedWriter(new FileWriter(file))
@@ -78,6 +117,7 @@ object ScalaSmileExampleMain {
   def main(args: Array[String]) {
 //    svmExample()
     svmCVExample()
+    svmFromFileExample()
   }
 
 }
