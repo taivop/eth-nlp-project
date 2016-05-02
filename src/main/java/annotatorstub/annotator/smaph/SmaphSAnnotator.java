@@ -208,7 +208,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // bingSnippets: snippets returned by querying bing with the original query
         List<String> bingSnippets = bingResult.getWebResults().stream().
                 map(snippet -> snippet.getDescription()).
-                collect(Collectors.toList());
+                collect(Collectors.toList()).
+                subList(0, TOP_K_SNIPPETS);
 
         // snippetEntities: for each snippet, the set of entitities that were found by annotating the snippet with WAT
         List<Set<Integer>> snippetEntities = candidateEntities.getEntitiesQuerySnippetsWATBySnippet();
@@ -216,6 +217,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // WATSnippetAnnotations: for each snippet, the set of annotations found by annotating the snippet with WAT
         List<Set<ScoredAnnotation>> WATSnippetAnnotations = candidateEntities.getWATSnippetAnnotations();
 
+        System.out.printf("size of bingSnippets: %d\n", bingSnippets.size());
         int rankCounter = 0;
         for(String snippet : bingSnippets) {
             rankCounter++;
