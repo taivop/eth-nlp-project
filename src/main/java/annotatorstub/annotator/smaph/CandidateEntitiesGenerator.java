@@ -95,14 +95,17 @@ public class CandidateEntitiesGenerator {
 		List<Set<ScoredAnnotation>> WATSnippetAnnotations = new ArrayList<>();
 		
 		for (BingWebSnippet wikiResult : result.getWikipediaResults()) {
-			String wikiTitle = wikiResult.getTitle().replace(" - Wikipedia, the free encyclopedia", "")
-													.replace("- Wikipedia, the free ...", "");
-			
+			String wikiTitle = wikiResult.getTitle();
+			wikiTitle = wikiTitle.substring(0, wikiTitle.indexOf(" - Wikip"));
+
 			//discard disambiguation and list pages
 			if ((!wikiTitle.toLowerCase().contains("disambiguation")) && 
 				(!wikiTitle.toLowerCase().contains("list"))){
 					int wikiId = wikipediaApiInterface.getIdByTitle(wikiTitle);
-					entitiesQuery.add(wikiId);
+
+					if(wikiId != -1) {				// If no entity was found, ignore it
+						entitiesQuery.add(wikiId);
+					}
 			}
 		}
 		
