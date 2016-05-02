@@ -143,7 +143,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
 
     /**
-     * Returns the SMAPH-S features for given entity. See table 4 in article.
+     * Returns the SMAPH features for given entity. See table 4 in article.
      *
      * @param entity the Wikipedia ID of the entity
      * @return vector of per-entity features
@@ -320,7 +320,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         return features;
     }
 
-    public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
+    public void getCandidatesWithFeatures(String query) throws Exception {
 
         CandidateEntities candidateEntities;
         BingResult bingResult;
@@ -332,12 +332,12 @@ public class SmaphSAnnotator extends FakeAnnotator {
                     candidateEntitiesGenerator.generateCandidateEntities(bingResult, TOP_K_SNIPPETS, CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP);
         } catch (ConnectException e){
             logger.warn(e.getMessage());
-            return new HashSet<ScoredAnnotation>();
+            return;
         }
         catch (RuntimeException e){
             if (e.getCause().getCause() instanceof IOException){
                 logger.warn(e.getMessage());
-                return new HashSet<ScoredAnnotation>();
+                return;
             }
             else
                 throw new AnnotationException(e.getMessage());
@@ -389,12 +389,14 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 features.addAll(entityFeatures);
                 features.addAll(mentionEntityFeatures);
 
-                System.out.printf("(%s, %d) features: %s\n", mention.getMention(), entityID, features);
+                System.out.printf("('%s', ID %d) features: %s\n", mention.getMention(), entityID, features);
             }
         }
 
+    }
 
-        return new HashSet<>();
+    public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
+        throw new AnnotationException("solveSa2W not implemented");
     }
 
     public String getName() {
