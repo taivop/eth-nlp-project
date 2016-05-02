@@ -1,13 +1,22 @@
 package annotatorstub.annotator.tagme;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.lang.invoke.MethodHandles;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import annotatorstub.annotator.FakeAnnotator;
 import annotatorstub.utils.WATRelatednessComputer;
@@ -27,6 +36,8 @@ import it.unipi.di.acube.batframework.utils.AnnotationException;
  * @see http://tagme.di.unipi.it
  */
 public class TagMeAnnotator extends FakeAnnotator {
+	
+	private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	/*
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
@@ -76,12 +87,42 @@ public class TagMeAnnotator extends FakeAnnotator {
 	 * A high threshold means high precision but low recall and vice
 	 * versa.
 	 */
-	private final double PRUNING_THRESHOLD = 0.15; 
+	private final double PRUNING_THRESHOLD = 0.15;
+	
+	/**
+	 * Minimum link probability of candidate anchor. Used during
+	 * the parsing phase in order to reduce the search space.
+	 */
+	private final double LP_THRESHOLD = 0.1;
+	
+	/**
+	 * Minimum linking frequency of candidate anchor. Used during
+	 * the parsing phase in order to reduce the search space.
+	 */
+	private final double LINK_FREQUENCY_THRESHOLD = 2;
+	
+	/**
+	 * Anchors returning error 500 when wikipedia api is queried
+	 */
+	private List<String> anchorBlackList;
+	
+	public TagMeAnnotator() {
+		anchorBlackList = new LinkedList<String>();
+		
+		try {
+			Scanner in = new Scanner(new FileReader("anchor_black_list.txt"));
+			while (in.hasNext())
+				anchorBlackList.add(in.next());
+			in.close();
+		}
+		catch (FileNotFoundException e){
+			logger.warn("Anchor black list file not found");
+		}
+	}
 
 	/*
 	 * end of parameters.
 	 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-	
 	
 	/*
 	 *  helper method to sort a hash map by its values.
@@ -109,7 +150,12 @@ public class TagMeAnnotator extends FakeAnnotator {
 		 * which will end up with lp of zero. It might be wise to consider only
 		 * 3-Grams, 2-Grams and single words for runtime reasons.
 		 */
+		//TODO check strip characters
+		query = query.toLowerCase();
+		query = query.replaceAll("[.,~;\"-<>/\\|~!@#$%^&*()-_=+]","");
+				
 		GreedyMentionIterator it = new GreedyMentionIterator(query);
+		
 		Set<MentionCandidate> anchors = new HashSet<>();
 		while (it.hasNext()) {
 			MentionCandidate anchor = it.next();
@@ -117,11 +163,13 @@ public class TagMeAnnotator extends FakeAnnotator {
 			 * char because a "?" query to wiki-sense caused an exception  we use
 			 * the same if in the baseline annotator - take that into account when 
 			 * changing to N-Grams (TODO above)
+			 * 
+			 * Also discards badly behaving (blacklisted) anchors
 			 */
-			if (anchor.getMention().length() > 1) {
-				if (WATRelatednessComputer.getLp(anchor.getMention()) > 0.0) {
+			if ((anchor.getMention().length() > 1) && (!anchorBlackList.contains(anchor.getMention()))) {
+				if ((WATRelatednessComputer.getLp(anchor.getMention()) > LP_THRESHOLD) &&
+					(WATRelatednessComputer.getLinks(anchor.getMention()).length > LINK_FREQUENCY_THRESHOLD))
 					anchors.add(anchor);
-				}
 			}
 		}
 		return anchors;
@@ -255,11 +303,13 @@ public class TagMeAnnotator extends FakeAnnotator {
 		}
 		return finalAnnotations;
 	}
-
+	
+	
 	@Override
 	public HashSet<ScoredAnnotation> solveSa2W(String text) throws AnnotationException {
 		return (HashSet<ScoredAnnotation>) pruneAnnotations(disambiguateMentions(getAnchorsFromText(text)),text);
 	}
+	
 	
 	@Override
 	public String getName() {
