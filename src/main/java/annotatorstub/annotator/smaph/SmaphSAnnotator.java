@@ -83,6 +83,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
      * Calculate the MinED -- a measure of distance -- as described in the paper.
      */
     private static Double minED(String a, String b) {
+
         String[] termsInA = a.split(" ");
         String[] termsInB = b.split(" ");
 
@@ -154,7 +155,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // ====================================================================================
         // region Features drawn from all sources
 
-        Double f1_webTotal = SmaphSMockDataSources.getBingTotalResults().doubleValue();
+        Double f1_webTotal = bingResult.getWebTotal().doubleValue();
 
         //endregion
         // ------------------------------------------------------------------------------------
@@ -217,7 +218,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // WATSnippetAnnotations: for each snippet, the set of annotations found by annotating the snippet with WAT
         List<Set<ScoredAnnotation>> WATSnippetAnnotations = candidateEntities.getWATSnippetAnnotations();
 
-        System.out.printf("size of bingSnippets: %d\n", bingSnippets.size());
         int rankCounter = 0;
         for(String snippet : bingSnippets) {
             rankCounter++;
@@ -371,6 +371,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
             for(Tag entity : entities) {
 
                 Integer entityID = entity.getConcept();
+                if(entityID == -1) {
+                    throw new AnnotationException("Entity ID missing in candidate (received dummy value '-1').");
+                }
 
                 // Get both per-entity features and per-pair features.
                 Vector<Double> entityFeatures;

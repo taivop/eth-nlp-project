@@ -56,6 +56,8 @@ public class BingSearchAPI {
 		BingInterface.flush();
 		JSONObject result = bingQueryResult.getJSONObject("d").getJSONArray("results").getJSONObject(0);
 
+		Long webTotal = result.getLong("WebTotal");
+
 		// general information
 		String alteredQueryString = removeHighlighting(result.getString("AlteredQuery"));
 
@@ -92,7 +94,7 @@ public class BingSearchAPI {
 		}
 
 		return new BingResult(queryString, alteredQueryString, spellingSuggestions, relatedSearchTitles,
-				bingWebSnippets, bingExtendedWebSnippets);
+				bingWebSnippets, bingExtendedWebSnippets, webTotal);
 	}
 
 	//////////////////
