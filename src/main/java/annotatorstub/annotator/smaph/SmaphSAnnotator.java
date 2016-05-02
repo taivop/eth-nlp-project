@@ -286,7 +286,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         features.add(f8_boldTerms);
         features.add(f9_freq);
         features.add(f10_avgRank);
-        features.add(f11_pageRank);
+        /*features.add(f11_pageRank);
         features.add(f15_lp_min);
         features.add(f16_lp_max);
         features.add(f17_comm_min);
@@ -296,7 +296,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         features.add(f21_ambig_max);
         features.add(f22_ambig_avg);
         features.add(f23_mentMED_min);
-        features.add(f24_mentMED_max);
+        features.add(f24_mentMED_max);*/
 
         //endregion
         // ------------------------------------------------------------------------------------
