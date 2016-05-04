@@ -76,6 +76,29 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         // ====================================================================================
         //region Features drawn from sources Epsilon1 and Epsilon2
+        // TODO bingResultURLs doesn't need to be calculated again for every entity
+        List<String> bingResultURLs = bingResult.getWebResults().stream().
+                map(snippet -> snippet.getUrl()).
+                collect(Collectors.toList());
+
+        Double f3_rank;
+        Integer firstMatchPosition = 0;
+        Integer currentPosition = 0;
+        for(String resultURL : bingResultURLs) {
+            currentPosition++;
+            boolean urlFoundInResult = false;       // TODO how to check if ID corresponds to given URL?
+            if(urlFoundInResult) {
+                firstMatchPosition = currentPosition;
+                break;
+            }
+        }
+        if(firstMatchPosition == 0) {   // If we didn't find our entity in any result URL
+            // TODO this is an arbitrary choice (paper doesn't specify what happens when entity URL isn't in results)
+            f3_rank = ((Integer) (TOP_K_SNIPPETS * 4)).doubleValue();
+        } else {
+            f3_rank = firstMatchPosition.doubleValue();
+        }
+
         Double f4_EDTitle = StringUtils.minED(wikiApi.getTitlebyId(entity), query);
 
         Double f5_EDTitNP = StringUtils.minED(StringUtils.removeFinalParentheticalString(wikiApi.getTitlebyId(entity)), query);
