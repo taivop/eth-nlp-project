@@ -7,7 +7,7 @@ import annotatorstub.utils.bing.BingResult;
 import annotatorstub.utils.bing.BingSearchAPI;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
-import com.sun.tools.javac.util.Pair;
+import annotatorstub.utils.Pair;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.data.Tag;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
