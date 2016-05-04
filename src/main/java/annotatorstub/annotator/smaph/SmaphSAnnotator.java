@@ -60,9 +60,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
      * @param entity the Wikipedia ID of the entity
      * @return vector of per-entity features
      */
-    private Vector<Double> getEntityFeatures(Integer entity, String query, BingResult bingResult, CandidateEntities candidateEntities) throws IOException {
+    private List<Double> getEntityFeatures(Integer entity, String query, BingResult bingResult, CandidateEntities candidateEntities) throws IOException {
         // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
-        Vector<Double> features = new Vector<>();
+        ArrayList<Double> features = new ArrayList<>();
 
         // ====================================================================================
         // region Features drawn from all sources
@@ -188,7 +188,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
 
         // ====================================================================================
-        //region Combine features into a vector
+        //region Combine features into a list
 
         features.add(f1_webTotal);
         features.add(f4_EDTitle);
@@ -221,11 +221,11 @@ public class SmaphSAnnotator extends FakeAnnotator {
      *
      * @param mention the mention in query
      * @param entity the Wikipedia ID of the entity
-     * @return vector of per-pair features
+     * @return list of per-pair features
      */
-    private Vector<Double> getMentionEntityFeatures(MentionCandidate mention, Integer entity, String query) {
+    private List<Double> getMentionEntityFeatures(MentionCandidate mention, Integer entity, String query) {
         // TODO
-        Vector<Double> features = new Vector<>();
+        ArrayList<Double> features = new ArrayList<>();
 
         features.add(42.0);
 
@@ -288,8 +288,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 }
 
                 // Get both per-entity features and per-pair features.
-                Vector<Double> entityFeatures;
-                Vector<Double> mentionEntityFeatures;
+                List<Double> entityFeatures;
+                List<Double> mentionEntityFeatures;
                 try {
                      entityFeatures = getEntityFeatures(entityID, query, bingResult, candidateEntities);
                      mentionEntityFeatures = getMentionEntityFeatures(mention, entityID, query);
@@ -297,7 +297,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
                     throw new AnnotationException(e.getMessage());
                 }
 
-                Vector<Double> features = new Vector<>();
+                ArrayList<Double> features = new ArrayList<>();
                 features.addAll(entityFeatures);
                 features.addAll(mentionEntityFeatures);
 
