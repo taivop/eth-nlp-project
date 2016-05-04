@@ -1,6 +1,7 @@
 package annotatorstub.annotator.smaph;
 
 import annotatorstub.annotator.FakeAnnotator;
+import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.WATRelatednessComputer;
 import annotatorstub.utils.bing.BingResult;
 import annotatorstub.utils.bing.BingSearchAPI;
@@ -44,101 +45,12 @@ public class SmaphSAnnotator extends FakeAnnotator {
         WATRelatednessComputer.setCache("relatedness.cache");
     }
 
-
-    private static int minimum(int a, int b, int c) {
-        return Math.min(Math.min(a, b), c);
-    }
-
-    private static Double average(Collection<Double> collection) {
+    public static Double average(Collection<Double> collection) {
         Double sum = 0.0;
         for(Double element : collection) {
             sum += element;
         }
         return sum / collection.size();
-    }
-
-    /**
-     * Calculate Levenshtein edit distance between strings a and b.
-     * @see https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Java
-     */
-    private static int ED(CharSequence a, CharSequence b) {
-        int[][] distance = new int[a.length() + 1][b.length() + 1];
-
-        for (int i = 0; i <= a.length(); i++)
-            distance[i][0] = i;
-        for (int j = 1; j <= b.length(); j++)
-            distance[0][j] = j;
-
-        for (int i = 1; i <= a.length(); i++)
-            for (int j = 1; j <= b.length(); j++)
-                distance[i][j] = minimum(
-                        distance[i - 1][j] + 1,
-                        distance[i][j - 1] + 1,
-                        distance[i - 1][j - 1] + ((a.charAt(i - 1) == b.charAt(j - 1)) ? 0 : 1));
-
-        return distance[a.length()][b.length()];
-    }
-
-    /**
-     * Calculate the MinED -- a measure of distance -- as described in the paper.
-     */
-    private static Double minED(String a, String b) {
-
-        String[] termsInA = a.split(" ");
-        String[] termsInB = b.split(" ");
-
-        Double minDistancesSum = 0.0;
-
-        for(String termInA : termsInA) {
-            String closestInB = "";
-            Double currentMinED = Double.POSITIVE_INFINITY;
-
-            for(String termInB : termsInB) {
-                Double editDistance = (double) ED(termInA, termInB);
-                if(editDistance < currentMinED) {
-                    closestInB = termInB;
-                    currentMinED = editDistance;
-                }
-            }
-
-            minDistancesSum += currentMinED;
-        }
-
-        return minDistancesSum / termsInA.length;
-    }
-
-    /**
-     * Remove a trailing parenthetical string, e.g. 'Swiss (nationality)' -> 'Swiss '.
-     * @param s string to truncate
-     * @return string without trailing stuff in parentheses
-     */
-    private static String removeFinalParentheticalString(String s) {
-        int lastOpeningParenIndex = s.lastIndexOf('(');
-        int lastClosingParenIndex = s.lastIndexOf(')');
-
-        if(lastClosingParenIndex > lastOpeningParenIndex) {     // Make sure the opening parenthesis is closed.
-            return s.substring(0, lastOpeningParenIndex);
-        } else {
-            return s;
-        }
-    }
-
-    /**
-     * Check if string is capitalised (positive examples: Taivo, Escher-Wyss Platz; negative: OMG, banana).
-     * TODO Not sure if all-caps strings ("OMG") should return true or not -- the article doesn't specify.
-     */
-    private static boolean isCapitalised(String s) {
-        String[] parts = s.split(" |-");
-        for(String part : parts) {
-            boolean firstLetterUpperCase = Character.isUpperCase(part.charAt(0));
-            boolean restLowerCase = part.substring(1) == part.substring(1).toLowerCase();
-
-            if(!firstLetterUpperCase || !restLowerCase) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
 
@@ -164,9 +76,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         // ====================================================================================
         //region Features drawn from sources Epsilon1 and Epsilon2
-        Double f4_EDTitle = minED(wikiApi.getTitlebyId(entity), query);
+        Double f4_EDTitle = StringUtils.minED(wikiApi.getTitlebyId(entity), query);
 
-        Double f5_EDTitNP = minED(removeFinalParentheticalString(wikiApi.getTitlebyId(entity)), query);
+        Double f5_EDTitNP = StringUtils.minED(StringUtils.removeFinalParentheticalString(wikiApi.getTitlebyId(entity)), query);
 
         Double f6_minEDBolds = Double.POSITIVE_INFINITY;
         Double f7_captBolds = 0.0;
@@ -178,13 +90,13 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 flatMap(l -> l.stream()).
                 collect(Collectors.toList());
         for(String boldPortion : boldPortions) {
-            Double currentMinED = minED(boldPortion, query);
+            Double currentMinED = StringUtils.minED(boldPortion, query);
             if(currentMinED < f6_minEDBolds) {
                 f6_minEDBolds = currentMinED;
             }
 
             // Check if word is capitalised (first letter uppercase and the rest lowercase)
-            if(isCapitalised(boldPortion)) {
+            if(StringUtils.isCapitalised(boldPortion)) {
                 f7_captBolds += 1;
             }
 
@@ -255,7 +167,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
             linkProbabilities.add(SmaphSMockDataSources.getWikiLinkProbability(mention));
             commonnesses.add(SmaphSMockDataSources.getWikiCommonness(mention, entity));
             ambiguities.add(SmaphSMockDataSources.getWikiAmbiguity(mention));
-            minEDs.add(minED(mention, query));
+            minEDs.add(StringUtils.minED(mention, query));
         }
 
         Double f15_lp_min = Collections.min(linkProbabilities);
