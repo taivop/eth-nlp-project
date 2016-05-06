@@ -76,17 +76,18 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         // ====================================================================================
         //region Features drawn from sources Epsilon1 and Epsilon2
-        // TODO bingResultURLs doesn't need to be calculated again for every entity
-        List<String> bingResultURLs = bingResult.getWebResults().stream().
-                map(snippet -> snippet.getUrl()).
+        // TODO bingResultTitles doesn't need to be calculated again for every entity
+        List<String> bingResultTitles = bingResult.getWebResults().stream().
+                map(snippet -> snippet.getTitle()).
                 collect(Collectors.toList());
 
         Double f3_rank;
         Integer firstMatchPosition = 0;
         Integer currentPosition = 0;
-        for(String resultURL : bingResultURLs) {
+        for(String resultTitle : bingResultTitles) {
             currentPosition++;
-            boolean urlFoundInResult = false;       // TODO how to check if ID corresponds to given URL?
+            String bingPageTitle = StringUtils.extractPageTitleFromBingSnippetTitle(resultTitle);
+            boolean urlFoundInResult = bingPageTitle.equals(wikiApi.getTitlebyId(entity));
             if(urlFoundInResult) {
                 firstMatchPosition = currentPosition;
                 break;
@@ -214,6 +215,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         //region Combine features into a list
 
         features.add(f1_webTotal);
+        features.add(f3_rank);
         features.add(f4_EDTitle);
         features.add(f5_EDTitNP);
         features.add(f6_minEDBolds);

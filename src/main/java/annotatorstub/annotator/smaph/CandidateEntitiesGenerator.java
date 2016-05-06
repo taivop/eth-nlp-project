@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.bing.BingResult;
 import annotatorstub.utils.bing.BingWebSnippet;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
@@ -95,8 +96,7 @@ public class CandidateEntitiesGenerator {
 		List<Set<ScoredAnnotation>> WATSnippetAnnotations = new ArrayList<>();
 		
 		for (BingWebSnippet wikiResult : result.getWikipediaResults()) {
-			String wikiTitle = wikiResult.getTitle();
-			wikiTitle = wikiTitle.substring(0, wikiTitle.indexOf(" - Wikip"));
+			String wikiTitle = StringUtils.extractPageTitleFromBingSnippetTitle(wikiResult.getTitle());
 
 			//discard disambiguation and list pages
 			if ((!wikiTitle.toLowerCase().contains("disambiguation")) && 
@@ -110,14 +110,16 @@ public class CandidateEntitiesGenerator {
 		}
 		
 		for (BingWebSnippet wikiResult : result.getExtendedWikipediaResults()) {
-			String wikiTitle = wikiResult.getTitle().replace(" - Wikipedia, the free encyclopedia", "")
-													.replace("- Wikipedia, the free ...", "");
+			String wikiTitle = StringUtils.extractPageTitleFromBingSnippetTitle(wikiResult.getTitle());
 			
 			//discard disambiguation and list pages
 			if ((!wikiTitle.toLowerCase().contains("disambiguation")) && 
 				(!wikiTitle.toLowerCase().contains("list"))){
 					int wikiId = wikipediaApiInterface.getIdByTitle(wikiTitle);
-					entitiesQueryExtended.add(wikiId);
+
+					if(wikiId != -1) {				// If no entity was found, ignore it
+						entitiesQueryExtended.add(wikiId);
+					}
 			}
 		}
 		

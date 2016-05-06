@@ -92,4 +92,17 @@ public class StringUtils {
 
         return true;
     }
+
+    /**
+     * Returns the Wikipedia page title, given a Bing snippet title that links to a Wikipedia page.
+     * TODO I (Taivo) think it doesn't work for long names because Bing clips the title if it's too long.
+     */
+    public static String extractPageTitleFromBingSnippetTitle(String bingSnippetTitle) {
+        Integer clipStartIndex = bingSnippetTitle.indexOf(" - Wikip");
+        if(clipStartIndex >= 0) {
+            return bingSnippetTitle.substring(0, clipStartIndex);
+        } else {
+            return bingSnippetTitle;
+        }
+    }
 }
