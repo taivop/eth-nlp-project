@@ -69,7 +69,7 @@ public class StringUtils {
         int lastClosingParenIndex = s.lastIndexOf(')');
 
         if(lastClosingParenIndex > lastOpeningParenIndex) {     // Make sure the opening parenthesis is closed.
-            return s.substring(0, lastOpeningParenIndex);
+            return s.substring(0, lastOpeningParenIndex).trim();
         } else {
             return s;
         }
