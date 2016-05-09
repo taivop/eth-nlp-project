@@ -13,7 +13,7 @@ public class StringUtils {
      * Calculate Levenshtein edit distance between strings a and b.
      * @see https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#Java
      */
-    private static int ED(CharSequence a, CharSequence b) {
+    public static int ED(CharSequence a, CharSequence b) {
         int[][] distance = new int[a.length() + 1][b.length() + 1];
 
         for (int i = 0; i <= a.length(); i++)

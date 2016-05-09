@@ -14,6 +14,7 @@ import it.unipi.di.acube.batframework.utils.AnnotationException;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.util.parsing.combinator.testing.Str;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -248,11 +249,36 @@ public class SmaphSAnnotator extends FakeAnnotator {
      * @param entity the Wikipedia ID of the entity
      * @return list of per-pair features
      */
-    private List<Double> getMentionEntityFeatures(MentionCandidate mention, Integer entity, String query) {
+    private List<Double> getMentionEntityFeatures(MentionCandidate mention, Integer entity, String query) throws IOException {
+        String mentionString = mention.getMention();
+        String entityTitle = wikiApi.getTitlebyId(entity);
         // TODO
         ArrayList<Double> features = new ArrayList<>();
 
-        features.add(42.0);
+        Double f25_anchorsAvgED;
+        Double sum_enumerator = 0.0;
+        Double sum_denominator = 0.0;
+        for(String anchor : SmaphSMockDataSources.getWikiAnchorsLinkingToEntity(entity)) {
+            Double sqrt_F = Math.sqrt(SmaphSMockDataSources.getWikiEntityAnchorLinkCount(entity, anchor));
+            sum_enumerator += sqrt_F * StringUtils.ED(anchor, mentionString);
+            sum_denominator += sqrt_F;
+        }
+        if(sum_denominator == 0.0) {
+            f25_anchorsAvgED = 0.0;
+        } else {
+            f25_anchorsAvgED = sum_enumerator / sum_denominator;
+        }
+
+        Double f26_minEDTitle = StringUtils.minED(mentionString, entityTitle);
+        Double f27_EdTitle = Double.valueOf(StringUtils.ED(mentionString, entityTitle));
+        Double f28_commonness = SmaphSMockDataSources.getWikiCommonness(mentionString, entity);
+        Double f29_lp = SmaphSMockDataSources.getWikiLinkProbability(mentionString);
+
+        features.add(f25_anchorsAvgED);
+        features.add(f26_minEDTitle);
+        features.add(f27_EdTitle);
+        features.add(f28_commonness);
+        features.add(f29_lp);
 
         return features;
     }
