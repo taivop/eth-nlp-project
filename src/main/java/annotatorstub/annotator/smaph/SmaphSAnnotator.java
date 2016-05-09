@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 /**
  * SMAPH-S annotator from the paper "A Piggyback System for Joint Entity Mention Detection and Linking in Web Queries".
- * @see http://www2016.net/proceedings/proceedings/p567.pdf
+ * @see <a href="http://www2016.net/proceedings/proceedings/p567.pdf">the original publication</a>.
  */
 
 public class SmaphSAnnotator extends FakeAnnotator {

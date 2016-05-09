@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 
 //import annotatorstub.annotator.smaph.SMAPHAnnotator;
+import annotatorstub.annotator.smaph.SmaphSAnnotator;
 import annotatorstub.utils.Utils;
 import annotatorstub.utils.WATRelatednessComputer;
 import it.unipi.di.acube.batframework.cache.BenchmarkCache;
@@ -25,8 +26,29 @@ import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
  */
 
 public class SMAPHMain {
+
+  /**
+   * Toy example to function as a smoke test for the SMAPH-S feature generation.
+   */
+	public static void verifySMAPHFeatures() {
+    System.out.println("Simple SMAPH-S feature preview.");
+    String sampleQuery = "neil armstrong moon landing";
+    System.out.printf("Using sample query: %s%n", sampleQuery);
+
+    try {
+      SmaphSAnnotator smaphSAnnotator = new SmaphSAnnotator();
+      smaphSAnnotator.getCandidatesWithFeatures(sampleQuery);
+    }
+    catch(Exception e) {
+      System.err.println("Something went wrong running the SMAPH-S annotator.");
+      e.printStackTrace();
+    }
+  }
 		
 	public static void main(String[] args) throws Exception {
+
+    verifySMAPHFeatures();
+
 		/*WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
 		A2WDataset dataSet = DatasetBuilder.getGerdaqTrainB();
 		SMAPHAnnotator smaphAnnotator = new SMAPHAnnotator();
@@ -41,6 +63,7 @@ public class SMAPHMain {
 		
 		wikiApi.flush();
 		WATRelatednessComputer.flush();*/
+
 	}
 
 }
