@@ -13,7 +13,6 @@ import java.util.Set;
  * All the functions actually need a query argument, but we can do this in the constructor of the class later.
  */
 public class SmaphSMockDataSources {
-
     /**
      * Returns a set of candidate entities from the output of TagMeAnnotator.
      *

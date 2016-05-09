@@ -8,6 +8,7 @@ import annotatorstub.utils.bing.BingSearchAPI;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
 import annotatorstub.utils.Pair;
+import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.data.Tag;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
@@ -25,7 +26,6 @@ import java.util.stream.Collectors;
  * SMAPH-S annotator from the paper "A Piggyback System for Joint Entity Mention Detection and Linking in Web Queries".
  * @see <a href="http://www2016.net/proceedings/proceedings/p567.pdf">the original publication</a>.
  */
-
 public class SmaphSAnnotator extends FakeAnnotator {
 
     private static BingSearchAPI bingApi;
@@ -34,7 +34,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
     private static final int TOP_K_SNIPPETS = 25;
     private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    public SmaphSAnnotator() throws Exception {
+    private SmaphSPruner pruner;
+
+    public SmaphSAnnotator(SmaphSPruner pruner) throws Exception {
         BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
         bingApi = BingSearchAPI.getInstance();
 
@@ -52,7 +54,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
         }
         return sum / collection.size();
     }
-
 
     /**
      * Returns the SMAPH features for given entity. See table 4 in article.
@@ -179,16 +180,18 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         Double f11_pageRank = SmaphSMockDataSources.getWikiPageRankScore(entity);
 
-
         ArrayList<Double> linkProbabilities = new ArrayList<>();
         ArrayList<Double> commonnesses = new ArrayList<>();
         ArrayList<Double> ambiguities = new ArrayList<>();
         ArrayList<Double> minEDs = new ArrayList<>();
         for(Pair<String, String> mentionSnippetPair : mentionSnippetPairs) {
-            String mention = mentionSnippetPair.fst;
-            String snippet = mentionSnippetPair.snd;
+          String mention = mentionSnippetPair.fst;
+          String snippet = mentionSnippetPair.snd;
 
-            linkProbabilities.add(SmaphSMockDataSources.getWikiLinkProbability(mention));
+          // TODO(andrei): Maybe get commonness from:
+          //   WATRelatednessComputer.getCommonness("obama", obamaId));
+
+          linkProbabilities.add(SmaphSMockDataSources.getWikiLinkProbability(mention));
             commonnesses.add(SmaphSMockDataSources.getWikiCommonness(mention, entity));
             ambiguities.add(SmaphSMockDataSources.getWikiAmbiguity(mention));
             minEDs.add(StringUtils.minED(mention, query));
@@ -336,7 +339,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         throw new AnnotationException("solveSa2W not implemented");
     }
 
-    public String getName() {
+
+  public String getName() {
         return "SMAPH-S annotator";
     }
 
