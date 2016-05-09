@@ -1,11 +1,16 @@
 package annotatorstub.main;
 
+import java.util.Iterator;
+import java.util.Set;
+
+import annotatorstub.annotator.smaph.CandidateEntities;
+import annotatorstub.annotator.smaph.CandidateEntitiesGenerator;
 import annotatorstub.utils.bing.BingResult;
 import annotatorstub.utils.bing.BingSearchAPI;
 import annotatorstub.utils.bing.BingWebSnippet;
 
 public class BingSearchMain {
-
+	
 	public static void main(String[] args) throws Exception {
 		// YOU HAVE TO DO THIS ONLY ONCE:
 		BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
@@ -62,6 +67,6 @@ public class BingSearchMain {
 			System.out.println("\t Full description: > " + wikiResult.getDescription());
 
 		}
-
+		
 	}
 }
