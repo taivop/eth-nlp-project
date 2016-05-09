@@ -11,4 +11,6 @@
 *.iml
 
 # OS X
-.DS_Store
+.DS_Storelib/
+models/
+lib/
