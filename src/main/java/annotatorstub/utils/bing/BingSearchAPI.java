@@ -39,6 +39,7 @@ public class BingSearchAPI {
 		bing = new BingInterface(KEY);
 		try {
 			BingInterface.setCache("bing.cache");
+			System.out.println("Using bing query cache.");
 		} catch (ClassNotFoundException | IOException e) {
 			System.err.println("BingSearchAPI: error on loading bing.cache: " + e.getMessage());
 		}

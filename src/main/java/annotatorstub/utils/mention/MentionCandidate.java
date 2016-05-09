@@ -30,4 +30,8 @@ public class MentionCandidate {
 	public String getMention() {
 		return mention;
 	}
+
+	public int getLength() {
+		return queryEndPosition - queryStartPosition;
+	}
 }
