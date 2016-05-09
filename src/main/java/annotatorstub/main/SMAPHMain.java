@@ -3,7 +3,7 @@ package annotatorstub.main;
 import java.util.HashSet;
 import java.util.List;
 
-import annotatorstub.annotator.smaph.SMAPHAnnotator;
+//import annotatorstub.annotator.smaph.SMAPHAnnotator;
 import annotatorstub.utils.Utils;
 import annotatorstub.utils.WATRelatednessComputer;
 import it.unipi.di.acube.batframework.cache.BenchmarkCache;
@@ -27,7 +27,7 @@ import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 public class SMAPHMain {
 		
 	public static void main(String[] args) throws Exception {
-		WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
+		/*WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
 		A2WDataset dataSet = DatasetBuilder.getGerdaqTrainB();
 		SMAPHAnnotator smaphAnnotator = new SMAPHAnnotator();
 	
@@ -40,7 +40,7 @@ public class SMAPHMain {
 		Utils.printMetricsResultSet("C2W", C2WRes, smaphAnnotator.getName());
 		
 		wikiApi.flush();
-		WATRelatednessComputer.flush();
+		WATRelatednessComputer.flush();*/
 	}
 
 }

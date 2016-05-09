@@ -45,9 +45,14 @@ public class BingResult {
 	 */
 	private List<BingWebSnippet> extendedWikipediaResults;
 
+	/**
+	 * number of results in query
+	 */
+	private Long webTotal;
+
 	public BingResult(String queryString, String alteredQueryString, List<String> spellingSuggestions,
 			List<String> relatedSearchTitles, List<BingWebSnippet> webResults,
-			List<BingWebSnippet> extendedWikipediaResults) {
+			List<BingWebSnippet> extendedWikipediaResults, Long webTotal) {
 		super();
 		this.queryString = queryString;
 		if (alteredQueryString.isEmpty()) {
@@ -61,6 +66,7 @@ public class BingResult {
 		this.relatedSearchTitles = relatedSearchTitles;
 		this.webResults = webResults;
 		this.extendedWikipediaResults = extendedWikipediaResults;
+		this.webTotal = webTotal;
 	}
 
 	public String getQueryString() {
@@ -104,4 +110,7 @@ public class BingResult {
 		return extendedWikipediaResults;
 	}
 
+	public Long getWebTotal() {
+		return webTotal;
+	}
 }

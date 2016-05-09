@@ -9,5 +9,8 @@
 # IntelliJ
 .idea
 *.iml
-lib/
+
+# OS X
+.DS_Storelib/
 models/
+lib/
