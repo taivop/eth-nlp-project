@@ -189,8 +189,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
             String mention = mentionSnippetPair.fst;
             String snippet = mentionSnippetPair.snd;
 
-            linkProbabilities.add(SmaphSMockDataSources.getWikiLinkProbability(mention));
-            commonnesses.add(SmaphSMockDataSources.getWikiCommonness(mention, entity));
+            linkProbabilities.add(WATRelatednessComputer.getLp(mention));
+            commonnesses.add(WATRelatednessComputer.getCommonness(mention, entity));
             ambiguities.add(SmaphSMockDataSources.getWikiAmbiguity(mention));
             minEDs.add(StringUtils.minED(mention, query));
         }
@@ -224,13 +224,13 @@ public class SmaphSAnnotator extends FakeAnnotator {
         features.add(f8_boldTerms);
         features.add(f9_freq);
         features.add(f10_avgRank);
-        /*features.add(f11_pageRank);
+        // features.add(f11_pageRank);
         features.add(f15_lp_min);
         features.add(f16_lp_max);
         features.add(f17_comm_min);
         features.add(f18_comm_max);
         features.add(f19_comm_avg);
-        features.add(f20_ambig_min);
+        /*features.add(f20_ambig_min);
         features.add(f21_ambig_max);
         features.add(f22_ambig_avg);
         features.add(f23_mentMED_min);
@@ -271,8 +271,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         Double f26_minEDTitle = StringUtils.minED(mentionString, entityTitle);
         Double f27_EdTitle = Double.valueOf(StringUtils.ED(mentionString, entityTitle));
-        Double f28_commonness = SmaphSMockDataSources.getWikiCommonness(mentionString, entity);
-        Double f29_lp = SmaphSMockDataSources.getWikiLinkProbability(mentionString);
+        Double f28_commonness = WATRelatednessComputer.getCommonness(mentionString, entity);
+        Double f29_lp = WATRelatednessComputer.getLp(mentionString);
 
         features.add(f25_anchorsAvgED);
         features.add(f26_minEDTitle);
