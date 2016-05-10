@@ -34,7 +34,6 @@ object MentionPosition {
 }
 
 object SmaphSPruner {
-
   def savePruner(fileName: String, pruner: SmaphSPruner): Unit = ???
 
   def loadPruner(fileName: String): SmaphSPruner = ???
@@ -143,19 +142,31 @@ object SmaphSPruner {
     trainPruner(allTrainingData)
   }
 
+  def trainPrunerFromCsv(csvFileName: String): SmaphSPruner = {
+    val data = loadTrainingData(csvFileName)
+    trainPruner(data)
+  }
+
   /**
    * Trains the pruning classifier using annotation candidates matched with the ground truth.
    */
   def trainPruner(processedTrainingData: List[(SmaphCandidate, Boolean)]): SmaphSPruner = {
 
 
+
     new SmaphSPruner
   }
 
   /**
-   * Loads pre-computed training data from the specified file.
+   * Loads pre-computed training data from the specified CSV file.
    */
-  def loadTrainingData(csvFileName: String): List[(SmaphCandidate, Boolean)] = ???
+  def loadTrainingData(csvFileName: String): List[(SmaphCandidate, Boolean)] =
+    scala.io.Source.fromFile(csvFileName).getLines.map(parseCsvLine).toList
+
+  def parseCsvLine(line: String): (SmaphCandidate, Boolean) = {
+    // TODO(andrei): Do this in an easy to extend way.
+    ???
+  }
 
   /**
    * Helper function which takes a pre-computed training data row consisting of a SmaphCandidate and

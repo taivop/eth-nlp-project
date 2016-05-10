@@ -10,7 +10,8 @@ object SMAPHSFeaturesMain {
     WATRelatednessComputer.setCache("relatedness.cache")
     // TODO(andrei): Train on both train set A and train set B.
     // TODO(andrei): Check if additional Yahoo data is useful.
-    val pruner = SmaphSPruner.trainPruner(DatasetBuilder.getGerdaqTrainA)
+//    val pruner = SmaphSPruner.trainPruner(DatasetBuilder.getGerdaqTrainA)
+    val pruner = SmaphSPruner.trainPrunerFromCsv("data/all-candidates-4-10-14-10.csv")
     val annotator = new SmaphSAnnotator(pruner)
 
   }
