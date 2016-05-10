@@ -69,7 +69,10 @@ object SmaphSPruner {
     // The file where we will be saving our training data for safe keeping.
     val csvFileName = genCsvFileName()
     val start = System.nanoTime()
-    queryGroundTruths.zipWithIndex.foreach { case ((query, goldAnnotations), index) =>
+
+    val allTrainingData: List[(SmaphCandidate, Boolean)] = queryGroundTruths
+      .zipWithIndex
+      .flatMap { case ((query, goldAnnotations), index) =>
       val now = System.nanoTime()
       val elapsedSeconds = (now - start).toDouble / 1000 / 1000 / 1000
 
@@ -132,16 +135,33 @@ object SmaphSPruner {
       negativeCandidates.foreach { candidate =>
         dumpTrainingLine(csvFileName, candidate, relevant = false)
       }
+
+      positiveCandidates.map { c => (c, true) } ++ negativeCandidates.map { c => (c, false) }
     }
 
-    // TOOD(andrei): Train pruner SVM here.
+    // We processed everything, and now we are ready to train the SVM.
+    trainPruner(allTrainingData)
+  }
+
+  /**
+   * Trains the pruning classifier using annotation candidates matched with the ground truth.
+   */
+  def trainPruner(processedTrainingData: List[(SmaphCandidate, Boolean)]): SmaphSPruner = {
+
 
     new SmaphSPruner
   }
 
   /**
-   * Helper unit which takes a pre-computed training data row consisting of a SmaphCandidate and
-   * a flag indicating whether it's relevant or not.
+   * Loads pre-computed training data from the specified file.
+   */
+  def loadTrainingData(csvFileName: String): List[(SmaphCandidate, Boolean)] = ???
+
+  /**
+   * Helper function which takes a pre-computed training data row consisting of a SmaphCandidate and
+   * a flag indicating whether it's relevant or not, and dumps it to a CSV file which can be
+   * reloaded in Java or Scala, as well as any other ML environment you could think of (e.g.
+   * Python+sklearn).
    */
   private def dumpTrainingLine(
     fileName: String,
@@ -160,6 +180,7 @@ object SmaphSPruner {
    }
 
   private def appendCsvLine(fileName: String, line: String): Unit = {
+    // TODO(andrei): Use scala-arm to make this code safer.
     val writer = new FileWriter(fileName, true)
     writer.append(line)
     writer.close()
