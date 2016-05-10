@@ -8,7 +8,7 @@ import it.unipi.di.acube.batframework.problems.A2WDataset
 
 import collection.JavaConverters._
 
-import java.util.{HashSet => JHashSet}
+import java.util.{HashSet => JHashSet, Calendar, GregorianCalendar, Date}
 import scala.collection.Set
 
 
@@ -123,7 +123,9 @@ object SmaphSPruner {
       println(s"Found ${positiveCandidates.length} positive candidate(s).")
       println(s"Found ${negativeCandidates.length} negative candidate(s).")
 
-      val csvFileName = "data/all-candidates.csv"
+      // Dumps all the labeled training information into a CSV file, for later inspection and
+      // validation.
+      val csvFileName = genCsvFileName()
       positiveCandidates.foreach { candidate =>
         dumpTrainingLine(csvFileName, candidate, relevant = true)
       }
@@ -131,6 +133,8 @@ object SmaphSPruner {
         dumpTrainingLine(csvFileName, candidate, relevant = false)
       }
     }
+
+    // TOOD(andrei): Train here
 
     new SmaphSPruner
   }
@@ -147,6 +151,7 @@ object SmaphSPruner {
     appendCsvLine(fileName, s"${formatCandidate(smaphCandidate)},$relevant\n")
 
    private def formatCandidate(smaphCandidate: SmaphCandidate): String = {
+     // TODO(andrei): Escape commas in mention.
      val featureString = smaphCandidate.getFeatures.asScala.toList.mkString(", ")
      val mc = smaphCandidate.getMentionCandidate
      s"${smaphCandidate.getEntityID}, ${mc.getMention}, ${mc.getQueryStartPosition}, " +
@@ -158,6 +163,16 @@ object SmaphSPruner {
     val writer = new FileWriter(fileName, true)
     writer.append(line)
     writer.close()
+  }
+
+  private def genCsvFileName(): String = {
+    val now: Calendar = new GregorianCalendar
+    val day = now.get(Calendar.DAY_OF_MONTH)
+    val month = now.get(Calendar.MONTH)
+    val hour = now.get(Calendar.HOUR_OF_DAY)
+    val min = now.get(Calendar.MINUTE)
+
+    s"data/all-candidates-$month-$day-$hour-$min.csv"
   }
 
   private def cvSvm(X: Array[Array[Double]], y: Array[Int]) = {

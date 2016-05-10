@@ -155,10 +155,13 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         // TODO bingSnippets doesn't need to be calculated again for every entity
         // bingSnippets: snippets returned by querying bing with the original query
-        List<String> bingSnippets = bingResult.getWebResults().stream().
+        List<String> bingSnippetsFull = bingResult.getWebResults().stream().
                 map(snippet -> snippet.getDescription()).
-                collect(Collectors.toList()).
-                subList(0, TOP_K_SNIPPETS);
+                collect(Collectors.toList());
+        // This ensures that we don't crash when the total number of returned results is smaller
+        // than 'TOP_K_SNIPPETS'.
+        int listEnd = Math.min(TOP_K_SNIPPETS, bingSnippetsFull.size());
+        List<String> bingSnippets = bingSnippetsFull.subList(0, listEnd);
 
         // snippetEntities: for each snippet, the set of entitities that were found by annotating the snippet with WAT
         List<Set<Integer>> snippetEntities = candidateEntities.getEntitiesQuerySnippetsWATBySnippet();
