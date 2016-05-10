@@ -66,13 +66,14 @@ object SmaphSPruner {
     // TODO(andrei): Move feature creation to separate object.
     val dummyAnnotator = new SmaphSAnnotator(null)
 
+    // The file where we will be saving our training data for safe keeping.
+    val csvFileName = genCsvFileName()
     val start = System.nanoTime()
     queryGroundTruths.zipWithIndex.foreach { case ((query, goldAnnotations), index) =>
-      // Get all the candidates and Scalafy them (Java Pair -> Scala Tuple)
-
       val now = System.nanoTime()
       val elapsedSeconds = (now - start).toDouble / 1000 / 1000 / 1000
 
+      // Get all the candidates and Scalafy them (Java Pair -> Scala Tuple).
       val allCandidates: List[SmaphCandidate] = dummyAnnotator
         .getCandidatesWithFeatures(query)
         .asScala
@@ -125,7 +126,6 @@ object SmaphSPruner {
 
       // Dumps all the labeled training information into a CSV file, for later inspection and
       // validation.
-      val csvFileName = genCsvFileName()
       positiveCandidates.foreach { candidate =>
         dumpTrainingLine(csvFileName, candidate, relevant = true)
       }
@@ -134,7 +134,7 @@ object SmaphSPruner {
       }
     }
 
-    // TOOD(andrei): Train here
+    // TOOD(andrei): Train pruner SVM here.
 
     new SmaphSPruner
   }
