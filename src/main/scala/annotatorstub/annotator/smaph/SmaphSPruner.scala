@@ -6,6 +6,12 @@ import annotatorstub.utils.mention.{SmaphCandidate, MentionCandidate}
 import it.unipi.di.acube.batframework.data.Annotation
 import it.unipi.di.acube.batframework.problems.A2WDataset
 
+import smile.classification._
+import smile.data._
+import smile.io._
+import smile.math.kernel.LinearKernel
+import smile.validation._
+
 import collection.JavaConverters._
 
 import java.util.{HashSet => JHashSet, Calendar, GregorianCalendar, Date}
@@ -151,7 +157,26 @@ object SmaphSPruner {
    * Trains the pruning classifier using annotation candidates matched with the ground truth.
    */
   def trainPruner(processedTrainingData: List[(SmaphCandidate, Boolean)]): SmaphSPruner = {
+    println(s"Will now train the pruner using ${processedTrainingData.length} data points.")
 
+    // Temporarily limiting the data used for training in order to evaluate Smile's SVM
+    // implementation. It seems slow as balls. Looks like it's implemented in pure Java, and
+    // there's no stochastic option.
+    val X: Array[Array[Double]] = processedTrainingData.slice(0, 250)
+      .map { case(candidate, _) => candidate.getFeatures.asScala.map { _.toDouble }.toArray }
+      .toArray
+    val y: Array[Int] = processedTrainingData.slice(0, 250)
+      .map { case(_, relevance) => if(relevance) 1 else 0 }.toArray
+
+    val linKernel = new LinearKernel
+    val C = 10e-1
+
+    println("Will perform kfold cross-validation")
+    // Note: need to use custom SVM constructor in order to be able to specify class weights.
+    cv(X, y, k = 3) { case(xfold, yfold) => {
+        svm(xfold, yfold, linKernel, C)
+      }
+    }
 
 
     new SmaphSPruner
@@ -163,9 +188,39 @@ object SmaphSPruner {
   def loadTrainingData(csvFileName: String): List[(SmaphCandidate, Boolean)] =
     scala.io.Source.fromFile(csvFileName).getLines.map(parseCsvLine).toList
 
+  val ExpectedLineLength = 18
+  // TODO(andrei): Keep this up to date as we add more and more features into our pipeline.
+  val FeatureCount = 10
+
   def parseCsvLine(line: String): (SmaphCandidate, Boolean) = {
-    // TODO(andrei): Do this in an easy to extend way.
-    ???
+    val segments = line.split("\\s*,\\s*").ensuring(
+      _.length == ExpectedLineLength,
+      s"Bad component length in line: ${line} (expected $ExpectedLineLength)")
+
+    // Sample line (May 10):
+    // 364646, lumet familt, 7, 19, 12, featureStart, [feature_count features], featureEnd, true
+    val smaphCandidate = new SmaphCandidate(
+      segments(0).toInt,
+      new MentionCandidate(segments(2).toInt, segments(3).toInt, segments(1)),
+      segments.slice(6, 6 + FeatureCount)
+        // Convert the strings to doubles.
+        .map { _.toDouble }
+        // Fix up bad values.
+        .map { feature: Double =>
+          if (feature.isInfinite || feature.isNaN)
+            0.0
+          else
+            feature
+        }
+        // Convert to the expected Java format.
+        .map { raw => java.lang.Double.valueOf(raw) }
+        .toList
+        .asJava
+    ).ensuring { candidate => candidate.getFeatures.size() == FeatureCount }
+
+    val relevance = segments(segments.length - 1).toBoolean
+
+    (smaphCandidate, relevance)
   }
 
   /**
