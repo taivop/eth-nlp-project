@@ -26,24 +26,17 @@ class SmaphSPruner {
   def shouldKeep(annotation: Annotation): Boolean = ???
 }
 
-/**
- * Super lighweight helper class for performing query matchmaking.
- */
-case class MentionPosition(start: Int, length: Int)
-
-object MentionPosition {
-//  def apply(annotation: Annotation): MentionPosition = MentionPosition(annotation.getPosition, annotation.getLength)
-//
-//  def apply(candidate: MentionCandidate) = MentionPosition(
-//    candidate.getQueryStartPosition,
-//    candidate.getQueryEndPosition - candidate.getQueryStartPosition)
-}
-
 object SmaphSPruner {
   def savePruner(fileName: String, pruner: SmaphSPruner): Unit = ???
 
   def loadPruner(fileName: String): SmaphSPruner = ???
 
+  /**
+   * Generates training data from the given dataset, dumps it to a CSV file for later use, and
+   * then trains a simple SVM using the data.
+   *
+   * Note: Training is currently VERY slow.
+   */
   def trainPruner(dataset: A2WDataset): SmaphSPruner = {
     // HERE BE DRAGONS: Make sure that you're not mixing up Java and Scala containers when
     // dealing with inter-language marshalling. Otherwise one might end up spending hours trying
