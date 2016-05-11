@@ -40,6 +40,9 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
+/**
+ * Copy of WATAnnotator from bat framework, modified to use some additional caching.
+ */
 public class HelperWATAnnotator implements
         Sa2WSystem, MentionSpotter, CandidatesSpotter {
 
@@ -553,10 +556,14 @@ public class HelperWATAnnotator implements
         System.out.println("Loading simple wikisense cache for WAT annotation...");
         this.cacheFilename = cacheFilename;
         if (new File(cacheFilename).exists()) {
+            System.out.println("Found cache file to load.");
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(
                     cacheFilename));
             requestCache = (Map<Pair<URL, String>, String>) ois.readObject();
             ois.close();
+            System.out.println(String.format(
+                    "Loaded cache file with %d entries.",
+                    this.requestCache.size()));
         }
         else {
             System.out.printf("No WAT cache found in file %s. Will write to it on the next flush" +

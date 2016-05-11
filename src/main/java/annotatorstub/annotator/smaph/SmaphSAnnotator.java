@@ -1,20 +1,18 @@
 package annotatorstub.annotator.smaph;
 
 import annotatorstub.annotator.FakeAnnotator;
+import annotatorstub.utils.Pair;
 import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.WATRelatednessComputer;
 import annotatorstub.utils.bing.BingResult;
 import annotatorstub.utils.bing.BingSearchAPI;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
-import annotatorstub.utils.Pair;
 import annotatorstub.utils.mention.SmaphCandidate;
-import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.data.Tag;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
-import jdk.internal.org.xml.sax.SAXParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,16 +34,16 @@ public class SmaphSAnnotator extends FakeAnnotator {
     private static final int TOP_K_SNIPPETS = 25;
     private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private SmaphSPruner pruner;
+    private Smaph1Pruner pruner;
 
-    public SmaphSAnnotator(SmaphSPruner pruner) throws Exception {
+    public SmaphSAnnotator(Smaph1Pruner pruner) throws Exception {
+        this.pruner = pruner;
+
         BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
         bingApi = BingSearchAPI.getInstance();
 
         this.wikiApi = WikipediaApiInterface.api();
-
         candidateEntitiesGenerator = new CandidateEntitiesGenerator();
-
         WATRelatednessComputer.setCache("relatedness.cache");
     }
 
@@ -283,7 +281,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         return features;
     }
 
-    public List<SmaphCandidate> getCandidatesWithFeatures(String query) throws Exception {
+    public List<SmaphCandidate> getCandidatesWithFeatures(String query) {
 
         CandidateEntities candidateEntities;
         BingResult bingResult;
@@ -356,8 +354,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 features.addAll(mentionEntityFeatures);
 
 //                System.out.printf("('%s', ID %d) features: %s\n", mention.getMention(), entityID, features);
-                // Note: we don't really need the add in the inner loop right now, but it will start being necessary
-                // once we start adding the mention-entity features.
+                // Note: we don't really need the add in the inner loop right now, but it will start
+                // being necessary once we start adding the mention-entity features.
                 results.add(new SmaphCandidate(entityID, mention, features));
             }
         }
@@ -365,8 +363,39 @@ public class SmaphSAnnotator extends FakeAnnotator {
         return results;
     }
 
+    // We have to return a HashSet, not just a set, because that's how the interfaces higher up
+    // are designed.
     public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
-        throw new AnnotationException("solveSa2W not implemented");
+        List<SmaphCandidate> keptCandidates = getCandidatesWithFeatures(query)
+            .stream()
+            .filter(candidate -> pruner.shouldKeep(candidate))
+            .collect(Collectors.toList());
+
+        // Our SMAPH-{1, S} implementation does no scoring.
+        float dummyScore = 1.0f;
+
+        HashSet<ScoredAnnotation> annotations = new HashSet<>();
+        // A simple hack to make SMAPH-1 output an A2W solution: for every entity, select just
+        // its first mention.
+        Set<Integer> seenEntityIds = new HashSet<>();
+        for (SmaphCandidate keptCandidate : keptCandidates) {
+            Integer id = keptCandidate.getEntityID();
+
+            // We already saw this entity.
+            if(seenEntityIds.contains(id)) {
+                continue;
+            }
+
+            seenEntityIds.add(id);
+            ScoredAnnotation scoredAnnotation = new ScoredAnnotation(
+                    keptCandidate.getMentionCandidate().getQueryStartPosition(),
+                    keptCandidate.getMentionCandidate().getLength(),
+                    keptCandidate.getEntityID(),
+                    dummyScore);
+            annotations.add(scoredAnnotation);
+        }
+
+        return annotations;
     }
 
 

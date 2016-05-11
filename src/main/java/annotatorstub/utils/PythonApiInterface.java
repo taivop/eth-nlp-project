@@ -26,13 +26,13 @@ public class PythonApiInterface implements Closeable {
     /**
      * Start the Python server for serving predictions over HTTP.
      */
-    public void startPythonServer() throws IOException, InterruptedException {
+    public void startPythonServer(String modelPickleFile) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder(
                 "python",
                 "src/main/python/server.py",
                 String.valueOf(API_PORT),
                 SEPARATOR,
-                "models/svc-nonlin-vanilla.pkl");
+                modelPickleFile);
 
         logger.info(String.format("Starting Python server: %s", processBuilder));
         // 'inheritIO()' simply redirects the server's error output to Java's.

@@ -1,5 +1,8 @@
 package annotatorstub.main;
 
+import annotatorstub.annotator.smaph.Smaph1RemoteSvmPruner;
+import annotatorstub.annotator.smaph.SmaphSAnnotator;
+import annotatorstub.utils.PythonApiInterface;
 import it.unipi.di.acube.batframework.cache.BenchmarkCache;
 import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.data.Tag;
@@ -28,25 +31,29 @@ public class BenchmarkMain {
 		A2WDataset ds = DatasetBuilder.getGerdaqTest();
 //		FakeAnnotator ann = new FakeAnnotator();
 //		BaselineAnnotator ann = new BaselineAnnotator();
-		WATAnnotator ann = new WATAnnotator("wikisense.mkapp.it", 80, "salsa-auth");
-	
-		WATRelatednessComputer.setCache("relatedness.cache");
-		
-		List<HashSet<Tag>> resTag = BenchmarkCache.doC2WTags(ann, ds);
-		List<HashSet<Annotation>> resAnn = BenchmarkCache.doA2WAnnotations(ann, ds);
-		DumpData.dumpCompareList(ds.getTextInstanceList(), ds.getA2WGoldStandardList(), resAnn, wikiApi);
+//		WATAnnotator ann = new WATAnnotator("wikisense.mkapp.it", 80, "salsa-auth");
+		try(PythonApiInterface svmApi = new PythonApiInterface(5000)) {
+            svmApi.startPythonServer("models/svc-nonlin-vanilla.pkl");
+            SmaphSAnnotator ann = new SmaphSAnnotator(new Smaph1RemoteSvmPruner(svmApi));
 
-		Metrics<Tag> metricsTag = new Metrics<>();
-		MetricsResultSet C2WRes = metricsTag.getResult(resTag, ds.getC2WGoldStandardList(), new StrongTagMatch(wikiApi));
-		Utils.printMetricsResultSet("C2W", C2WRes, ann.getName());
+            WATRelatednessComputer.setCache("relatedness.cache");
 
-		Metrics<Annotation> metricsAnn = new Metrics<>();
-		MetricsResultSet rsA2W = metricsAnn.getResult(resAnn, ds.getA2WGoldStandardList(), new StrongAnnotationMatch(wikiApi));
-		Utils.printMetricsResultSet("A2W-SAM", rsA2W, ann.getName());
-		
-		Utils.serializeResult(ann, ds, new File("annotations.bin"));
-		wikiApi.flush();
-		WATRelatednessComputer.flush();
+            List<HashSet<Tag>> resTag = BenchmarkCache.doC2WTags(ann, ds);
+            List<HashSet<Annotation>> resAnn = BenchmarkCache.doA2WAnnotations(ann, ds);
+            DumpData.dumpCompareList(ds.getTextInstanceList(), ds.getA2WGoldStandardList(), resAnn, wikiApi);
+
+            Metrics<Tag> metricsTag = new Metrics<>();
+            MetricsResultSet C2WRes = metricsTag.getResult(resTag, ds.getC2WGoldStandardList(), new StrongTagMatch(wikiApi));
+            Utils.printMetricsResultSet("C2W", C2WRes, ann.getName());
+
+            Metrics<Annotation> metricsAnn = new Metrics<>();
+            MetricsResultSet rsA2W = metricsAnn.getResult(resAnn, ds.getA2WGoldStandardList(), new StrongAnnotationMatch(wikiApi));
+            Utils.printMetricsResultSet("A2W-SAM", rsA2W, ann.getName());
+
+            Utils.serializeResult(ann, ds, new File("annotations.bin"));
+            wikiApi.flush();
+            WATRelatednessComputer.flush();
+        }
 	}
 
 }

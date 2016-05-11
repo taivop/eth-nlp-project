@@ -16,9 +16,10 @@ public class PythonApiMain {
     public static void main(String[] args) throws IOException {
 
         List<Double> dummyFeatures = Arrays.asList(1.0, 5.0, 1023.2, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
+        String modelPickle = "models/svc-nonlin-vanilla.pkl";
 
         try(PythonApiInterface classifierApi = new PythonApiInterface(5000)) {
-            classifierApi.startPythonServer();
+            classifierApi.startPythonServer(modelPickle);
             ArrayList<Double> features = new ArrayList<Double>(dummyFeatures);
 
             boolean result;
