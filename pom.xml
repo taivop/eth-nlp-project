@@ -32,23 +32,29 @@
             <artifactId>bing-api-java</artifactId>
             <version>0.3</version>
         </dependency>
-        <!-- SMILE Library for Java -->
+        <!-- Smile Library for Java -->
         <dependency>
             <groupId>com.github.haifengl</groupId>
             <artifactId>smile-core</artifactId>
             <version>1.1.0</version>
         </dependency>
-        <!-- SMILE Library for Scala -->
+        <!-- Smile Library for Scala -->
         <dependency>
             <groupId>com.github.haifengl</groupId>
             <artifactId>smile-scala_2.11</artifactId>
             <version>1.1.0</version>
         </dependency>
-        <!-- Scala serialization -->
+        <!-- Scala XML serialization -->
         <dependency>
             <groupId>com.thoughtworks.xstream</groupId>
             <artifactId>xstream</artifactId>
             <version>1.4.9</version>
+        </dependency>
+        <!-- Weka as an alternative to Smile -->
+        <dependency>
+            <groupId>nz.ac.waikato.cms.weka</groupId>
+            <artifactId>weka-stable</artifactId>
+            <version>3.8.0</version>
         </dependency>
 
     </dependencies>
