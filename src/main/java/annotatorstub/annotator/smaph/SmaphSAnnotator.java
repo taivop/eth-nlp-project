@@ -370,6 +370,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
             .stream()
             .filter(candidate -> pruner.shouldKeep(candidate))
             .collect(Collectors.toList());
+        logger.info("Kept " + keptCandidates.size() + " candidates.");
 
         // Our SMAPH-{1, S} implementation does no scoring.
         float dummyScore = 1.0f;
@@ -395,6 +396,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
             annotations.add(scoredAnnotation);
         }
 
+        logger.info("Found " + annotations.size() + " annotations.");
         return annotations;
     }
 

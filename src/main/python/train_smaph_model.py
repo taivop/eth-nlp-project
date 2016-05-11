@@ -6,12 +6,13 @@ from __future__ import print_function
 import pickle
 import sys
 
+import numpy as np
 import sklearn
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.svm import SVC
 
-from data_util import load_training_data, rescale
+from data_util import impute_nan_inf, load_training_data, rescale
 
 # pylint: disable=missing-docstring, invalid-name
 
@@ -24,8 +25,12 @@ def usage():
     exit(1)
 
 
-def pickle_check(pickle_file, X, y):
-    loaded_clf = pickle.load(pickle_file)
+def pickle_check(pickle_file, X_raw, y_raw):
+    # TODO(andrei): Unified preprocessing function (e.g. use sklearn pipeline directly).
+    loaded_clf, ranges, means, scaler = pickle.load(pickle_file)
+    X_raw = impute_nan_inf(X_raw)
+    X = scaler.transform((X_raw - means) / ranges)
+    y = y_raw
     y_pred = loaded_clf.predict(X)
     print(confusion_matrix(y, y_pred))
 
@@ -50,18 +55,20 @@ def main():
     print("Will read data from {0} and write the pickled model to "
           "{1}.".format(csv_file, dest_pickle_file))
     X_raw, y_raw = load_training_data(csv_file, FEATURE_COUNT)
-    X, y = rescale(X_raw, y_raw)
+    X, y, ranges, means, scaler = rescale(X_raw, y_raw)
 
     print("Read and processed {0} data points.".format(X.shape[0]))
     print("Will fit classifier:\n{0}".format(clf))
 
     clf.fit(X, y)
 
-    print("Dumping pickle.")
-    pickle.dump(clf, open(dest_pickle_file, 'wb'))
+    print("Dumping pickle together with scaling info.")
+    print("Structure will be (classifier, feature_magnitudes, feature_means, sklearn_scaler).")
+    pickle.dump((clf, ranges, means, scaler), open(dest_pickle_file, 'wb'))
+    print("Dump complete.")
 
     print("Validating pickle.")
-    pickle_check(open(dest_pickle_file, 'rb'), X, y)
+    pickle_check(open(dest_pickle_file, 'rb'), X_raw, y_raw)
 
 
 if __name__ == '__main__':

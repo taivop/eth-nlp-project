@@ -33,7 +33,7 @@ public class BenchmarkMain {
 //		BaselineAnnotator ann = new BaselineAnnotator();
 //		WATAnnotator ann = new WATAnnotator("wikisense.mkapp.it", 80, "salsa-auth");
 		try(PythonApiInterface svmApi = new PythonApiInterface(5000)) {
-            svmApi.startPythonServer("models/svc-nonlin-vanilla.pkl");
+            svmApi.startPythonServer("models/svc-nonlin-vanilla-dupe-with-scaling.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(new Smaph1RemoteSvmPruner(svmApi));
 
             WATRelatednessComputer.setCache("relatedness.cache");

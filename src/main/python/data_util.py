@@ -3,8 +3,8 @@
 from __future__ import print_function
 
 import numpy as np
-
 from sklearn import preprocessing
+from sklearn.preprocessing import StandardScaler
 
 
 # pylint: disable=invalid-name
@@ -57,23 +57,41 @@ def load_training_data(csv_file_name, feature_count):
         print("Feature shape: {0}".format(X_raw.shape))
         print("Label shape: {0}".format(y_raw.shape))
 
-        # Hacky imputation of NaNs and Infs.
-        X_raw[np.isnan(X_raw)] = 0.0
-        # TODO(andrei): Maybe set this to a very large constant.
-        X_raw[np.isinf(X_raw)] = 0.0
-
+        X_raw = impute_nan_inf(X_raw)
         return X_raw, y_raw
 
 
+def impute_nan_inf(X_raw):
+    """Hacky imputation of NaNs and Infs."""
+
+    X_raw[np.isnan(X_raw)] = 0.0
+    # TODO(andrei): Ensure that this makes sense.
+    X_raw[np.isinf(X_raw)] = 10000.0
+    return X_raw
+
+
 def rescale(X, y):
+    """Rescales the data, in preparation for the SVM training.
+
+    Only operates on X, since there's no scaling to perform on labels.
+    Performs the rescaling in two phases, a manual one, and one which employs
+    a 'sklearn.StandardScaler'. This is necessary in order to prevent sklearn's
+    scaler from warning about excessive data ranges.
+
+    Returns:
+        The rescaled X, y, as well as the ranges and means of X's features,and
+        the pre-fit sklearn scaler.
+    """
     ranges = np.max(X, axis=0) - np.min(X, axis=0)
+    means = np.mean(X, axis=0)
     # Avoid divisions by zero
     ranges[ranges == 0] = 1.0
-    X = (X - np.mean(X, axis=0)) / ranges
-    X = preprocessing.scale(X)
+    X = (X - means) / ranges
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
     print(np.mean(X, axis=1))
     print(np.std(X, axis=1))
 
     # No scaling needed for y.
-    return X, y
+    return X, y, ranges, means, scaler
 

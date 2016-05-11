@@ -8,8 +8,16 @@ import numpy as np
 from sklearn.linear_model import SGDClassifier
 from sklearn.svm import SVC
 
+from data_util import impute_nan_inf
+
 app = Flask(__name__)
+
+# The parameters we will be loading from the pickle.
 classifier = None
+magnitudes = None
+means = None
+scaler = None
+
 
 @app.route("/")
 def hello():
@@ -21,8 +29,11 @@ def predict():
     features_string = request.args.get("features_string")
     features = [float(x) for x in features_string.split(SEPARATOR)]
 
-    # Ensure that our data
+    # Ensure that our data is a one row matrix, as expected by sklearn.
     x = np.array(features).reshape((1, -1))
+    # Perform the scaling.
+    x = impute_nan_inf(x)
+    x = scaler.transform((x - means) / magnitudes)
     try:
         s = classifier.predict(x)
     except ValueError as err:
@@ -42,9 +53,8 @@ if __name__ == "__main__":
     SEPARATOR	= sys.argv[2]
     MODEL_PATH  = sys.argv[3]
 
-    # TODO(andrei): Remember and apply scaling parameters as well!
-    global classifier
-    classifier = pickle.load(open(MODEL_PATH, 'rb'))
+    global classifier, magnitudes, means, scaler
+    classifier, magnitudes, means, scaler = pickle.load(open(MODEL_PATH, 'rb'))
 
     app.config['DEBUG'] = True
     app.run(port=PORT)

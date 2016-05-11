@@ -8,6 +8,7 @@ import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 public class PythonApiInterface implements Closeable {
@@ -36,7 +37,9 @@ public class PythonApiInterface implements Closeable {
 
         logger.info(String.format("Starting Python server: %s", processBuilder));
         // 'inheritIO()' simply redirects the server's error output to Java's.
-        serverProcess = processBuilder.inheritIO().start();
+        serverProcess = processBuilder
+                .inheritIO()
+                .start();
 
 
         /*BufferedReader bri = new BufferedReader(new InputStreamReader(serverProcess.getInputStream()));
@@ -85,6 +88,10 @@ public class PythonApiInterface implements Closeable {
         // Set up connection and send the request
         URL url = new URL(queryUrl + urlParameters);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        // Set some sensible timeouts to prevent us waiting too much in case an error occurs.
+        connection.setConnectTimeout(1500);
+        connection.setReadTimeout(1500);
         connection.setRequestMethod("GET");
         connection.setUseCaches(false);
         connection.setDoOutput(true);
@@ -100,9 +107,21 @@ public class PythonApiInterface implements Closeable {
         }
         rd.close();
 
-        String responseString = response.toString();
-        logger.info(String.format("Response from Python server: %s", responseString));
-        return Boolean.parseBoolean(responseString);
+        String responseString = response.toString().trim();
+//        logger.info(String.format("Response from Python server: %s", responseString));
+
+        // Note: `Boolean.parseBoolean(responseString);` expects 'true'/'false' strings.
+        if(responseString.equals("0")) {
+            return false;
+        }
+        else if(responseString.equals("1")) {
+            return true;
+        }
+        else {
+            throw new RuntimeException(String.format(
+                    "Could not parse classifier output [%s] as a 0/1 boolean.",
+                    responseString));
+        }
     }
 
     @Override
