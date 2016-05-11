@@ -32,6 +32,24 @@ public class BenchmarkMain {
 //		FakeAnnotator ann = new FakeAnnotator();
 //		BaselineAnnotator ann = new BaselineAnnotator();
 //		WATAnnotator ann = new WATAnnotator("wikisense.mkapp.it", 80, "salsa-auth");
+        /*
+         This part is using the Smaph-1/S annotation system. To get it working, there are a few
+         steps which need to be done.
+            1) Run SMAPHSFeaturesMain to dump the features in a CSV file.
+            2) (Optional) Play around with that CSV data in an iPython notebook and do some
+               hyperparameter tuning. Please keep in mind that the data is highly imbalanced
+               towards negative samples, so traditional grid search techniques (such as relying
+               on cross-validation) don't tend to work very well and have a rather big variance.
+            3) Use the 'train_smaph_model.py' program to train an SVM (or any other classifier
+               which you think might perform well, wink@Berni, even a NN :), and pickle it to
+               some file.
+            4) Pass that file to the 'startPythonServer' function below. It will spawn the
+               sklearn API used by the SMAPH pipeline.
+            5) The pipeline should now be able to run. Please note that it will be quite slow
+               until the 'HelperWATAnnotator' populates its JSON cache and stops hitting the WAT API
+               so hard.
+            6) (Optional) Move these instructions to a more appropriate place, if applicable.
+         */
 		try(PythonApiInterface svmApi = new PythonApiInterface(5000)) {
             svmApi.startPythonServer("models/svc-nonlin-vanilla-dupe-with-scaling.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(new Smaph1RemoteSvmPruner(svmApi));
