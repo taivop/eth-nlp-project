@@ -18,11 +18,8 @@ import java.util.{HashSet => JHashSet, Calendar, GregorianCalendar, Date}
 import scala.collection.Set
 
 
+// Note: Technically just a SMAPH-1 pruner for the time being.
 class SmaphSPruner {
-
-//  def train() = ???
-
-  // TODO(andrei): Ensure a model exits (either just computed or loaded from file).
   def shouldKeep(annotation: Annotation): Boolean = ???
 }
 
