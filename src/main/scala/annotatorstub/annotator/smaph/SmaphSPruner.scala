@@ -178,7 +178,6 @@ object SmaphSPruner {
       }
     }
 
-
     new SmaphSPruner
   }
 
