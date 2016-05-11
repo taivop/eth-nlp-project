@@ -16,3 +16,4 @@ models/
 lib/
 models/
 data/
+*.pkl

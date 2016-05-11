@@ -6,8 +6,10 @@ from __future__ import print_function
 import pickle
 import sys
 
+import sklearn
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import confusion_matrix
+from sklearn.svm import SVC
 
 from data_util import load_training_data, rescale
 
@@ -34,8 +36,12 @@ def main():
 
     # A simple linear (for the time being) SVM classifier using the optimal
     # parameters established via grid search in the notebook.
-    clf = SGDClassifier(class_weight='balanced', loss='hinge', penalty='l1',
-                        alpha=0.025)
+    # clf = SGDClassifier(class_weight='balanced', loss='hinge', penalty='l1',
+                        # alpha=0.05)
+
+    # The non-linear version. Much more expensive to train, but yields somewhat
+    # better results, and corresponds to what is described in the paper.
+    clf = SVC(C=1, class_weight='balanced')
 
     print("Will train SVM. Assuming every training data point has {0} "
           "features.".format(FEATURE_COUNT))
@@ -52,10 +58,10 @@ def main():
     clf.fit(X, y)
 
     print("Dumping pickle.")
-    pickle.dump(clf, dest_pickle_file)
+    pickle.dump(clf, open(dest_pickle_file, 'wb'))
 
     print("Validating pickle.")
-    pickle_check(dest_pickle_file, X, y)
+    pickle_check(open(dest_pickle_file, 'rb'), X, y)
 
 
 if __name__ == '__main__':

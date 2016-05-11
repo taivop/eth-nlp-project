@@ -244,7 +244,7 @@ object SmaphSPruner {
   private def genCsvFileName(): String = {
     val now: Calendar = new GregorianCalendar
     val day = now.get(Calendar.DAY_OF_MONTH)
-    val month = now.get(Calendar.MONTH)
+    val month = now.get(Calendar.MONTH) + 1
     val hour = now.get(Calendar.HOUR_OF_DAY)
     val min = now.get(Calendar.MINUTE)
 
