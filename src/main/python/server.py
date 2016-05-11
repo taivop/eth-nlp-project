@@ -1,8 +1,7 @@
 from flask import Flask, request
+import sys
 app = Flask(__name__)
 
-#app.config['DEBUG'] = True
-SEPARATOR = ","
 
 @app.route("/")
 def hello():
@@ -17,5 +16,11 @@ def predict():
 
 	return(str(s))
 
+
+
 if __name__ == "__main__":
-    app.run()
+	PORT		= int(sys.argv[1])
+	SEPARATOR	= sys.argv[2]
+
+	#app.config['DEBUG'] = True
+	app.run(port=PORT)
