@@ -10,7 +10,7 @@ import java.net.URL;
 import java.util.List;
 
 
-public class PythonApiInterface {
+public class PythonApiInterface implements Closeable {
 
     private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final String API_ADDRESS    = "http://localhost";
@@ -27,11 +27,16 @@ public class PythonApiInterface {
      * Start the Python server for serving predictions over HTTP.
      */
     public void startPythonServer() throws IOException, InterruptedException {
-        String line;
-        String command = String.format("python src/main/python/server.py %d %s", API_PORT, SEPARATOR);
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                "python",
+                "src/main/python/server.py",
+                String.valueOf(API_PORT),
+                SEPARATOR,
+                "models/svc-nonlin-vanilla.pkl");
 
-        logger.info(String.format("Starting Python server: %s", command));
-        serverProcess = Runtime.getRuntime().exec(command);
+        logger.info(String.format("Starting Python server: %s", processBuilder));
+        // 'inheritIO()' simply redirects the server's error output to Java's.
+        serverProcess = processBuilder.inheritIO().start();
 
 
         /*BufferedReader bri = new BufferedReader(new InputStreamReader(serverProcess.getInputStream()));
@@ -95,10 +100,13 @@ public class PythonApiInterface {
         }
         rd.close();
 
-
         String responseString = response.toString();
         logger.info(String.format("Response from Python server: %s", responseString));
         return Boolean.parseBoolean(responseString);
     }
 
+    @Override
+    public void close() throws IOException {
+        stopPythonServer();
+    }
 }
