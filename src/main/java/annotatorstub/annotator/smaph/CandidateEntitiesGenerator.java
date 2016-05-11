@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import annotatorstub.annotator.wat.HelperWATAnnotator;
 import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.bing.BingResult;
 import annotatorstub.utils.bing.BingWebSnippet;
@@ -22,7 +23,7 @@ import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 public class CandidateEntitiesGenerator {
 	
 	private static WikipediaApiInterface wikipediaApiInterface;
-	private static WATAnnotator watAnnotator;
+	private static HelperWATAnnotator helperWatAnnotator;
 	
 	/**
 	 * WAT annotator parameters
@@ -59,13 +60,16 @@ public class CandidateEntitiesGenerator {
 	
 	public CandidateEntitiesGenerator(){
 		wikipediaApiInterface = WikipediaApiInterface.api();
-		watAnnotator = new WATAnnotator(WAT_IP,WAT_PORT,this.watMethod,this.watSortBy,
+		// TODO(andrei): Pass components as parameters for better modularization.
+		helperWatAnnotator = new HelperWATAnnotator(WAT_IP,WAT_PORT,this.watMethod,this.watSortBy,
 										this.watRelatedness,this.watEpsilon,this.watMinLinkProbability);
 	}
 	
 	public CandidateEntitiesGenerator(String watMethod, String watEpsilon, String watSortedBy,
 									  String watRelatedness, String watMinLinkProbability){
-		
+        // TODO(andrei): We should reduce code duplication by having other ctors delegate to this
+        // one.
+
 		this.watMethod = watMethod;
 		this.watEpsilon = watEpsilon;
 		this.watSortBy = watSortedBy;
@@ -73,7 +77,7 @@ public class CandidateEntitiesGenerator {
 		this.watMinLinkProbability = watMinLinkProbability;
 		
 		wikipediaApiInterface = WikipediaApiInterface.api();
-		watAnnotator = new WATAnnotator(WAT_IP,WAT_PORT,this.watMethod,this.watSortBy,
+		helperWatAnnotator = new HelperWATAnnotator(WAT_IP,WAT_PORT,this.watMethod,this.watSortBy,
 										this.watRelatedness,this.watEpsilon,this.watMinLinkProbability);
 	}
 	
@@ -134,16 +138,16 @@ public class CandidateEntitiesGenerator {
 			
 			if (queryMethod.equals(QueryMethod.ALL)){
 				watQuery = wikiResult.getDescription();
-				scoredAnnotations = watAnnotator.solveSa2W(watQuery);
+				scoredAnnotations = helperWatAnnotator.solveSa2W(watQuery);
 			}
 			else if (queryMethod.equals(QueryMethod.HIGHLIGHTED)){
 				List<String> highlightedWords = wikiResult.getHighlightedWords();
 				watQuery = highlightedWords.stream().reduce("", (a,b) -> a + b);
-				scoredAnnotations = watAnnotator.solveSa2W(watQuery);
+				scoredAnnotations = helperWatAnnotator.solveSa2W(watQuery);
 			}
 			else if (queryMethod.equals(QueryMethod.ALL_OVERLAP)){
 				watQuery = wikiResult.getDescription();
-				scoredAnnotations = watAnnotator.solveSa2W(watQuery);
+				scoredAnnotations = helperWatAnnotator.solveSa2W(watQuery);
 				Set<ScoredAnnotation> scoredAnnotationsHighlighted = new HashSet<ScoredAnnotation>();
 				
 				String description = wikiResult.getDescription();

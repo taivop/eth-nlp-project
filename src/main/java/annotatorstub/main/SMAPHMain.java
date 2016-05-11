@@ -1,56 +1,40 @@
 package annotatorstub.main;
 
-import java.util.HashSet;
-import java.util.List;
-
-//import annotatorstub.annotator.smaph.SMAPHAnnotator;
 import annotatorstub.annotator.smaph.SmaphSAnnotator;
-import annotatorstub.utils.Utils;
-import annotatorstub.utils.WATRelatednessComputer;
-import it.unipi.di.acube.batframework.cache.BenchmarkCache;
-import it.unipi.di.acube.batframework.data.Tag;
-import it.unipi.di.acube.batframework.datasetPlugins.DatasetBuilder;
-import it.unipi.di.acube.batframework.metrics.Metrics;
-import it.unipi.di.acube.batframework.metrics.MetricsResultSet;
-import it.unipi.di.acube.batframework.metrics.StrongTagMatch;
-import it.unipi.di.acube.batframework.problems.A2WDataset;
-import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 
 /**
  * Main class, for demonstration and debugging for the time being
  * The C2W task is solved without the pruning set followed in order
  * to gather the P/R/F1 statistics for the candidate generation stage
- * 
- * @author andreasgeorgiadis
  *
+ * @author andreasgeorgiadis
  */
 
 public class SMAPHMain {
 
-  /**
-   * Toy example to function as a smoke test for the SMAPH-S feature generation.
-   */
-	public static void verifySMAPHFeatures() {
-    System.out.println("Simple SMAPH-S feature preview.");
-    String sampleQuery = "neil armstrong moon landing";
-    System.out.printf("Using sample query: %s%n", sampleQuery);
+    /**
+     * Toy example to function as a smoke test for the SMAPH-S feature generation.
+     */
+    public static void verifySMAPHFeatures() {
+        System.out.println("Simple SMAPH-S feature preview.");
+        String sampleQuery = "neil armstrong moon landing";
+        System.out.printf("Using sample query: %s%n", sampleQuery);
 
-    try {
-      SmaphSAnnotator smaphSAnnotator = new SmaphSAnnotator();
-      smaphSAnnotator.getCandidatesWithFeatures(sampleQuery);
+        try {
+            // TODO(andrei) Use the pruner.
+            SmaphSAnnotator smaphSAnnotator = new SmaphSAnnotator(null);
+            smaphSAnnotator.getCandidatesWithFeatures(sampleQuery);
+        } catch (Exception e) {
+            System.err.println("Something went wrong running the SMAPH-S annotator.");
+            e.printStackTrace();
+        }
     }
-    catch(Exception e) {
-      System.err.println("Something went wrong running the SMAPH-S annotator.");
-      e.printStackTrace();
-    }
-  }
-		
-	public static void main(String[] args) throws Exception {
 
-    verifySMAPHFeatures();
+    public static void main(String[] args) throws Exception {
+        verifySMAPHFeatures();
 
 		/*WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
-		A2WDataset dataSet = DatasetBuilder.getGerdaqTrainB();
+        A2WDataset dataSet = DatasetBuilder.getGerdaqTrainB();
 		SMAPHAnnotator smaphAnnotator = new SMAPHAnnotator();
 	
 		WATRelatednessComputer.setCache("relatedness.cache");
@@ -63,7 +47,5 @@ public class SMAPHMain {
 		
 		wikiApi.flush();
 		WATRelatednessComputer.flush();*/
-
-	}
-
+    }
 }

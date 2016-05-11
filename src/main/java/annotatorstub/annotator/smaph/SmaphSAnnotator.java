@@ -8,11 +8,13 @@ import annotatorstub.utils.bing.BingSearchAPI;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
 import annotatorstub.utils.Pair;
+import annotatorstub.utils.mention.SmaphCandidate;
 import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.data.Tag;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
+import jdk.internal.org.xml.sax.SAXParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +90,16 @@ public class SmaphSAnnotator extends FakeAnnotator {
         for(String resultTitle : bingResultTitles) {
             currentPosition++;
             String bingPageTitle = StringUtils.extractPageTitleFromBingSnippetTitle(resultTitle);
-            boolean urlFoundInResult = bingPageTitle.equals(wikiApi.getTitlebyId(entity));
+            boolean urlFoundInResult = false;
+            try {
+                urlFoundInResult = bingPageTitle.equals(wikiApi.getTitlebyId(entity));
+            }
+            catch(IOException ex) {
+                // TODO(andrei): Keep track and see if this happens often.
+                System.err.println("IOException while getting a title ID from Wikipedia API. Entity: " + entity);
+                System.err.println("Please check that you're not making bad requests to Wikipedia.");
+            }
+
             if(urlFoundInResult) {
                 firstMatchPosition = currentPosition;
                 break;
@@ -144,10 +155,13 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         // TODO bingSnippets doesn't need to be calculated again for every entity
         // bingSnippets: snippets returned by querying bing with the original query
-        List<String> bingSnippets = bingResult.getWebResults().stream().
+        List<String> bingSnippetsFull = bingResult.getWebResults().stream().
                 map(snippet -> snippet.getDescription()).
-                collect(Collectors.toList()).
-                subList(0, TOP_K_SNIPPETS);
+                collect(Collectors.toList());
+        // This ensures that we don't crash when the total number of returned results is smaller
+        // than 'TOP_K_SNIPPETS'.
+        int listEnd = Math.min(TOP_K_SNIPPETS, bingSnippetsFull.size());
+        List<String> bingSnippets = bingSnippetsFull.subList(0, listEnd);
 
         // snippetEntities: for each snippet, the set of entitities that were found by annotating the snippet with WAT
         List<Set<Integer>> snippetEntities = candidateEntities.getEntitiesQuerySnippetsWATBySnippet();
@@ -197,16 +211,25 @@ public class SmaphSAnnotator extends FakeAnnotator {
             minEDs.add(StringUtils.minED(mention, query));
         }
 
-        Double f15_lp_min = Collections.min(linkProbabilities);
-        Double f16_lp_max = Collections.max(linkProbabilities);
-        Double f17_comm_min = Collections.min(commonnesses);
-        Double f18_comm_max = Collections.max(commonnesses);
-        Double f19_comm_avg = average(commonnesses);
-        Double f20_ambig_min = Collections.min(ambiguities);
-        Double f21_ambig_max = Collections.max(ambiguities);
-        Double f22_ambig_avg = average(ambiguities);
-        Double f23_mentMED_min = Collections.min(minEDs);
-        Double f24_mentMED_max = Collections.max(minEDs);
+        Double f15_lp_min;
+        Double f16_lp_max;
+        if(linkProbabilities.isEmpty()) {
+            f15_lp_min = 0.0;
+            f16_lp_max = 0.0;
+        }
+        else {
+            f15_lp_min = Collections.min(linkProbabilities);
+            f16_lp_max = Collections.max(linkProbabilities);
+        }
+        // TODO(andrei): Re-add these ensuring that we check for empty lists so that '.min/max' don't crash.
+//        Double f17_comm_min = Collections.min(commonnesses);
+//        Double f18_comm_max = Collections.max(commonnesses);
+//        Double f19_comm_avg = average(commonnesses);
+//        Double f20_ambig_min = Collections.min(ambiguities);
+//        Double f21_ambig_max = Collections.max(ambiguities);
+//        Double f22_ambig_avg = average(ambiguities);
+//        Double f23_mentMED_min = Collections.min(minEDs);
+//        Double f24_mentMED_max = Collections.max(minEDs);
 
         //endregion
         // ------------------------------------------------------------------------------------
@@ -260,7 +283,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         return features;
     }
 
-    public void getCandidatesWithFeatures(String query) throws Exception {
+    public List<SmaphCandidate> getCandidatesWithFeatures(String query) throws Exception {
 
         CandidateEntities candidateEntities;
         BingResult bingResult;
@@ -272,15 +295,16 @@ public class SmaphSAnnotator extends FakeAnnotator {
                     candidateEntitiesGenerator.generateCandidateEntities(bingResult, TOP_K_SNIPPETS, CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP);
         } catch (ConnectException e){
             logger.warn(e.getMessage());
-            return;
+            return null;
         }
         catch (RuntimeException e){
             if (e.getCause().getCause() instanceof IOException){
                 logger.warn(e.getMessage());
-                return;
+                return null;
             }
-            else
+            else {
                 throw new AnnotationException(e.getMessage());
+            }
         }
         catch (Exception e){
             throw new AnnotationException(e.getMessage());
@@ -306,6 +330,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
             mentions.add(mention);
         }
 
+        List<SmaphCandidate> results = new ArrayList<>();
+
         // Calculate features for all possible pairs of <anchor, candidate entity>
         for(MentionCandidate mention : mentions) {
             for(Tag entity : entities) {
@@ -329,10 +355,14 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 features.addAll(entityFeatures);
                 features.addAll(mentionEntityFeatures);
 
-                System.out.printf("('%s', ID %d) features: %s\n", mention.getMention(), entityID, features);
+//                System.out.printf("('%s', ID %d) features: %s\n", mention.getMention(), entityID, features);
+                // Note: we don't really need the add in the inner loop right now, but it will start being necessary
+                // once we start adding the mention-entity features.
+                results.add(new SmaphCandidate(entityID, mention, features));
             }
         }
 
+        return results;
     }
 
     public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
