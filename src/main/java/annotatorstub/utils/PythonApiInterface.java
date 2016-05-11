@@ -1,6 +1,10 @@
 package annotatorstub.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
+import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
@@ -8,6 +12,7 @@ import java.util.List;
 
 public class PythonApiInterface {
 
+    private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final String API_ADDRESS    = "http://localhost";
     private final String API_ENDPOINT   = "predict";
     private final String SEPARATOR      = ",";
@@ -23,7 +28,10 @@ public class PythonApiInterface {
      */
     public void startPythonServer() throws IOException, InterruptedException {
         String line;
-        serverProcess = Runtime.getRuntime().exec("python src/main/python/server.py");
+        String command = String.format("python src/main/python/server.py %d %s", API_PORT, SEPARATOR);
+
+        logger.info(String.format("Starting Python server: %s", command));
+        serverProcess = Runtime.getRuntime().exec(command);
 
 
         /*BufferedReader bri = new BufferedReader(new InputStreamReader(serverProcess.getInputStream()));
@@ -89,7 +97,7 @@ public class PythonApiInterface {
 
 
         String responseString = response.toString();
-        System.out.println(responseString);
+        logger.info(String.format("Response from Python server: %s", responseString));
         return Boolean.parseBoolean(responseString);
     }
 
