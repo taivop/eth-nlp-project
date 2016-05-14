@@ -33,7 +33,7 @@ object SmaphSPruner {
    *
    * Note: SVM training not attempted, as is currently VERY slow.
    */
-  def genPrunerData(datasets: A2WDataset*): SmaphSPruner = {
+  def genPrunerData(datasets: A2WDataset*): Unit = {
     // HERE BE DRAGONS: Make sure that you're not mixing up Java and Scala containers when
     // dealing with inter-language marshalling. Otherwise one might end up spending hours trying
     // to figure out why 'List[Foo]' cannot be converted to 'List[Foo]'.
@@ -138,7 +138,7 @@ object SmaphSPruner {
     }
 
     // We processed everything, and now we are ready to train the SVM.
-    genPrunerData(allTrainingData)
+//    genPrunerData(allTrainingData)
   }
 
   def trainPrunerFromCsv(csvFileName: String): SmaphSPruner = {

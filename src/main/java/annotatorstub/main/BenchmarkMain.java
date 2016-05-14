@@ -51,9 +51,12 @@ public class BenchmarkMain {
          */
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
-            svmApi.startPythonServer("models/svc-nonlin-vanilla-dupe-with-scaling.pkl");
-//            SmaphSAnnotator ann = new SmaphSAnnotator(new Smaph1RemoteSvmPruner(svmApi));
-            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
+            // Andrei: Dataset trained on just GERDAQ-A.
+//            svmApi.startPythonServer("models/svc-nonlin-vanilla-dupe-with-scaling.pkl");
+            // Andrei: Dataset trained on GERDAQ-A + GERDAQ-B.
+            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-1.0.pkl");
+            SmaphSAnnotator ann = new SmaphSAnnotator(new Smaph1RemoteSvmPruner(svmApi));
+//            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
 
             WATRelatednessComputer.setCache("relatedness.cache");
 
@@ -82,7 +85,9 @@ public class BenchmarkMain {
             Utils.serializeResult(ann, ds, new File("annotations.bin"));
             wikiApi.flush();
             WATRelatednessComputer.flush();
-            ((HelperWATAnnotator) ann.getAuxiliaryAnnotator()).flushCache();
+
+            // TODO-LOW(andrei): Use more dependency injection instead of this.
+            ((HelperWATAnnotator) ann.getAuxiliaryAnnotator()).getRequestCache().flush();
         }
     }
 
