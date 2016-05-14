@@ -54,7 +54,7 @@ public class BenchmarkMain {
             // Andrei: Dataset trained on just GERDAQ-A.
 //            svmApi.startPythonServer("models/svc-nonlin-vanilla-dupe-with-scaling.pkl");
             // Andrei: Dataset trained on GERDAQ-A + GERDAQ-B.
-            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-0.01.pkl");
+            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-3.0.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(new Smaph1RemoteSvmPruner(svmApi));
 //            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
 
