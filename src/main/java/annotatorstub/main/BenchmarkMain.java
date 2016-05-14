@@ -1,5 +1,6 @@
 package annotatorstub.main;
 
+import annotatorstub.annotator.smaph.CandidateEntitiesGenerator;
 import annotatorstub.annotator.smaph.Smaph1Pruner;
 import annotatorstub.annotator.smaph.Smaph1RemoteSvmPruner;
 import annotatorstub.annotator.smaph.SmaphSAnnotator;
@@ -54,8 +55,10 @@ public class BenchmarkMain {
             // Andrei: Dataset trained on just GERDAQ-A.
 //            svmApi.startPythonServer("models/svc-nonlin-vanilla-dupe-with-scaling.pkl");
             // Andrei: Dataset trained on GERDAQ-A + GERDAQ-B.
-            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-3.0.pkl");
-            SmaphSAnnotator ann = new SmaphSAnnotator(new Smaph1RemoteSvmPruner(svmApi));
+            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-0.5.pkl");
+            SmaphSAnnotator ann = new SmaphSAnnotator(
+                Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
+                CandidateEntitiesGenerator.QueryMethod.ALL);
 //            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
 
             WATRelatednessComputer.setCache("relatedness.cache");

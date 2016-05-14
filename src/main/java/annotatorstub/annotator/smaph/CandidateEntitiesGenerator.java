@@ -52,7 +52,7 @@ public class CandidateEntitiesGenerator {
 	 * @author andreasgeorgiadis
 	 *
 	 */
-	public static enum QueryMethod {
+	public enum QueryMethod {
 		HIGHLIGHTED,
 		ALL,
 		ALL_OVERLAP

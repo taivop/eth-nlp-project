@@ -1,6 +1,7 @@
 package annotatorstub.annotator.smaph;
 
 import annotatorstub.annotator.FakeAnnotator;
+import annotatorstub.annotator.smaph.CandidateEntitiesGenerator.QueryMethod;
 import annotatorstub.utils.Pair;
 import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.WATRelatednessComputer;
@@ -36,18 +37,27 @@ public class SmaphSAnnotator extends FakeAnnotator {
     private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private Optional<Smaph1Pruner> pruner;
+    private CandidateEntitiesGenerator.QueryMethod generatorQueryMethod;
 
     public SmaphSAnnotator(Smaph1Pruner pruner) {
         this(Optional.of(pruner));
+    }
+
+    public SmaphSAnnotator(Optional<Smaph1Pruner> pruner) {
+        this(pruner, QueryMethod.ALL_OVERLAP);
     }
 
     /**
      * @param pruner An optional pruner. Passing 'Optional.empty()' disables pruning altogether,
      *               leading to an annotator with (hopefully) very high recall, but horrible
      *               precision.
+     *
+     * @param generatorQueryMethod How to generate candidates using the WAT annotator. {@see
+     * {@link QueryMethod}}
      */
-    public SmaphSAnnotator(Optional<Smaph1Pruner> pruner) {
+    public SmaphSAnnotator(Optional<Smaph1Pruner> pruner, QueryMethod generatorQueryMethod) {
         this.pruner = pruner;
+        this.generatorQueryMethod= generatorQueryMethod;
 
         BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
         bingApi = BingSearchAPI.getInstance();
@@ -312,7 +322,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         try {
             bingResult = bingApi.query(query);
             candidateEntities =
-                    candidateEntitiesGenerator.generateCandidateEntities(bingResult, TOP_K_SNIPPETS, CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP);
+                    candidateEntitiesGenerator.generateCandidateEntities(bingResult, TOP_K_SNIPPETS,
+                        generatorQueryMethod);
         } catch (ConnectException e){
             logger.warn(e.getMessage());
             return null;
