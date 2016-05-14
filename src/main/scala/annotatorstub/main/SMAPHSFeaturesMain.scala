@@ -15,7 +15,7 @@ object SMAPHSFeaturesMain {
     // Note: attempting to train using Smile is very slow and doesn't seem to work right at all,
     // sadly.
 //    val pruner = SmaphSPruner.trainPrunerFromCsv("data/all-candidates-4-10-14-10.csv")
-    val annotator = new SmaphSAnnotator(pruner)
+//    val annotator = new SmaphSAnnotator(pruner)
 
   }
 }

@@ -8,9 +8,10 @@ import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
-public class PythonApiInterface {
+public class PythonApiInterface implements Closeable {
 
     private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final String API_ADDRESS    = "http://localhost";
@@ -26,12 +27,19 @@ public class PythonApiInterface {
     /**
      * Start the Python server for serving predictions over HTTP.
      */
-    public void startPythonServer() throws IOException, InterruptedException {
-        String line;
-        String command = String.format("python src/main/python/server.py %d %s", API_PORT, SEPARATOR);
+    public void startPythonServer(String modelPickleFile) throws IOException, InterruptedException {
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                "python",
+                "src/main/python/server.py",
+                String.valueOf(API_PORT),
+                SEPARATOR,
+                modelPickleFile);
 
-        logger.info(String.format("Starting Python server: %s", command));
-        serverProcess = Runtime.getRuntime().exec(command);
+        logger.info(String.format("Starting Python server: %s", processBuilder));
+        // 'inheritIO()' simply redirects the server's error output to Java's.
+        serverProcess = processBuilder
+                .inheritIO()
+                .start();
 
 
         /*BufferedReader bri = new BufferedReader(new InputStreamReader(serverProcess.getInputStream()));
@@ -80,6 +88,10 @@ public class PythonApiInterface {
         // Set up connection and send the request
         URL url = new URL(queryUrl + urlParameters);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        // Set some sensible timeouts to prevent us waiting too much in case an error occurs.
+        connection.setConnectTimeout(1500);
+        connection.setReadTimeout(1500);
         connection.setRequestMethod("GET");
         connection.setUseCaches(false);
         connection.setDoOutput(true);
@@ -95,10 +107,25 @@ public class PythonApiInterface {
         }
         rd.close();
 
+        String responseString = response.toString().trim();
+//        logger.info(String.format("Response from Python server: %s", responseString));
 
-        String responseString = response.toString();
-        logger.info(String.format("Response from Python server: %s", responseString));
-        return Boolean.parseBoolean(responseString);
+        // Note: `Boolean.parseBoolean(responseString);` expects 'true'/'false' strings.
+        if(responseString.equals("0")) {
+            return false;
+        }
+        else if(responseString.equals("1")) {
+            return true;
+        }
+        else {
+            throw new RuntimeException(String.format(
+                    "Could not parse classifier output [%s] as a 0/1 boolean.",
+                    responseString));
+        }
     }
 
+    @Override
+    public void close() throws IOException {
+        stopPythonServer();
+    }
 }
