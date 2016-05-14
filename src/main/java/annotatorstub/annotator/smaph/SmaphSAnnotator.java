@@ -11,6 +11,7 @@ import annotatorstub.utils.mention.MentionCandidate;
 import annotatorstub.utils.mention.SmaphCandidate;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.data.Tag;
+import it.unipi.di.acube.batframework.problems.Sa2WSystem;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 import org.slf4j.Logger;
@@ -34,17 +35,38 @@ public class SmaphSAnnotator extends FakeAnnotator {
     private static final int TOP_K_SNIPPETS = 25;
     private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private Smaph1Pruner pruner;
+    private Optional<Smaph1Pruner> pruner;
 
-    public SmaphSAnnotator(Smaph1Pruner pruner) throws Exception {
+    public SmaphSAnnotator(Smaph1Pruner pruner) {
+        this(Optional.of(pruner));
+    }
+
+    /**
+     * @param pruner An optional pruner. Passing 'Optional.empty()' disables pruning altogether,
+     *               leading to an annotator with (hopefully) very high recall, but horrible
+     *               precision.
+     */
+    public SmaphSAnnotator(Optional<Smaph1Pruner> pruner) {
         this.pruner = pruner;
 
         BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
         bingApi = BingSearchAPI.getInstance();
 
+        if(pruner.isPresent()) {
+            logger.info("Setting up SMAPH-S annotator with pruning.");
+        }
+        else {
+            logger.info("Setting up SMAPH-S annotator with NO pruning.");
+        }
+
         this.wikiApi = WikipediaApiInterface.api();
         candidateEntitiesGenerator = new CandidateEntitiesGenerator();
-        WATRelatednessComputer.setCache("relatedness.cache");
+        try {
+            WATRelatednessComputer.setCache("relatedness.cache");
+        }
+        catch(IOException | ClassNotFoundException ex) {
+            throw new RuntimeException("Could not load/set up relatedness cache.", ex);
+        }
     }
 
     public static Double average(Collection<Double> collection) {
@@ -366,11 +388,21 @@ public class SmaphSAnnotator extends FakeAnnotator {
     // We have to return a HashSet, not just a set, because that's how the interfaces higher up
     // are designed.
     public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
-        List<SmaphCandidate> keptCandidates = getCandidatesWithFeatures(query)
-            .stream()
-            .filter(candidate -> pruner.shouldKeep(candidate))
-            .collect(Collectors.toList());
+        List<SmaphCandidate> allCandidates = getCandidatesWithFeatures(query);
+        List<SmaphCandidate> keptCandidates = pruner.map(p ->
+                allCandidates
+                    .stream()
+                    .filter(p::shouldKeep)
+                    .collect(Collectors.toList())
+        ).orElse(allCandidates);
+
         logger.info("Kept " + keptCandidates.size() + " candidates.");
+        if(pruner.isPresent()) {
+            logger.info("Performed pruning.");
+        }
+        else {
+            logger.info("Performed NO pruning.");
+        }
 
         // Our SMAPH-{1, S} implementation does no scoring.
         float dummyScore = 1.0f;
@@ -400,9 +432,12 @@ public class SmaphSAnnotator extends FakeAnnotator {
         return annotations;
     }
 
+    public Sa2WSystem getAuxiliaryAnnotator() {
+        return candidateEntitiesGenerator.getWAT();
+    }
 
-  public String getName() {
-        return "SMAPH-S annotator";
+    public String getName() {
+                                    return "SMAPH-S annotator";
     }
 
 }

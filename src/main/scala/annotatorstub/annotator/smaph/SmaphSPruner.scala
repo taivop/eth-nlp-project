@@ -14,7 +14,7 @@ import smile.validation._
 
 import collection.JavaConverters._
 
-import java.util.{HashSet => JHashSet, Calendar, GregorianCalendar, Date}
+import java.util.{HashSet => JHashSet, Optional, Calendar, GregorianCalendar, Date}
 import scala.collection.Set
 
 
@@ -59,7 +59,7 @@ object SmaphSPruner {
     val queryGroundTruths = queries zip goldStandard
 
     // TODO(andrei): Move feature creation to separate object.
-    val dummyAnnotator = new SmaphSAnnotator(null)
+    val dummyAnnotator = new SmaphSAnnotator(Optional.empty[Smaph1Pruner]())
 
     // The file where we will be saving our training data for safe keeping.
     val csvFileName = genCsvFileName()

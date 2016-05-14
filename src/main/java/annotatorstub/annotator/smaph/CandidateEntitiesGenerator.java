@@ -186,4 +186,8 @@ public class CandidateEntitiesGenerator {
 		return bce;
 	}
 
+	public HelperWATAnnotator getWAT() {
+		return helperWatAnnotator;
+	}
+
 }

@@ -1,7 +1,9 @@
 package annotatorstub.main;
 
+import annotatorstub.annotator.smaph.Smaph1Pruner;
 import annotatorstub.annotator.smaph.Smaph1RemoteSvmPruner;
 import annotatorstub.annotator.smaph.SmaphSAnnotator;
+import annotatorstub.annotator.wat.HelperWATAnnotator;
 import annotatorstub.utils.PythonApiInterface;
 import annotatorstub.utils.Utils;
 import annotatorstub.utils.WATRelatednessComputer;
@@ -20,6 +22,7 @@ import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 public class BenchmarkMain {
     public static void main(String[] args) throws Exception {
@@ -49,7 +52,8 @@ public class BenchmarkMain {
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
             svmApi.startPythonServer("models/svc-nonlin-vanilla-dupe-with-scaling.pkl");
-            SmaphSAnnotator ann = new SmaphSAnnotator(new Smaph1RemoteSvmPruner(svmApi));
+//            SmaphSAnnotator ann = new SmaphSAnnotator(new Smaph1RemoteSvmPruner(svmApi));
+            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
 
             WATRelatednessComputer.setCache("relatedness.cache");
 
@@ -78,6 +82,7 @@ public class BenchmarkMain {
             Utils.serializeResult(ann, ds, new File("annotations.bin"));
             wikiApi.flush();
             WATRelatednessComputer.flush();
+            ((HelperWATAnnotator) ann.getAuxiliaryAnnotator()).flushCache();
         }
     }
 
