@@ -52,13 +52,11 @@ public class BenchmarkMain {
          */
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
-            // Andrei: Dataset trained on just GERDAQ-A.
-//            svmApi.startPythonServer("models/svc-nonlin-vanilla-dupe-with-scaling.pkl");
-            // Andrei: Dataset trained on GERDAQ-A + GERDAQ-B.
-            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-0.5.pkl");
+            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-0.75.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
-                Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
-                CandidateEntitiesGenerator.QueryMethod.ALL);
+                Optional.of(new Smaph1RemoteSvmPruner(svmApi))
+//                CandidateEntitiesGenerator.QueryMethod.ALL
+            );
 //            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
 
             WATRelatednessComputer.setCache("relatedness.cache");

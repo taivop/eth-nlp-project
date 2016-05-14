@@ -48,7 +48,27 @@
    * C2W	mac-P/R/F1: 0.402/0.632/0.413 mic-P/R/F1: 0.323/0.584/0.416 TP/FP/FN: 239/502/170 std-P/R/F1: 0.330/0.397/0.317	SMAPH-S annotator
    * A2W-SAM	mac-P/R/F1: 0.134/0.166/0.094 mic-P/R/F1: 0.030/0.054/0.038 TP/FP/FN: 22/720/387 std-P/R/F1: 0.315/0.355/0.261	SMAPH-S annotator
 
+* C = 0.1
+ * Numbers:
+   * C2W	mac-P/R/F1: 0.357/0.648/0.398 mic-P/R/F1: 0.299/0.597/0.398 TP/FP/FN: 244/572/165 std-P/R/F1: 0.301/0.384/0.301	SMAPH-S annotator
+   * A2W-SAM	mac-P/R/F1: 0.109/0.174/0.089 mic-P/R/F1: 0.031/0.061/0.041 TP/FP/FN: 25/792/384 std-P/R/F1: 0.279/0.360/0.245	SMAPH-S annotator
+
+* C = 0.25
+ * Numbers:
+   * C2W	mac-P/R/F1: 0.383/0.645/0.408 mic-P/R/F1: 0.313/0.592/0.410 TP/FP/FN: 242/530/167 std-P/R/F1: 0.312/0.388/0.306	SMAPH-S annotator
+   * A2W-SAM	mac-P/R/F1: 0.127/0.174/0.094 mic-P/R/F1: 0.032/0.061/0.042 TP/FP/FN: 25/748/384 std-P/R/F1: 0.302/0.360/0.254	SMAPH-S annotator
+
 * C = 0.5
  * Numbers:
    * C2W	mac-P/R/F1: 0.397/0.647/0.416 mic-P/R/F1: 0.318/0.594/0.414 TP/FP/FN: 243/521/166 std-P/R/F1: 0.318/0.386/0.306	SMAPH-S annotator
    * A2W-SAM	mac-P/R/F1: 0.136/0.174/0.098 mic-P/R/F1: 0.033/0.061/0.043 TP/FP/FN: 25/740/384 std-P/R/F1: 0.312/0.360/0.260	SMAPH-S annotator
+
+* Same C (0.5), but enabled QueryMethod.ALL
+ * Numbers:
+   * C2W	mac-P/R/F1: 0.287/0.667/0.324 mic-P/R/F1: 0.180/0.614/0.279 TP/FP/FN: 251/1140/158 std-P/R/F1: 0.273/0.381/0.261	SMAPH-S annotator
+   * A2W-SAM	mac-P/R/F1: 0.101/0.193/0.073 mic-P/R/F1: 0.024/0.081/0.037 TP/FP/FN: 33/1359/376 std-P/R/F1: 0.262/0.368/0.203	SMAPH-S annotator
+
+* C = 0.75
+ * Numbers:
+  * C2W	mac-P/R/F1: 0.410/0.645/0.421 mic-P/R/F1: 0.322/0.592/0.417 TP/FP/FN: 242/509/167 std-P/R/F1: 0.323/0.388/0.309	SMAPH-S annotator
+  * A2W-SAM	mac-P/R/F1: 0.144/0.174/0.103 mic-P/R/F1: 0.033/0.061/0.043 TP/FP/FN: 25/727/384 std-P/R/F1: 0.321/0.360/0.266	SMAPH-S annotator
