@@ -63,7 +63,8 @@ public class HelperWATAnnotator implements
      * Very simple runtime cache destined to reduce the number of requests made to the wikisense
      * API. Stores the JSON as a string for ease of serialization.
      *
-     * TODO(andrei): Store JSON directly if possible.
+     * TODO(andrei): Store JSON directly if possible. According to VisualVM, deserializing JSON
+     * is quite expensive and is one of the major CPU hogs of our annotator.
      *
      * The key consists of (URL, Parameters) tuples.
      */
@@ -71,6 +72,13 @@ public class HelperWATAnnotator implements
     private String cacheFilename;
     private int flushCounter = 1;
     private int flushEvery = 250;
+
+    /**
+     * More elaborate cache, which sits one level above the JSON cache, allowing faster caching
+     * of preprocessed 'ScoredAnnotation' objects, which avoids the JSON processing overhead.
+     */
+    // TODO(andrei): Re-enable cache when you have a dedicated class for it.
+//    private Map<String, HashSet<ScoredAnnotation>> fullCache = new HashMap<>();
 
     public HelperWATAnnotator(String ip, int port, String method) {
         this(ip, port, method, "PAGERANK", "mw", "", "");
@@ -251,9 +259,9 @@ public class HelperWATAnnotator implements
             lastTime = obj.getJSONObject("time").getInt("total");
 
         } catch (Exception e) {
-            System.out
-                    .print("Got error while querying WikiSense API with GET parameters: "
-                            + getParameters + " with text: " + text);
+            System.out.print(
+                "Got error while querying WikiSense API with GET parameters: "
+                    + getParameters + " with text: " + text);
             throw new AnnotationException(
                     "An error occurred while querying WikiSense API. Message: "
                             + e.getMessage());
@@ -282,9 +290,13 @@ public class HelperWATAnnotator implements
     }
 
     @Override
-    public HashSet<ScoredAnnotation> solveSa2W(String text)
-            throws AnnotationException {
-        // System.out.println(text);
+    public HashSet<ScoredAnnotation> solveSa2W(String text) throws AnnotationException {
+        // Note: I currently seems that this is the only method used by the SMAPH-S annotator for
+        // generating the E3 set.
+
+        // TODO(andrei): Cache the set of scored annotations right here, instead of just the JSON.
+        // If cache hit, set 'lastTime = 0'.
+
         HashSet<ScoredAnnotation> res = new HashSet<ScoredAnnotation>();
         JSONObject obj = null;
         try {
