@@ -46,7 +46,7 @@ def main():
 
     # The non-linear version. Much more expensive to train, but yields somewhat
     # better results, and corresponds to what is described in the paper.
-    clf = SVC(C=1, class_weight='balanced')
+    clf = SVC(C=0.01, class_weight='balanced')
 
     print("Will train SVM. Assuming every training data point has {0} "
           "features.".format(FEATURE_COUNT))

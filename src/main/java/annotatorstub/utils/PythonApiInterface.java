@@ -38,7 +38,7 @@ public class PythonApiInterface implements Closeable {
         logger.info(String.format("Starting Python server: %s", processBuilder));
         // 'inheritIO()' simply redirects the server's error output to Java's.
         serverProcess = processBuilder
-                .inheritIO()
+//                .inheritIO()
                 .start();
 
 

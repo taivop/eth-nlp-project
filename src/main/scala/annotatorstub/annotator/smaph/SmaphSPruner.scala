@@ -2,9 +2,11 @@ package annotatorstub.annotator.smaph
 
 import java.io.FileWriter
 
+import annotatorstub.annotator.wat.HelperWATAnnotator
 import annotatorstub.utils.mention.{SmaphCandidate, MentionCandidate}
 import it.unipi.di.acube.batframework.data.Annotation
 import it.unipi.di.acube.batframework.problems.A2WDataset
+import it.unipi.di.acube.batframework.systemPlugins.WATAnnotator
 
 import smile.classification._
 import smile.data._
@@ -114,7 +116,8 @@ object SmaphSPruner {
         val missing = goldAnnotations.filterNot {
           positiveCandidates.contains(_)
         }
-        println(s"Missing IDs that are in the gold standard: ${missing}")
+        println(s"Missing IDs that are in the gold standard:",
+          missing.map { _.getConcept }.mkString(","))
       }
       else if(positiveCandidates.size > goldAnnotations.size) {
         System.err.println("Possible duplicate positives found.")
@@ -136,6 +139,8 @@ object SmaphSPruner {
 
       positiveCandidates.map { c => (c, true) } ++ negativeCandidates.map { c => (c, false) }
     }
+
+    dummyAnnotator.getAuxiliaryAnnotator.asInstanceOf[HelperWATAnnotator].getRequestCache.flush()
 
     // We processed everything, and now we are ready to train the SVM.
 //    genPrunerData(allTrainingData)

@@ -20,3 +20,11 @@
     * C2W precision dropped, but not as much as I (andrei) personally expected.
     * Nevertheless, we should experiment with stricter pruning in the SVM classifier.
     * But first, let's train on BOTH datasets (train A and train B).
+
+ # Results using basically the same implementation as above, but trained on both GERDAQ-A and B
+    * With pruning.
+    * May 14 2016
+    * Time taken: ~6 minutes (everything cached as before, but populating higher level cache)
+    * Numbers:
+      * C2W	mac-P/R/F1: 0.403/0.645/0.415 mic-P/R/F1: 0.320/0.592/0.415 TP/FP/FN: 242/514/167 std-P/R/F1: 0.322/0.388/0.308	SMAPH-S annotator
+      * A2W-SAM	mac-P/R/F1: 0.151/0.190/0.111 mic-P/R/F1: 0.042/0.078/0.055 TP/FP/FN: 32/725/377 std-P/R/F1: 0.322/0.368/0.269	SMAPH-S annotator

@@ -428,7 +428,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
             annotations.add(scoredAnnotation);
         }
 
-        logger.info("Found " + annotations.size() + " annotations.");
+        logger.info("Found {} annotations.", annotations.size());
         return annotations;
     }
 
@@ -437,7 +437,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
     }
 
     public String getName() {
-                                    return "SMAPH-S annotator";
+        return "SMAPH-S annotator";
     }
 
 }
