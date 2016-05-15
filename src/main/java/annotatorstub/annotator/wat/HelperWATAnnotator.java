@@ -1,5 +1,5 @@
 /**
- *  Copyright 2014 Marco Cornolti
+ *  Original Copyright 2014 Marco Cornolti
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -564,38 +564,5 @@ public class HelperWATAnnotator implements
     public SimpleCache<Pair<URL, String>, String> getRequestCache() {
         return requestCache;
     }
-// Unnecessary now that we have our own cache utility.
-//    public void setCache(String cacheFilename)
-//            throws FileNotFoundException, IOException, ClassNotFoundException {
-//        System.out.println("Loading simple wikisense cache for WAT annotation...");
-//        this.cacheFilename = cacheFilename;
-//        if (new File(cacheFilename).exists()) {
-//            System.out.println("Found cache file to load.");
-//            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(
-//                    cacheFilename));
-//            oldRequestCache = (Map<Pair<URL, String>, String>) ois.readObject();
-//            ois.close();
-//            System.out.println(String.format(
-//                    "Loaded cache file with %d entries.",
-//                    this.oldRequestCache.size()));
-//        }
-//        else {
-//            System.out.printf("No WAT cache found in file %s. Will write to it on the next flush" +
-//                    ".%n", cacheFilename);
-//        }
-//    }
-//
-//    public synchronized void flushCache() throws FileNotFoundException,
-//            IOException {
-//        if (flushCounter > 0 && cacheFilename != null) {
-//            System.out.println("Flushing WAT cache... ");
-//            new File(cacheFilename).createNewFile();
-//            ObjectOutputStream oos = new ObjectOutputStream(
-//                    new FileOutputStream(cacheFilename));
-//            oos.writeObject(oldRequestCache);
-//            oos.close();
-//            System.out.println("Flushing WAT cache done.");
-//        }
-//    }
 }
 
