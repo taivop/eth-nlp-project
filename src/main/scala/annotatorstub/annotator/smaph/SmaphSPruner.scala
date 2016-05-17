@@ -19,21 +19,11 @@ import collection.JavaConverters._
 import java.util.{HashSet => JHashSet, Optional, Calendar, GregorianCalendar, Date}
 import scala.collection.Set
 
-
-// Note: Technically just a SMAPH-1 pruner for the time being.
-class SmaphSPruner {
-  def shouldKeep(annotation: Annotation): Boolean = ???
-}
-
 object SmaphSPruner {
-  def savePruner(fileName: String, pruner: SmaphSPruner): Unit = ???
-
-  def loadPruner(fileName: String): SmaphSPruner = ???
-
   /**
    * Generates training data from the given datasets, and dumps it to a CSV file for later use.
    *
-   * Note: SVM training not attempted, as is currently VERY slow.
+   * Note: SVM training not attempted, as is currently VERY slow using Smile.
    */
   def genPrunerData(datasets: A2WDataset*): Unit = {
     // HERE BE DRAGONS: Make sure that you're not mixing up Java and Scala containers when
@@ -141,20 +131,14 @@ object SmaphSPruner {
     }
 
     dummyAnnotator.getAuxiliaryAnnotator.asInstanceOf[HelperWATAnnotator].getRequestCache.flush()
-
-    // We processed everything, and now we are ready to train the SVM.
-//    genPrunerData(allTrainingData)
-  }
-
-  def trainPrunerFromCsv(csvFileName: String): SmaphSPruner = {
-    val data = loadTrainingData(csvFileName)
-    genPrunerData(data)
   }
 
   /**
    * Trains the pruning classifier using annotation candidates matched with the ground truth.
    */
-  def genPrunerData(processedTrainingData: List[(SmaphCandidate, Boolean)]): SmaphSPruner = {
+  def genPrunerData(processedTrainingData: List[(SmaphCandidate, Boolean)]): Unit = {
+    throw new RuntimeException("Training in Java/Scala not supported.")
+
     println(s"Will now train the pruner using ${processedTrainingData.length} data points.")
 
     // Temporarily limiting the data used for training in order to evaluate Smile's SVM
@@ -175,8 +159,6 @@ object SmaphSPruner {
         svm(xfold, yfold, linKernel, C)
       }
     }
-
-    new SmaphSPruner
   }
 
   /**
@@ -257,9 +239,5 @@ object SmaphSPruner {
     val min = now.get(Calendar.MINUTE)
 
     s"data/all-candidates-$month-$day-$hour-$min.csv"
-  }
-
-  private def cvSvm(X: Array[Array[Double]], y: Array[Int]) = {
-    // TODO(andrei): Compute 3/5-fold CV-error for our classifier, based on the training data.
   }
 }
