@@ -86,17 +86,20 @@ Added 10 more features from Taivo's side.
 
 * SGDClassifier
   * Details:
-      SGDClassifier(alpha=0.001, average=False, class_weight='balanced',
-             epsilon=0.1, eta0=0.0, fit_intercept=True, l1_ratio=0.15,
-             learning_rate='optimal', loss='hinge', n_iter=5, n_jobs=1,
-             penalty='l1', power_t=0.5, random_state=None, shuffle=True,
-             verbose=0, warm_start=False)
+      SGDClassifier(alpha=0.01, average=False, class_weight='balanced', epsilon=0.1,
+            eta0=0.0, fit_intercept=True, l1_ratio=0.15,
+            learning_rate='optimal', loss='hinge', n_iter=5, n_jobs=1,
+            penalty='l1', power_t=0.5, random_state=None, shuffle=True,
+            verbose=0, warm_start=False)
   * Train data confusion matrix:
-      [[71250  9990]
-       [  162   725]]
+         [[58424 22816]
+          [  141   746]]
   * Numbers:
    * C2W	mac-P/R/F1: 0.488/0.647/0.472 mic-P/R/F1: 0.416/0.616/0.497 TP/FP/FN: 252/354/157 std-P/R/F1: 0.366/0.401/0.350	SMAPH-S annotator
    * A2W-SAM	mac-P/R/F1: 0.225/0.288/0.189 mic-P/R/F1: 0.145/0.215/0.173 TP/FP/FN: 88/518/321 std-P/R/F1: 0.343/0.390/0.303	SMAPH-S annotator
+  * Numbers with top-k-snippets = 5:
+   * C2W	mac-P/R/F1: 0.306/0.686/0.364 mic-P/R/F1: 0.231/0.643/0.340 TP/FP/FN: 263/874/146 std-P/R/F1: 0.290/0.380/0.289	SMAPH-S annotator
+   * A2W-SAM	mac-P/R/F1: 0.121/0.256/0.122 mic-P/R/F1: 0.054/0.149/0.079 TP/FP/FN: 61/1077/348 std-P/R/F1: 0.260/0.398/0.247	SMAPH-S annotator
 
  * SVC; C = 0.7
   * Details:
@@ -126,9 +129,29 @@ Added 10 more features from Taivo's side.
 
  * SVC; C = 2.0
   * Details:
-
+      SVC(C=2.0, cache_size=200, class_weight='balanced', coef0=0.0,
+        decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+        max_iter=-1, probability=False, random_state=None, shrinking=True,
+        tol=0.001, verbose=False)
+  * Train data confusion matrix:
+      [[75533  5707]
+       [   32   855]]
   * Numbers:
     C2W	mac-P/R/F1: 0.565/0.610/0.446 mic-P/R/F1: 0.379/0.582/0.459 TP/FP/FN: 238/390/171 std-P/R/F1: 0.371/0.419/0.353	SMAPH-S annotator
     A2W-SAM	mac-P/R/F1: 0.385/0.333/0.246 mic-P/R/F1: 0.166/0.254/0.201 TP/FP/FN: 104/524/305 std-P/R/F1: 0.419/0.406/0.341	SMAPH-S annotator
 
-TODO(andrei): Add SVM numbers to log, e.g. accuracy, confusion matrix, etc.
+ * SGDClassifier
+  * Details:
+        SGDClassifier(alpha=0.0001, average=False, class_weight='balanced',
+               epsilon=0.1, eta0=0.0, fit_intercept=True, l1_ratio=0.15,
+               learning_rate='optimal', loss='log', n_iter=50, n_jobs=1,
+               penalty='l1', power_t=0.5, random_state=None, shuffle=True,
+               verbose=0, warm_start=False)
+  * Train data confusion matrix:
+        [[73605  7635]
+         [  183   704]]
+  * Numbers:
+    * C2W	mac-P/R/F1: 0.311/0.727/0.352 mic-P/R/F1: 0.204/0.694/0.316 TP/FP/FN: 284/1105/125 std-P/R/F1: 0.300/0.368/0.279	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.164/0.301/0.147 mic-P/R/F1: 0.068/0.230/0.105 TP/FP/FN: 94/1296/315 std-P/R/F1: 0.303/0.400/0.261	SMAPH-S annotator
+
+TODO(andrei): Try SVC with C = 0.1 or smaller.
