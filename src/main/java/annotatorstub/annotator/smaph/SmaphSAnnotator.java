@@ -19,7 +19,6 @@ import it.unipi.di.acube.batframework.utils.Pair;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.util.parsing.combinator.testing.Str;
 
 import java.io.File;
 import java.io.IOException;
@@ -437,9 +436,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 features.addAll(entityFeatures);
                 features.addAll(mentionEntityFeatures);
 
-                System.out.printf("('%s', ID %d) features: %s\n", mention.getMention(), entityID, features);
-                // Note: we don't really need the add in the inner loop right now, but it will start
-                // being necessary once we start adding the mention-entity features.
+//                System.out.printf("('%s', ID %d) features: %s\n", mention.getMention(), entityID, features);
+                // Note: we need the inner loop because we also have specific mention-entity
+                // features.
                 results.add(new SmaphCandidate(entityID, mention, features));
             }
         }
