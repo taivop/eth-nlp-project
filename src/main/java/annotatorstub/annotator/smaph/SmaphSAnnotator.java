@@ -31,9 +31,11 @@ import java.util.stream.Collectors;
 public class SmaphSAnnotator extends FakeAnnotator {
 
     private static BingSearchAPI bingApi;
+    private static final int DEFAULT_TOP_K_SNIPPETS = 25;
+
     private WikipediaApiInterface wikiApi;
     private CandidateEntitiesGenerator candidateEntitiesGenerator;
-    private static final int TOP_K_SNIPPETS = 25;
+    private final int topKSnippets;
     private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private Optional<Smaph1Pruner> pruner;
@@ -44,7 +46,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
     }
 
     public SmaphSAnnotator(Optional<Smaph1Pruner> pruner) {
-        this(pruner, QueryMethod.ALL_OVERLAP);
+        this(pruner, QueryMethod.ALL_OVERLAP, DEFAULT_TOP_K_SNIPPETS);
     }
 
     /**
@@ -55,9 +57,14 @@ public class SmaphSAnnotator extends FakeAnnotator {
      * @param generatorQueryMethod How to generate candidates using the WAT annotator. {@see
      * {@link QueryMethod}}
      */
-    public SmaphSAnnotator(Optional<Smaph1Pruner> pruner, QueryMethod generatorQueryMethod) {
+    public SmaphSAnnotator(
+        Optional<Smaph1Pruner> pruner,
+        QueryMethod generatorQueryMethod,
+        int topKSnippets
+    ) {
         this.pruner = pruner;
         this.generatorQueryMethod= generatorQueryMethod;
+        this.topKSnippets = topKSnippets;
 
         BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
         bingApi = BingSearchAPI.getInstance();
@@ -68,6 +75,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         else {
             logger.info("Setting up SMAPH-S annotator with NO pruning.");
         }
+
+        logger.info("Using top k snippets: {}", topKSnippets);
 
         this.wikiApi = WikipediaApiInterface.api();
         candidateEntitiesGenerator = new CandidateEntitiesGenerator();
@@ -160,7 +169,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         }
         if(firstMatchPosition == 0) {   // If we didn't find our entity in any result URL
             // TODO this is an arbitrary choice (paper doesn't specify what happens when entity URL isn't in results)
-            f3_rank = ((Integer) (TOP_K_SNIPPETS * 4)).doubleValue();
+            f3_rank = ((Integer) (topKSnippets * 4)).doubleValue();
         } else {
             f3_rank = firstMatchPosition.doubleValue();
         }
@@ -212,8 +221,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 map(snippet -> snippet.getDescription()).
                 collect(Collectors.toList());
         // This ensures that we don't crash when the total number of returned results is smaller
-        // than 'TOP_K_SNIPPETS'.
-        int listEnd = Math.min(TOP_K_SNIPPETS, bingSnippetsFull.size());
+        // than 'topKSnippets'.
+        int listEnd = Math.min(topKSnippets, bingSnippetsFull.size());
         List<String> bingSnippets = bingSnippetsFull.subList(0, listEnd);
 
         // snippetEntities: for each snippet, the set of entitities that were found by annotating the snippet with WAT
@@ -239,11 +248,11 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 f9_freq += 1;
                 f10_avgRank += rankCounter;
             } else {
-                f10_avgRank += TOP_K_SNIPPETS;
+                f10_avgRank += topKSnippets;
             }
         }
         f9_freq /= bingSnippets.size();
-        f10_avgRank /= TOP_K_SNIPPETS;
+        f10_avgRank /= topKSnippets;
 
         Double f11_pageRank = SmaphSMockDataSources.getWikiPageRankScore(entity);
 
@@ -369,7 +378,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         try {
             bingResult = bingApi.query(query);
             candidateEntities =
-                    candidateEntitiesGenerator.generateCandidateEntities(bingResult, TOP_K_SNIPPETS,
+                    candidateEntitiesGenerator.generateCandidateEntities(bingResult, topKSnippets,
                         generatorQueryMethod);
         } catch (ConnectException e){
             logger.warn(e.getMessage());
