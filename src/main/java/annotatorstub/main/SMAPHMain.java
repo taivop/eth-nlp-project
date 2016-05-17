@@ -2,6 +2,8 @@ package annotatorstub.main;
 
 import annotatorstub.annotator.smaph.SmaphSAnnotator;
 
+import java.util.Optional;
+
 /**
  * Main class, for demonstration and debugging for the time being
  * The C2W task is solved without the pruning set followed in order
@@ -22,7 +24,7 @@ public class SMAPHMain {
 
         try {
             // TODO(andrei) Use the pruner.
-            SmaphSAnnotator smaphSAnnotator = new SmaphSAnnotator(null);
+            SmaphSAnnotator smaphSAnnotator = new SmaphSAnnotator(Optional.empty());
             smaphSAnnotator.getCandidatesWithFeatures(sampleQuery);
         } catch (Exception e) {
             System.err.println("Something went wrong running the SMAPH-S annotator.");

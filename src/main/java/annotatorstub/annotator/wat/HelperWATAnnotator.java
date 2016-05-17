@@ -1,5 +1,5 @@
 /**
- *  Copyright 2014 Marco Cornolti
+ *  Original Copyright 2014 Marco Cornolti
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package annotatorstub.annotator.wat;
 
 import annotatorstub.utils.Pair;
+import annotatorstub.utils.caching.SimpleCache;
 import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.data.Mention;
 import it.unipi.di.acube.batframework.data.MultipleAnnotation;
@@ -63,14 +64,16 @@ public class HelperWATAnnotator implements
      * Very simple runtime cache destined to reduce the number of requests made to the wikisense
      * API. Stores the JSON as a string for ease of serialization.
      *
-     * TODO(andrei): Store JSON directly if possible.
-     *
      * The key consists of (URL, Parameters) tuples.
      */
-    private Map<Pair<URL, String>, String> requestCache = new HashMap<>();
-    private String cacheFilename;
-    private int flushCounter = 1;
-    private int flushEvery = 250;
+    private SimpleCache<Pair<URL, String>, String> requestCache;
+
+    /**
+     * More elaborate cache, which sits one level above the JSON cache, allowing faster caching
+     * of preprocessed 'ScoredAnnotation' objects, which avoids the JSON processing overhead
+     * (significant, as confirmed by VisualVM).
+     */
+    private SimpleCache<String, HashSet<ScoredAnnotation>> fullCache;
 
     public HelperWATAnnotator(String ip, int port, String method) {
         this(ip, port, method, "PAGERANK", "mw", "", "");
@@ -100,16 +103,15 @@ public class HelperWATAnnotator implements
         this.sortBy = sortBy;
         this.relatedness = relatedness;
 
-        // TODO(andrei): Parameterize this.
         try {
-            this.setCache("watapi.cache");
+            // TODO(andrei): Parameterize this.
+            this.requestCache = new SimpleCache<>("watapi.cache", "WAT cache", 250);
+            this.fullCache = new SimpleCache<>("watapi.nojson.cache", "WAT native cache", 250);
         }
         catch(IOException ex) {
             System.err.println("IOException while setting up WAT cache.");
             System.err.println(ex.getMessage());
             ex.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Wrong type in cache.", e);
         }
     }
 
@@ -126,9 +128,10 @@ public class HelperWATAnnotator implements
     @Override
     public String getName() {
         return String
-                .format("WikiSense (method=%s epsilon=%s usecontext=%b relatedness=%s sortby=%s)",
-                        method, epsilon.equals("") ? "default" : epsilon,
-                        useContext, relatedness, sortBy);
+            .format(
+                "WikiSense (method=%s epsilon=%s usecontext=%b relatedness=%s sortby=%s)",
+                method, epsilon.equals("") ? "default" : epsilon,
+                useContext, relatedness, sortBy);
     }
 
     @Override
@@ -251,9 +254,9 @@ public class HelperWATAnnotator implements
             lastTime = obj.getJSONObject("time").getInt("total");
 
         } catch (Exception e) {
-            System.out
-                    .print("Got error while querying WikiSense API with GET parameters: "
-                            + getParameters + " with text: " + text);
+            System.out.print(
+                "Got error while querying WikiSense API with GET parameters: "
+                    + getParameters + " with text: " + text);
             throw new AnnotationException(
                     "An error occurred while querying WikiSense API. Message: "
                             + e.getMessage());
@@ -282,9 +285,15 @@ public class HelperWATAnnotator implements
     }
 
     @Override
-    public HashSet<ScoredAnnotation> solveSa2W(String text)
-            throws AnnotationException {
-        // System.out.println(text);
+    public HashSet<ScoredAnnotation> solveSa2W(String text) throws AnnotationException {
+        // Note: I currently seems that this is the only method used by the SMAPH-S annotator for
+        // generating the E3 set.
+
+        if(fullCache.containsKey(text)) {
+            lastTime = 0;
+            return fullCache.get(text);
+        }
+
         HashSet<ScoredAnnotation> res = new HashSet<ScoredAnnotation>();
         JSONObject obj = null;
         try {
@@ -338,6 +347,13 @@ public class HelperWATAnnotator implements
         } catch (JSONException e) {
             e.printStackTrace();
             throw new AnnotationException(e.getMessage());
+        }
+
+        try {
+            fullCache.put(text, res);
+        }
+        catch(IOException ex) {
+            throw new RuntimeException("Error while caching scored annotations.", ex);
         }
         return res;
     }
@@ -467,13 +483,7 @@ public class HelperWATAnnotator implements
 
             JSONObject obj = new JSONObject(resultStr);
 
-            // TODO(andrei): Generic cache.
             requestCache.put(cacheKey, resultStr);
-            flushCounter++;
-            if(flushCounter % flushEvery == 1) {
-                flushCache();
-            }
-
             return obj;
 
         } catch (Exception e) {
@@ -551,37 +561,8 @@ public class HelperWATAnnotator implements
         this.brutalD2WReduction = true;
     }
 
-    public void setCache(String cacheFilename)
-            throws FileNotFoundException, IOException, ClassNotFoundException {
-        System.out.println("Loading simple wikisense cache for WAT annotation...");
-        this.cacheFilename = cacheFilename;
-        if (new File(cacheFilename).exists()) {
-            System.out.println("Found cache file to load.");
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(
-                    cacheFilename));
-            requestCache = (Map<Pair<URL, String>, String>) ois.readObject();
-            ois.close();
-            System.out.println(String.format(
-                    "Loaded cache file with %d entries.",
-                    this.requestCache.size()));
-        }
-        else {
-            System.out.printf("No WAT cache found in file %s. Will write to it on the next flush" +
-                    ".%n", cacheFilename);
-        }
-    }
-
-    public synchronized void flushCache() throws FileNotFoundException,
-            IOException {
-        if (flushCounter > 0 && cacheFilename != null) {
-            System.out.println("Flushing WAT cache... ");
-            new File(cacheFilename).createNewFile();
-            ObjectOutputStream oos = new ObjectOutputStream(
-                    new FileOutputStream(cacheFilename));
-            oos.writeObject(requestCache);
-            oos.close();
-            System.out.println("Flushing WAT cache done.");
-        }
+    public SimpleCache<Pair<URL, String>, String> getRequestCache() {
+        return requestCache;
     }
 }
 

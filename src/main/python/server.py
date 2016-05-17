@@ -45,6 +45,8 @@ def predict():
 
 
 if __name__ == "__main__":
+    global classifier, magnitudes, means, scaler
+
     if len(sys.argv) != 4:
         print("Usage: server.py <port> <input_separator> <model_pickle_path>")
         exit(1)
@@ -53,7 +55,6 @@ if __name__ == "__main__":
     SEPARATOR	= sys.argv[2]
     MODEL_PATH  = sys.argv[3]
 
-    global classifier, magnitudes, means, scaler
     classifier, magnitudes, means, scaler = pickle.load(open(MODEL_PATH, 'rb'))
 
     app.config['DEBUG'] = True

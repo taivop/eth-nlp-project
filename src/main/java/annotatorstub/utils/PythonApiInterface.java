@@ -35,7 +35,7 @@ public class PythonApiInterface implements Closeable {
                 SEPARATOR,
                 modelPickleFile);
 
-        logger.info(String.format("Starting Python server: %s", processBuilder));
+        logger.info("Starting Python server: {}", processBuilder.command());
         // 'inheritIO()' simply redirects the server's error output to Java's.
         serverProcess = processBuilder
                 .inheritIO()
@@ -91,7 +91,7 @@ public class PythonApiInterface implements Closeable {
 
         // Set some sensible timeouts to prevent us waiting too much in case an error occurs.
         connection.setConnectTimeout(1500);
-        connection.setReadTimeout(1500);
+        connection.setReadTimeout(10000);
         connection.setRequestMethod("GET");
         connection.setUseCaches(false);
         connection.setDoOutput(true);

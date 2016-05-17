@@ -2,9 +2,11 @@ package annotatorstub.annotator.smaph
 
 import java.io.FileWriter
 
+import annotatorstub.annotator.wat.HelperWATAnnotator
 import annotatorstub.utils.mention.{SmaphCandidate, MentionCandidate}
 import it.unipi.di.acube.batframework.data.Annotation
 import it.unipi.di.acube.batframework.problems.A2WDataset
+import it.unipi.di.acube.batframework.systemPlugins.WATAnnotator
 
 import smile.classification._
 import smile.data._
@@ -14,7 +16,7 @@ import smile.validation._
 
 import collection.JavaConverters._
 
-import java.util.{HashSet => JHashSet, Calendar, GregorianCalendar, Date}
+import java.util.{HashSet => JHashSet, Optional, Calendar, GregorianCalendar, Date}
 import scala.collection.Set
 
 
@@ -29,17 +31,19 @@ object SmaphSPruner {
   def loadPruner(fileName: String): SmaphSPruner = ???
 
   /**
-   * Generates training data from the given dataset, dumps it to a CSV file for later use, and
-   * then trains a simple SVM using the data.
+   * Generates training data from the given datasets, and dumps it to a CSV file for later use.
    *
-   * Note: Training is currently VERY slow.
+   * Note: SVM training not attempted, as is currently VERY slow.
    */
-  def trainPruner(dataset: A2WDataset): SmaphSPruner = {
+  def genPrunerData(datasets: A2WDataset*): Unit = {
     // HERE BE DRAGONS: Make sure that you're not mixing up Java and Scala containers when
     // dealing with inter-language marshalling. Otherwise one might end up spending hours trying
     // to figure out why 'List[Foo]' cannot be converted to 'List[Foo]'.
 
-    val goldStandardJava: List[JHashSet[Annotation]] = dataset.getA2WGoldStandardList.asScala.toList
+    val goldStandardJava: List[JHashSet[Annotation]] = datasets
+      .flatMap { _.getA2WGoldStandardList.asScala }
+      .toList
+
     val goldStandard: List[Set[Annotation]] = goldStandardJava.map { jHashSet =>
       jHashSet.asScala.toSet
     }
@@ -50,16 +54,17 @@ object SmaphSPruner {
     // if a generated entity-mention pair is actually present in gold standard, the label is
     // positive, otherwise it's a 0.
 
-    val queries: List[String] = dataset.getTextInstanceList.asScala.toList
+    val queries: List[String] = datasets.flatMap { _.getTextInstanceList.asScala }.toList
 
-    println(s"We have a total of ${queries.length} queries.")
+    println(s"We have a total of ${queries.length} queries from ${datasets.length} datasets:")
+    datasets.map { _.getName }.zipWithIndex.map { case (name, i) => s" - $i $name" }  foreach println
     println(s"Sanity check: gold standard length is ${goldStandard.length}")
 
     val totalQueries = goldStandard.length
     val queryGroundTruths = queries zip goldStandard
 
     // TODO(andrei): Move feature creation to separate object.
-    val dummyAnnotator = new SmaphSAnnotator(null)
+    val dummyAnnotator = new SmaphSAnnotator(Optional.empty[Smaph1Pruner]())
 
     // The file where we will be saving our training data for safe keeping.
     val csvFileName = genCsvFileName()
@@ -111,7 +116,8 @@ object SmaphSPruner {
         val missing = goldAnnotations.filterNot {
           positiveCandidates.contains(_)
         }
-        println(s"Missing IDs that are in the gold standard: ${missing}")
+        println(s"Missing IDs that are in the gold standard:",
+          missing.map { _.getConcept }.mkString(","))
       }
       else if(positiveCandidates.size > goldAnnotations.size) {
         System.err.println("Possible duplicate positives found.")
@@ -134,19 +140,21 @@ object SmaphSPruner {
       positiveCandidates.map { c => (c, true) } ++ negativeCandidates.map { c => (c, false) }
     }
 
+    dummyAnnotator.getAuxiliaryAnnotator.asInstanceOf[HelperWATAnnotator].getRequestCache.flush()
+
     // We processed everything, and now we are ready to train the SVM.
-    trainPruner(allTrainingData)
+//    genPrunerData(allTrainingData)
   }
 
   def trainPrunerFromCsv(csvFileName: String): SmaphSPruner = {
     val data = loadTrainingData(csvFileName)
-    trainPruner(data)
+    genPrunerData(data)
   }
 
   /**
    * Trains the pruning classifier using annotation candidates matched with the ground truth.
    */
-  def trainPruner(processedTrainingData: List[(SmaphCandidate, Boolean)]): SmaphSPruner = {
+  def genPrunerData(processedTrainingData: List[(SmaphCandidate, Boolean)]): SmaphSPruner = {
     println(s"Will now train the pruner using ${processedTrainingData.length} data points.")
 
     // Temporarily limiting the data used for training in order to evaluate Smile's SVM
