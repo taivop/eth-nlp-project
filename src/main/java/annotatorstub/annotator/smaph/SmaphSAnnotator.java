@@ -232,9 +232,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
         features.add(f19_comm_avg);
         /*features.add(f20_ambig_min);
         features.add(f21_ambig_max);
-        features.add(f22_ambig_avg);
+        features.add(f22_ambig_avg);*/
         features.add(f23_mentMED_min);
-        features.add(f24_mentMED_max);*/
+        features.add(f24_mentMED_max);
 
         //endregion
         // ------------------------------------------------------------------------------------
