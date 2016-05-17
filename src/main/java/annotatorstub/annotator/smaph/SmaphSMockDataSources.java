@@ -84,4 +84,20 @@ public class SmaphSMockDataSources {
      * Get the ambiguity (number of distinct Wikipedia pages that the mention points to) in the Wikipedia corpus.
      */
     public static Double getWikiAmbiguity(String mention) { return 0.0; }
+
+    /**
+     * Get the number of times (frequency) that the given entity has been linked in Wikipedia pages by the given anchor.
+     * F(e, a) in the article.
+     */
+    public static Integer getWikiEntityAnchorLinkCount(Integer entity, String anchor) {
+        return 0;
+    }
+
+    /**
+     * Get the set of anchors used in Wikipedia to link the given entity.
+     * G(e) in the article.
+     */
+    public static Set<String> getWikiAnchorsLinkingToEntity(Integer entity) {
+        return new HashSet<>();
+    }
 }

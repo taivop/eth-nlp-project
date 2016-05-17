@@ -17,6 +17,7 @@ import it.unipi.di.acube.batframework.utils.AnnotationException;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.util.parsing.combinator.testing.Str;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -235,8 +236,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
           // TODO(andrei): Maybe get commonness from:
           //   WATRelatednessComputer.getCommonness("obama", obamaId));
 
-          linkProbabilities.add(SmaphSMockDataSources.getWikiLinkProbability(mention));
-            commonnesses.add(SmaphSMockDataSources.getWikiCommonness(mention, entity));
+            linkProbabilities.add(WATRelatednessComputer.getLp(mention));
+            commonnesses.add(WATRelatednessComputer.getCommonness(mention, entity));
             ambiguities.add(SmaphSMockDataSources.getWikiAmbiguity(mention));
             minEDs.add(StringUtils.minED(mention, query));
         }
@@ -252,14 +253,14 @@ public class SmaphSAnnotator extends FakeAnnotator {
             f16_lp_max = Collections.max(linkProbabilities);
         }
         // TODO(andrei): Re-add these ensuring that we check for empty lists so that '.min/max' don't crash.
-//        Double f17_comm_min = Collections.min(commonnesses);
-//        Double f18_comm_max = Collections.max(commonnesses);
-//        Double f19_comm_avg = average(commonnesses);
-//        Double f20_ambig_min = Collections.min(ambiguities);
-//        Double f21_ambig_max = Collections.max(ambiguities);
-//        Double f22_ambig_avg = average(ambiguities);
-//        Double f23_mentMED_min = Collections.min(minEDs);
-//        Double f24_mentMED_max = Collections.max(minEDs);
+        Double f17_comm_min = Collections.min(commonnesses);
+        Double f18_comm_max = Collections.max(commonnesses);
+        Double f19_comm_avg = average(commonnesses);
+        Double f20_ambig_min = Collections.min(ambiguities);
+        Double f21_ambig_max = Collections.max(ambiguities);
+        Double f22_ambig_avg = average(ambiguities);
+        Double f23_mentMED_min = Collections.min(minEDs);
+        Double f24_mentMED_max = Collections.max(minEDs);
 
         //endregion
         // ------------------------------------------------------------------------------------
@@ -279,17 +280,17 @@ public class SmaphSAnnotator extends FakeAnnotator {
         features.add(f8_boldTerms);
         features.add(f9_freq);
         features.add(f10_avgRank);
-        /*features.add(f11_pageRank);
+        // features.add(f11_pageRank);
         features.add(f15_lp_min);
         features.add(f16_lp_max);
         features.add(f17_comm_min);
         features.add(f18_comm_max);
         features.add(f19_comm_avg);
-        features.add(f20_ambig_min);
+        /*features.add(f20_ambig_min);
         features.add(f21_ambig_max);
-        features.add(f22_ambig_avg);
+        features.add(f22_ambig_avg);*/
         features.add(f23_mentMED_min);
-        features.add(f24_mentMED_max);*/
+        features.add(f24_mentMED_max);
 
         //endregion
         // ------------------------------------------------------------------------------------
@@ -304,11 +305,36 @@ public class SmaphSAnnotator extends FakeAnnotator {
      * @param entity the Wikipedia ID of the entity
      * @return list of per-pair features
      */
-    private List<Double> getMentionEntityFeatures(MentionCandidate mention, Integer entity, String query) {
+    private List<Double> getMentionEntityFeatures(MentionCandidate mention, Integer entity, String query) throws IOException {
+        String mentionString = mention.getMention();
+        String entityTitle = wikiApi.getTitlebyId(entity);
         // TODO
         ArrayList<Double> features = new ArrayList<>();
 
-        features.add(42.0);
+        Double f25_anchorsAvgED;
+        Double sum_enumerator = 0.0;
+        Double sum_denominator = 0.0;
+        for(String anchor : SmaphSMockDataSources.getWikiAnchorsLinkingToEntity(entity)) {
+            Double sqrt_F = Math.sqrt(SmaphSMockDataSources.getWikiEntityAnchorLinkCount(entity, anchor));
+            sum_enumerator += sqrt_F * StringUtils.ED(anchor, mentionString);
+            sum_denominator += sqrt_F;
+        }
+        if(sum_denominator == 0.0) {
+            f25_anchorsAvgED = 0.0;
+        } else {
+            f25_anchorsAvgED = sum_enumerator / sum_denominator;
+        }
+
+        Double f26_minEDTitle = StringUtils.minED(mentionString, entityTitle);
+        Double f27_EdTitle = Double.valueOf(StringUtils.ED(mentionString, entityTitle));
+        Double f28_commonness = WATRelatednessComputer.getCommonness(mentionString, entity);
+        Double f29_lp = WATRelatednessComputer.getLp(mentionString);
+
+        //features.add(f25_anchorsAvgED);
+        features.add(f26_minEDTitle);
+        features.add(f27_EdTitle);
+        features.add(f28_commonness);
+        features.add(f29_lp);
 
         return features;
     }
@@ -386,7 +412,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 features.addAll(entityFeatures);
                 features.addAll(mentionEntityFeatures);
 
-//                System.out.printf("('%s', ID %d) features: %s\n", mention.getMention(), entityID, features);
+                System.out.printf("('%s', ID %d) features: %s\n", mention.getMention(), entityID, features);
                 // Note: we don't really need the add in the inner loop right now, but it will start
                 // being necessary once we start adding the mention-entity features.
                 results.add(new SmaphCandidate(entityID, mention, features));
