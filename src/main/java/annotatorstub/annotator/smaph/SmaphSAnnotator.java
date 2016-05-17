@@ -79,12 +79,35 @@ public class SmaphSAnnotator extends FakeAnnotator {
         }
     }
 
-    public static Double average(Collection<Double> collection) {
+    public static Double averageIfNotEmpty(Collection<Double> collection) {
+        if(collection.isEmpty()) {
+            // TODO(andrei): Is this a sensible thing to do?
+            return 0.0;
+        }
+
         Double sum = 0.0;
         for(Double element : collection) {
             sum += element;
         }
         return sum / collection.size();
+    }
+
+    public static Double minIfNotEmpty(Collection<Double> collection) {
+        if(collection.isEmpty()) {
+            return 0.0;
+        }
+        else {
+            return Collections.min(collection);
+        }
+    }
+
+    public static Double maxIfNotEmpty(Collection<Double> collection) {
+        if(collection.isEmpty()) {
+            return 0.0;
+        }
+        else {
+            return Collections.max(collection);
+        }
     }
 
     /**
@@ -229,11 +252,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         ArrayList<Double> ambiguities = new ArrayList<>();
         ArrayList<Double> minEDs = new ArrayList<>();
         for(Pair<String, String> mentionSnippetPair : mentionSnippetPairs) {
-          String mention = mentionSnippetPair.fst;
-          String snippet = mentionSnippetPair.snd;
-
-          // TODO(andrei): Maybe get commonness from:
-          //   WATRelatednessComputer.getCommonness("obama", obamaId));
+            String mention = mentionSnippetPair.fst;
+            String snippet = mentionSnippetPair.snd;
 
             linkProbabilities.add(WATRelatednessComputer.getLp(mention));
             commonnesses.add(WATRelatednessComputer.getCommonness(mention, entity));
@@ -241,25 +261,16 @@ public class SmaphSAnnotator extends FakeAnnotator {
             minEDs.add(StringUtils.minED(mention, query));
         }
 
-        Double f15_lp_min;
-        Double f16_lp_max;
-        if(linkProbabilities.isEmpty()) {
-            f15_lp_min = 0.0;
-            f16_lp_max = 0.0;
-        }
-        else {
-            f15_lp_min = Collections.min(linkProbabilities);
-            f16_lp_max = Collections.max(linkProbabilities);
-        }
-        // TODO(andrei): Re-add these ensuring that we check for empty lists so that '.min/max' don't crash.
-        Double f17_comm_min = Collections.min(commonnesses);
-        Double f18_comm_max = Collections.max(commonnesses);
-        Double f19_comm_avg = average(commonnesses);
-        Double f20_ambig_min = Collections.min(ambiguities);
-        Double f21_ambig_max = Collections.max(ambiguities);
-        Double f22_ambig_avg = average(ambiguities);
-        Double f23_mentMED_min = Collections.min(minEDs);
-        Double f24_mentMED_max = Collections.max(minEDs);
+        Double f15_lp_min = minIfNotEmpty(linkProbabilities);
+        Double f16_lp_max= maxIfNotEmpty(linkProbabilities);
+        Double f17_comm_min = minIfNotEmpty(commonnesses);
+        Double f18_comm_max = maxIfNotEmpty(commonnesses);
+        Double f19_comm_avg = averageIfNotEmpty(commonnesses);
+        Double f20_ambig_min = minIfNotEmpty(ambiguities);
+        Double f21_ambig_max = maxIfNotEmpty(ambiguities);
+        Double f22_ambig_avg = averageIfNotEmpty(ambiguities);
+        Double f23_mentMED_min = minIfNotEmpty(minEDs);
+        Double f24_mentMED_max = maxIfNotEmpty(minEDs);
 
         //endregion
         // ------------------------------------------------------------------------------------
@@ -326,8 +337,19 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         Double f26_minEDTitle = StringUtils.minED(mentionString, entityTitle);
         Double f27_EdTitle = Double.valueOf(StringUtils.ED(mentionString, entityTitle));
-        Double f28_commonness = WATRelatednessComputer.getCommonness(mentionString, entity);
-        Double f29_lp = WATRelatednessComputer.getLp(mentionString);
+        Double f28_commonness;
+        Double f29_lp;
+        // This is a hack to work around the fact that querying
+        // 'http://wikisense.mkapp.it/tag/spot?text=%2F' or something similar leads to a 500 error.
+//        if(mentionString.equals("/") || mentionString.equals("&") || mentionString.equals("?")) {
+        if(mentionString.length() <= 1) {
+            f28_commonness = 0.0;
+            f29_lp = 0.0;
+        }
+        else {
+            f28_commonness = WATRelatednessComputer.getCommonness(mentionString, entity);
+            f29_lp = WATRelatednessComputer.getLp(mentionString);
+        }
 
         //features.add(f25_anchorsAvgED);
         features.add(f26_minEDTitle);
