@@ -274,7 +274,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f28_commonness = WATRelatednessComputer.getCommonness(mentionString, entity);
         Double f29_lp = WATRelatednessComputer.getLp(mentionString);
 
-        features.add(f25_anchorsAvgED);
+        //features.add(f25_anchorsAvgED);
         features.add(f26_minEDTitle);
         features.add(f27_EdTitle);
         features.add(f28_commonness);
