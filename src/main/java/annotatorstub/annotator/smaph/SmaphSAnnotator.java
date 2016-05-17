@@ -336,7 +336,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         }
 
         Double f26_minEDTitle = StringUtils.minED(mentionString, entityTitle);
-        Double f27_EdTitle = Double.valueOf(StringUtils.ED(mentionString, entityTitle));
+        Double f27_EdTitle = (double) StringUtils.ED(mentionString, entityTitle);
         Double f28_commonness;
         Double f29_lp;
         // This is a hack to work around the fact that querying
