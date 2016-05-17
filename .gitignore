@@ -15,3 +15,6 @@
 models/
 lib/
 models/
+data/
+*.pkl
+watapi.cache.old
