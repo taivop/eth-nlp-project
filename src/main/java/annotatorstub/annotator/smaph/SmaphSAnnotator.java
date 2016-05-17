@@ -88,12 +88,35 @@ public class SmaphSAnnotator extends FakeAnnotator {
         }
     }
 
-    public static Double average(Collection<Double> collection) {
+    public static Double averageIfNotEmpty(Collection<Double> collection) {
+        if(collection.isEmpty()) {
+            // TODO(andrei): Is this a sensible thing to do?
+            return 0.0;
+        }
+
         Double sum = 0.0;
         for(Double element : collection) {
             sum += element;
         }
         return sum / collection.size();
+    }
+
+    public static Double minIfNotEmpty(Collection<Double> collection) {
+        if(collection.isEmpty()) {
+            return 0.0;
+        }
+        else {
+            return Collections.min(collection);
+        }
+    }
+
+    public static Double maxIfNotEmpty(Collection<Double> collection) {
+        if(collection.isEmpty()) {
+            return 0.0;
+        }
+        else {
+            return Collections.max(collection);
+        }
     }
 
     /**
@@ -242,7 +265,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         for(MentionEntitySnippetTriple mentionEntitySnippetTriple : mentionEntitySnippetTriples) {
             Integer mentionedEntity = mentionEntitySnippetTriple.getEntity();
-
             //System.out.printf("Scoring entity %d, current entity %d\n", entity, mentionedEntity);
 
             if(mentionedEntity.equals(entity)) { // Only consider mentions if this is the entity we're calculating features for
@@ -277,10 +299,10 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f16_lp_max = Collections.max(linkProbabilities);
         Double f17_comm_min = Collections.min(commonnesses);
         Double f18_comm_max = Collections.max(commonnesses);
-        Double f19_comm_avg = average(commonnesses);
+        Double f19_comm_avg = averageIfNotEmpty(commonnesses);
         Double f20_ambig_min = Collections.min(ambiguities);
         Double f21_ambig_max = Collections.max(ambiguities);
-        Double f22_ambig_avg = average(ambiguities);
+        Double f22_ambig_avg = averageIfNotEmpty(ambiguities);
         Double f23_mentMED_min = Collections.min(minEDs);
         Double f24_mentMED_max = Collections.max(minEDs);
 
@@ -351,8 +373,19 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         Double f26_minEDTitle = StringUtils.minED(mentionString, entityTitle);
         Double f27_EdTitle = Double.valueOf(StringUtils.ED(mentionString, entityTitle));
-        Double f28_commonness = WATRelatednessComputer.getCommonness(mentionString, entity);
-        Double f29_lp = WATRelatednessComputer.getLp(mentionString);
+        Double f28_commonness;
+        Double f29_lp;
+        // This is a hack to work around the fact that querying
+        // 'http://wikisense.mkapp.it/tag/spot?text=%2F' or something similar leads to a 500 error.
+//        if(mentionString.equals("/") || mentionString.equals("&") || mentionString.equals("?")) {
+        if(mentionString.length() <= 1) {
+            f28_commonness = 0.0;
+            f29_lp = 0.0;
+        }
+        else {
+            f28_commonness = WATRelatednessComputer.getCommonness(mentionString, entity);
+            f29_lp = WATRelatednessComputer.getLp(mentionString);
+        }
 
         features.add(f25_anchorsAvgED);
         features.add(f26_minEDTitle);

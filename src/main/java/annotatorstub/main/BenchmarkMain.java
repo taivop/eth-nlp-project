@@ -52,7 +52,8 @@ public class BenchmarkMain {
          */
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
-            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-0.7.pkl");
+//            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-0.7.pkl");
+            svmApi.startPythonServer("models/sgdc-linear-gerdaq-a-b-alpha-0.01-hinge-l1.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
                 Optional.of(new Smaph1RemoteSvmPruner(svmApi))
 //                CandidateEntitiesGenerator.QueryMethod.ALL

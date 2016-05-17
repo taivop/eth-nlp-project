@@ -17,7 +17,7 @@ from data_util import impute_nan_inf, load_training_data, rescale
 # pylint: disable=missing-docstring, invalid-name
 
 # TODO(andrei): This should be in a common config.
-FEATURE_COUNT = 10
+FEATURE_COUNT = 20
 
 
 def usage():
@@ -47,12 +47,13 @@ def main():
 
     # A simple linear (for the time being) SVM classifier using the optimal
     # parameters established via grid search in the notebook.
-    # clf = SGDClassifier(class_weight='balanced', loss='hinge', penalty='l1',
-                        # alpha=0.05)
+    clf = SGDClassifier(class_weight='balanced', loss='hinge', penalty='l1',
+                        alpha=0.001)
+    print("Ignoring C parameter and training using SGD.")
 
     # The non-linear version. Much more expensive to train, but yields somewhat
     # better results, and corresponds to what is described in the paper.
-    clf = SVC(C=C, class_weight='balanced')
+    # clf = SVC(C=C, class_weight='balanced')
     print("Will read data from {0} and write the pickled model to "
           "{1}.".format(csv_file, dest_pickle_file))
     X_raw, y_raw = load_training_data(csv_file, FEATURE_COUNT)
