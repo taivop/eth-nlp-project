@@ -47,9 +47,9 @@ def main():
 
     # A simple linear (for the time being) SVM classifier using the optimal
     # parameters established via grid search in the notebook.
-    clf = SGDClassifier(class_weight='balanced', loss='log', penalty='l1',
-                        n_iter=50,
-                        alpha=0.0001)
+    clf = SGDClassifier(class_weight='balanced', loss='hinge', penalty='l1',
+                        n_iter=5,
+                        alpha=0.01)
     print("Ignoring C parameter and training using SGD.")
 
     # The non-linear version. Much more expensive to train, but yields somewhat

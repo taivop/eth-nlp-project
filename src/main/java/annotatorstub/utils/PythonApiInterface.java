@@ -91,11 +91,12 @@ public class PythonApiInterface implements Closeable {
         // Set some sensible timeouts to prevent us waiting too much in case an error occurs.
         // TODO(andrei): Consider redirecting all python output to file which you can 'tail -f'.
         connection.setConnectTimeout(1500);
-        connection.setReadTimeout(20000);
+        connection.setReadTimeout(60000);
         connection.setRequestMethod("GET");
         connection.setUseCaches(false);
         connection.setDoOutput(true);
 
+        // TODO(andrei): Sometimes the Python API seems to act up. Consider implementing retries.
         // Read response
         InputStream is = connection.getInputStream();
         BufferedReader rd = new BufferedReader(new InputStreamReader(is));
