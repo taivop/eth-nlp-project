@@ -45,6 +45,14 @@ def predict():
         print("Unexpected exception in Python API.", sys.exc_info()[0], file=sys.stderr)
 
 
+def shutdown_server():
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+
+    print("Shutting down Flask API.", file=sys.stderr)
+    print("I was using the following classifier: {}".format(classifier), file=sys.stderr)
+    func()
 
 if __name__ == "__main__":
     global classifier, magnitudes, means, scaler
@@ -58,6 +66,8 @@ if __name__ == "__main__":
     MODEL_PATH  = sys.argv[3]
 
     classifier, magnitudes, means, scaler = pickle.load(open(MODEL_PATH, 'rb'))
+    print("Starting server.")
+    print("Classifier: {}".format(classifier))
 
     app.config['DEBUG'] = True
     app.run(port=PORT)
