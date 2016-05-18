@@ -186,7 +186,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f10_avgRank = 0.0;
 
         // mentionSnippetPairs: the set X(q) of pairs (mention, snippetID) as explained in the paper (snippet ID is its rank in the Bing results)
-        ArrayList<Pair<Mention, Integer>> mentionSnippetPairs = new ArrayList<>();
+        ArrayList<MentionEntitySnippetTriple> mentionEntitySnippetTriples = new ArrayList<>();
 
         // TODO bingSnippets doesn't need to be calculated again for every entity
         // bingSnippets: snippets returned by querying bing with the original query
@@ -211,7 +211,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
             for(ScoredAnnotation scoredAnnotation : WATannotations) {
 
                 Mention mention = new Mention(scoredAnnotation.getPosition(), scoredAnnotation.getLength());
-                mentionSnippetPairs.add(new Pair<>(mention, rankCounter));
+                mentionEntitySnippetTriples.add(new MentionEntitySnippetTriple(mention, scoredAnnotation.getConcept(), rankCounter));
             }
 
             if(snippetHasEntity) {
@@ -232,35 +232,42 @@ public class SmaphSAnnotator extends FakeAnnotator {
         ArrayList<Double> ambiguities = new ArrayList<>();
         ArrayList<Double> rhoScores = new ArrayList<>();
         ArrayList<Double> minEDs = new ArrayList<>();
-        for(Pair<Mention, Integer> mentionSnippetPair : mentionSnippetPairs) {
-            Mention mentionInSnippet = mentionSnippetPair.fst;
-            Integer snippetId = mentionSnippetPair.snd;
-            String mentionStringInSnippet = bingSnippets.get(snippetId).substring(
-                    mentionInSnippet.getPosition(), mentionInSnippet.getPosition() + mentionInSnippet.getLength()
-            );
 
-            HashMap<String, Double> snippetAdditionalInfo =
-                    watAdditionalAnnotationInfoList.get(snippetId).get(mentionInSnippet);
+        for(MentionEntitySnippetTriple mentionEntitySnippetTriple : mentionEntitySnippetTriples) {
+            Integer mentionedEntity = mentionEntitySnippetTriple.getEntity();
 
-            linkProbabilities.add(snippetAdditionalInfo.get("lp"));
-            commonnesses.add(snippetAdditionalInfo.get("commonness"));
-            ambiguities.add(snippetAdditionalInfo.get("ambiguity"));
-            rhoScores.add(snippetAdditionalInfo.get("rhoScore"));
-            minEDs.add(StringUtils.minED(mentionStringInSnippet, query));
+            //System.out.printf("Scoring entity %d, current entity %d\n", entity, mentionedEntity);
 
+            if(mentionedEntity.equals(entity)) { // Only consider mentions if this is the entity we're calculating features for
+                Mention mentionInSnippet = mentionEntitySnippetTriple.getMention();
+                Integer snippetRank = mentionEntitySnippetTriple.getSnippetRank();
+                String mentionStringInSnippet = bingSnippets.get(snippetRank).substring(
+                        mentionInSnippet.getPosition(), mentionInSnippet.getPosition() + mentionInSnippet.getLength()
+                );
+
+                HashMap<String, Double> snippetAdditionalInfo =
+                        watAdditionalAnnotationInfoList.get(snippetRank).get(mentionInSnippet);
+
+                linkProbabilities.add(snippetAdditionalInfo.get("lp"));
+                commonnesses.add(snippetAdditionalInfo.get("commonness"));
+                ambiguities.add(snippetAdditionalInfo.get("ambiguity"));
+                rhoScores.add(snippetAdditionalInfo.get("rhoScore"));
+                minEDs.add(StringUtils.minED(mentionStringInSnippet, query));
+            }
         }
 
-        Double f15_lp_min;
-        Double f16_lp_max;
-        if(linkProbabilities.isEmpty()) {
-            f15_lp_min = 0.0;
-            f16_lp_max = 0.0;
-        }
-        else {
-            f15_lp_min = Collections.min(linkProbabilities);
-            f16_lp_max = Collections.max(linkProbabilities);
+        //System.out.printf("|X| = %d, |total triples| = %d\n", count, mentionEntitySnippetTriples.size());
+
+        if(linkProbabilities.isEmpty()) {   // Add dummy elements so that min, max and average methods don't crash
+            linkProbabilities.add(0.0);
+            commonnesses.add(0.0);
+            ambiguities.add(0.0);
+            rhoScores.add(0.0);
+            minEDs.add(0.0);
         }
 
+        Double f15_lp_min = Collections.min(linkProbabilities);
+        Double f16_lp_max = Collections.max(linkProbabilities);
         Double f17_comm_min = Collections.min(commonnesses);
         Double f18_comm_max = Collections.max(commonnesses);
         Double f19_comm_avg = average(commonnesses);
