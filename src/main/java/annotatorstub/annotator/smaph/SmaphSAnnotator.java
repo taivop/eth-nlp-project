@@ -287,20 +287,19 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
                 if(snippetAdditionalInfo == null) {
                     // TODO(andrei): Find out why this happens.
-                    System.err.println("Warning: null snippet info");
-                    linkProbabilities.add(0.0);
-                    commonnesses.add(0.0);
-                    ambiguities.add(0.0);
-                    rhoScores.add(0.0);
-                    minEDs.add(1000.0);
+                    logger.error("null snippet info for snippet rank {}, mention in snippet {}",
+                        snippetRank, mentionInSnippet);
+                    throw new RuntimeException("null snippet info should not occur when the " +
+                        "caching is working correctly.");
                 }
                 else {
                     linkProbabilities.add(snippetAdditionalInfo.get("lp"));
                     commonnesses.add(snippetAdditionalInfo.get("commonness"));
                     ambiguities.add(snippetAdditionalInfo.get("ambiguity"));
                     rhoScores.add(snippetAdditionalInfo.get("rhoScore"));
-                    minEDs.add(StringUtils.minED(mentionStringInSnippet, query));
                 }
+
+                minEDs.add(StringUtils.minED(mentionStringInSnippet, query));
             }
         }
 
@@ -327,9 +326,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         //endregion
         // ------------------------------------------------------------------------------------
-
-
-
 
         // ====================================================================================
         //region Combine features into a list
