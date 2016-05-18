@@ -218,12 +218,12 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 f9_freq += 1;
                 f10_avgRank += rankCounter;
             } else {
-                f10_avgRank += TOP_K_SNIPPETS;
+                f10_avgRank += bingSnippets.size();
             }
 
         }
         f9_freq /= bingSnippets.size();
-        f10_avgRank /= TOP_K_SNIPPETS;
+        f10_avgRank /= bingSnippets.size();
 
         Double f11_pageRank = SmaphSMockDataSources.getWikiPageRankScore(entity);
 
@@ -233,20 +233,21 @@ public class SmaphSAnnotator extends FakeAnnotator {
         ArrayList<Double> rhoScores = new ArrayList<>();
         ArrayList<Double> minEDs = new ArrayList<>();
         for(Pair<Mention, Integer> mentionSnippetPair : mentionSnippetPairs) {
-            Mention mention = mentionSnippetPair.fst;
+            Mention mentionInSnippet = mentionSnippetPair.fst;
             Integer snippetId = mentionSnippetPair.snd;
-            String mentionString = bingSnippets.get(snippetId).substring(
-                    mention.getPosition(), mention.getPosition() + mention.getLength()
+            String mentionStringInSnippet = bingSnippets.get(snippetId).substring(
+                    mentionInSnippet.getPosition(), mentionInSnippet.getPosition() + mentionInSnippet.getLength()
             );
 
             HashMap<String, Double> snippetAdditionalInfo =
-                    watAdditionalAnnotationInfoList.get(snippetId).get(mention);
+                    watAdditionalAnnotationInfoList.get(snippetId).get(mentionInSnippet);
 
             linkProbabilities.add(snippetAdditionalInfo.get("lp"));
             commonnesses.add(snippetAdditionalInfo.get("commonness"));
             ambiguities.add(snippetAdditionalInfo.get("ambiguity"));
             rhoScores.add(snippetAdditionalInfo.get("rhoScore"));
-            minEDs.add(StringUtils.minED(mentionString, query));
+            minEDs.add(StringUtils.minED(mentionStringInSnippet, query));
+
         }
 
         Double f15_lp_min;
@@ -259,7 +260,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
             f15_lp_min = Collections.min(linkProbabilities);
             f16_lp_max = Collections.max(linkProbabilities);
         }
-        // TODO(andrei): Re-add these ensuring that we check for empty lists so that '.min/max' don't crash.
+
         Double f17_comm_min = Collections.min(commonnesses);
         Double f18_comm_max = Collections.max(commonnesses);
         Double f19_comm_avg = average(commonnesses);
@@ -293,9 +294,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
         features.add(f17_comm_min);
         features.add(f18_comm_max);
         features.add(f19_comm_avg);
-        /*features.add(f20_ambig_min);
+        features.add(f20_ambig_min);
         features.add(f21_ambig_max);
-        features.add(f22_ambig_avg);*/
+        features.add(f22_ambig_avg);
         features.add(f23_mentMED_min);
         features.add(f24_mentMED_max);
 
