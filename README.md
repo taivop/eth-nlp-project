@@ -23,6 +23,9 @@ File [pom.xml](pom.xml) defines a Maven project. It includes two dependencies: *
 
 - [WATFeaturesMain](src/main/java/annotatorstub/main/WATFeaturesMain.java) shows how to call the WAT Api to gather data that might be useful for your annotator: the link probability that a text appear as anchor (link probability) and two measures of relatedness among two entities: Milne-Witten and Jaccard on in-link. This API has a caching mechanism too (that you'll notice if you run the main twice).
 
+- [E2AMain](src/main/java/annotatorstub/main/E2AMain.java) shows how to get more features about anchors and entities, E.g. how many times an anchor appears in Wikipedia, and what are the anchors that link to an entity, with their frequencies. For using this class, you must first download the [E2A database](https://groviera1.di.unipi.it:5001/sharing/HpajtMYjn) and unzip it in the working directory.
+
+
 ##Tips
 - For training your annotator, you can access the training portion of the GERDAQ dataset. It is divided in two parts: trainingA and trainingB. The BAT-Framework provides all methods to generate datasets in class **DatasetBuilder**.
 - The BAT-Framework has a bunch of methods that you might find useful. Have a look at classes [DumpData](https://github.com/marcocor/bat-framework/blob/master/src/main/java/it/unipi/di/acube/batframework/utils/DumpData.java) and [DumpResults](https://github.com/marcocor/bat-framework/blob/master/src/main/java/it/unipi/di/acube/batframework/utils/DumpResults.java).
