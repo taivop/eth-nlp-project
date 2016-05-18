@@ -1,7 +1,9 @@
 package annotatorstub.annotator.smaph;
 
+import it.unipi.di.acube.batframework.data.Mention;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -42,6 +44,12 @@ public class CandidateEntities {
 	 */
 	private List<Set<ScoredAnnotation>> WATSnippetAnnotations;
 
+	/**
+	 * The additional info (confidence score, lp, ambiguity score, etc) returned by the WAT API, and that we use for
+	 * calculating features.
+	 */
+	private List<HashMap<Mention, HashMap<String, Double>>> additionalInfoList;
+
 	public Set<Integer> getEntitiesQuery() {
 		return entitiesQuery;
 	}
@@ -76,5 +84,13 @@ public class CandidateEntities {
 
 	public void setWATSnippetAnnotations(List<Set<ScoredAnnotation>> WATSnippetAnnotations) {
 		this.WATSnippetAnnotations = WATSnippetAnnotations;
+	}
+
+	public List<HashMap<Mention, HashMap<String, Double>>> getAdditionalInfoList() {
+		return additionalInfoList;
+	}
+
+	public void setAdditionalInfoList(List<HashMap<Mention, HashMap<String, Double>>> additionalInfoList) {
+		this.additionalInfoList = additionalInfoList;
 	}
 }
