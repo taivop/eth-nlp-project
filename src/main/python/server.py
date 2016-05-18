@@ -67,7 +67,8 @@ if __name__ == "__main__":
     MODEL_PATH  = sys.argv[3]
 
     classifier, magnitudes, means, scaler = pickle.load(open(MODEL_PATH, 'rb'))
-    print("Starting server.")
+    print("\n\nStarting server.")
+    print("Classifier loaded from: {}".format(MODEL_PATH))
     print("Classifier: {}".format(classifier))
     sys.stdout.flush()
 
