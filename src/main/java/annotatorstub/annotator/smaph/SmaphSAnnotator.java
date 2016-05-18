@@ -10,6 +10,7 @@ import annotatorstub.utils.bing.BingSearchAPI;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
 import annotatorstub.utils.mention.SmaphCandidate;
+import it.unipi.di.acube.batframework.data.Mention;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.data.Tag;
 import it.unipi.di.acube.batframework.problems.Sa2WSystem;
@@ -128,6 +129,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
     private List<Double> getEntityFeatures(Integer entity, String query, BingResult bingResult, CandidateEntities candidateEntities) throws IOException {
         // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
         ArrayList<Double> features = new ArrayList<>();
+        List<HashMap<Mention, HashMap<String, Double>>> watAdditionalAnnotationInfoList =
+                candidateEntities.getAdditionalInfoList();
+        // TODO use this list to calculate our features
 
         // ====================================================================================
         // region Features drawn from all sources
@@ -212,8 +216,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f9_freq = 0.0;
         Double f10_avgRank = 0.0;
 
-        // mentionSnippetPairs: the set X(q) of pairs (mention, snippet) as explained in the paper
-        ArrayList<Pair<String, String>> mentionSnippetPairs = new ArrayList<>();
+        // mentionSnippetPairs: the set X(q) of pairs (mention, snippetID) as explained in the paper (snippet ID is its rank in the Bing results)
+        ArrayList<MentionEntitySnippetTriple> mentionEntitySnippetTriples = new ArrayList<>();
 
         // TODO bingSnippets doesn't need to be calculated again for every entity
         // bingSnippets: snippets returned by querying bing with the original query
@@ -231,55 +235,76 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // WATSnippetAnnotations: for each snippet, the set of annotations found by annotating the snippet with WAT
         List<Set<ScoredAnnotation>> WATSnippetAnnotations = candidateEntities.getWATSnippetAnnotations();
 
-        int rankCounter = 0;
-        for(String snippet : bingSnippets) {
-            rankCounter++;
+        for(int rankCounter=0; rankCounter < bingSnippets.size(); rankCounter++) {
 
-            boolean snippetHasEntity = snippetEntities.get(rankCounter-1).contains(entity); // Do we find our desired entity in the annotations of this snippet?
-            Set<ScoredAnnotation> WATannotations = WATSnippetAnnotations.get(rankCounter-1);
+            boolean snippetHasEntity = snippetEntities.get(rankCounter).contains(entity); // Do we find our desired entity in the annotations of this snippet?
+            Set<ScoredAnnotation> WATannotations = WATSnippetAnnotations.get(rankCounter);
             for(ScoredAnnotation scoredAnnotation : WATannotations) {
 
-                String mention = snippet.substring(scoredAnnotation.getPosition(),
-                        scoredAnnotation.getPosition() + scoredAnnotation.getLength());
-                mentionSnippetPairs.add(new Pair<>(mention, snippet));
+                Mention mention = new Mention(scoredAnnotation.getPosition(), scoredAnnotation.getLength());
+                mentionEntitySnippetTriples.add(new MentionEntitySnippetTriple(mention, scoredAnnotation.getConcept(), rankCounter));
             }
 
             if(snippetHasEntity) {
                 f9_freq += 1;
                 f10_avgRank += rankCounter;
             } else {
-                f10_avgRank += topKSnippets;
+                f10_avgRank += bingSnippets.size();
             }
+
         }
         f9_freq /= bingSnippets.size();
-        f10_avgRank /= topKSnippets;
+        f10_avgRank /= bingSnippets.size();
 
         Double f11_pageRank = SmaphSMockDataSources.getWikiPageRankScore(entity);
 
         ArrayList<Double> linkProbabilities = new ArrayList<>();
         ArrayList<Double> commonnesses = new ArrayList<>();
         ArrayList<Double> ambiguities = new ArrayList<>();
+        ArrayList<Double> rhoScores = new ArrayList<>();
         ArrayList<Double> minEDs = new ArrayList<>();
-        for(Pair<String, String> mentionSnippetPair : mentionSnippetPairs) {
-            String mention = mentionSnippetPair.fst;
-            String snippet = mentionSnippetPair.snd;
+        for(MentionEntitySnippetTriple mentionEntitySnippetTriple : mentionEntitySnippetTriples) {
+            Integer mentionedEntity = mentionEntitySnippetTriple.getEntity();
+            //System.out.printf("Scoring entity %d, current entity %d\n", entity, mentionedEntity);
 
-            linkProbabilities.add(WATRelatednessComputer.getLp(mention));
-            commonnesses.add(WATRelatednessComputer.getCommonness(mention, entity));
-            ambiguities.add(SmaphSMockDataSources.getWikiAmbiguity(mention));
-            minEDs.add(StringUtils.minED(mention, query));
+            if(mentionedEntity.equals(entity)) { // Only consider mentions if this is the entity we're calculating features for
+                Mention mentionInSnippet = mentionEntitySnippetTriple.getMention();
+                Integer snippetRank = mentionEntitySnippetTriple.getSnippetRank();
+                String mentionStringInSnippet = bingSnippets.get(snippetRank).substring(
+                        mentionInSnippet.getPosition(), mentionInSnippet.getPosition() + mentionInSnippet.getLength()
+                );
+
+                HashMap<String, Double> snippetAdditionalInfo =
+                        watAdditionalAnnotationInfoList.get(snippetRank).get(mentionInSnippet);
+
+                linkProbabilities.add(snippetAdditionalInfo.get("lp"));
+                commonnesses.add(snippetAdditionalInfo.get("commonness"));
+                ambiguities.add(snippetAdditionalInfo.get("ambiguity"));
+                rhoScores.add(snippetAdditionalInfo.get("rhoScore"));
+                minEDs.add(StringUtils.minED(mentionStringInSnippet, query));
+            }
         }
 
-        Double f15_lp_min = minIfNotEmpty(linkProbabilities);
-        Double f16_lp_max= maxIfNotEmpty(linkProbabilities);
-        Double f17_comm_min = minIfNotEmpty(commonnesses);
-        Double f18_comm_max = maxIfNotEmpty(commonnesses);
+        //System.out.printf("|X| = %d, |total triples| = %d\n", count, mentionEntitySnippetTriples.size());
+
+        if(linkProbabilities.isEmpty()) {   // Add dummy elements so that min, max and average methods don't crash
+            linkProbabilities.add(0.0);
+            commonnesses.add(0.0);
+            ambiguities.add(0.0);
+            rhoScores.add(0.0);
+            minEDs.add(0.0);
+        }
+
+        Double f15_lp_min = Collections.min(linkProbabilities);
+        Double f16_lp_max = Collections.max(linkProbabilities);
+        Double f17_comm_min = Collections.min(commonnesses);
+        Double f18_comm_max = Collections.max(commonnesses);
         Double f19_comm_avg = averageIfNotEmpty(commonnesses);
-        Double f20_ambig_min = minIfNotEmpty(ambiguities);
-        Double f21_ambig_max = maxIfNotEmpty(ambiguities);
+        Double f20_ambig_min = Collections.min(ambiguities);
+        Double f21_ambig_max = Collections.max(ambiguities);
         Double f22_ambig_avg = averageIfNotEmpty(ambiguities);
-        Double f23_mentMED_min = minIfNotEmpty(minEDs);
-        Double f24_mentMED_max = maxIfNotEmpty(minEDs);
+        Double f23_mentMED_min = Collections.min(minEDs);
+        Double f24_mentMED_max = Collections.max(minEDs);
 
         //endregion
         // ------------------------------------------------------------------------------------
@@ -305,9 +330,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
         features.add(f17_comm_min);
         features.add(f18_comm_max);
         features.add(f19_comm_avg);
-        /*features.add(f20_ambig_min);
+        features.add(f20_ambig_min);
         features.add(f21_ambig_max);
-        features.add(f22_ambig_avg);*/
+        features.add(f22_ambig_avg);
         features.add(f23_mentMED_min);
         features.add(f24_mentMED_max);
 
