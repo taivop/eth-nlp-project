@@ -25,9 +25,9 @@ def load_training_data(csv_file_name, feature_count):
                 break
 
             parts = line[:-1].split(",")
-            if len(parts) != 18:
+            if len(parts) != 8 + feature_count:
                 bad_lines += 1
-                print("Skipping bad line")
+                print("Skipping bad line: {}".format(line))
                 continue
 
             # Example CSV line, as of May 10.
