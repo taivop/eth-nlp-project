@@ -32,6 +32,11 @@
             <artifactId>bing-api-java</artifactId>
             <version>0.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.mapdb</groupId>
+            <artifactId>mapdb</artifactId>
+            <version>1.0.8</version>
+        </dependency>
         <!-- Smile Library for Java -->
         <dependency>
             <groupId>com.github.haifengl</groupId>
