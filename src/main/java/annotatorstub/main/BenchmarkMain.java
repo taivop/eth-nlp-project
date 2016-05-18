@@ -63,12 +63,14 @@ public class BenchmarkMain {
                 Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
                 CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
                 // look only at the top k = <below> snippets
-                5);
+                25);
 //            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
 
             WATRelatednessComputer.setCache("relatedness.cache");
 
+            System.out.println("\nDoing C2W tags:\n");
             List<HashSet<Tag>> resTag = BenchmarkCache.doC2WTags(ann, ds);
+            System.out.println("\nDoing D2W annotations:\n");
             List<HashSet<Annotation>> resAnn = BenchmarkCache.doA2WAnnotations(ann, ds);
             DumpData.dumpCompareList(
                 ds.getTextInstanceList(),
