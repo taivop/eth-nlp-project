@@ -8,6 +8,7 @@ import annotatorstub.annotator.wat.HelperWATAnnotator;
 import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.bing.BingResult;
 import annotatorstub.utils.bing.BingWebSnippet;
+import it.unipi.di.acube.batframework.data.Mention;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.systemPlugins.WATAnnotator;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
@@ -28,7 +29,7 @@ public class CandidateEntitiesGenerator {
 	/**
 	 * WAT annotator parameters
 	 */
-	private String watMethod = "salsa-auth";
+	private String watMethod = "base-t";
 	private String watEpsilon = "0.0";
 	private String watSortBy = "PAGERANK";
 	private String watRelatedness = "jaccard";
@@ -98,6 +99,7 @@ public class CandidateEntitiesGenerator {
 		Set<Integer> entitiesQuerySnippetsWAT = new HashSet<Integer>();
 		List<Set<Integer>> entitiesQuerySnippetsWATBySnippet = new ArrayList<>();
 		List<Set<ScoredAnnotation>> WATSnippetAnnotations = new ArrayList<>();
+		List<HashMap<Mention, HashMap<String, Double>>> additionalInfoList = new ArrayList<>();
 		
 		for (BingWebSnippet wikiResult : result.getWikipediaResults()) {
 			String wikiTitle = StringUtils.extractPageTitleFromBingSnippetTitle(wikiResult.getTitle());
@@ -175,12 +177,14 @@ public class CandidateEntitiesGenerator {
 			entitiesQuerySnippetsWAT.addAll(foundWikiPages);
 			entitiesQuerySnippetsWATBySnippet.add(foundWikiPages);
 			WATSnippetAnnotations.add(scoredAnnotations);
+			additionalInfoList.add(getWAT().getLastQueryAdditionalInfo());
 		}
 		
 		bce.setEntitiesQuery(entitiesQuery);
 		bce.setEntitiesQueryExtended(entitiesQueryExtended);
 		bce.setEntitiesQuerySnippetsWAT(entitiesQuerySnippetsWAT);
 		bce.setEntitiesQuerySnippetsWATBySnippet(entitiesQuerySnippetsWATBySnippet);
+		bce.setAdditionalInfoList(additionalInfoList);
 		bce.setWATSnippetAnnotations(WATSnippetAnnotations);
 				
 		return bce;

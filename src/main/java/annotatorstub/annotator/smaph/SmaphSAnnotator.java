@@ -2,7 +2,7 @@ package annotatorstub.annotator.smaph;
 
 import annotatorstub.annotator.FakeAnnotator;
 import annotatorstub.annotator.smaph.CandidateEntitiesGenerator.QueryMethod;
-import annotatorstub.utils.Pair;
+import annotatorstub.utils.EntityToAnchors;
 import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.WATRelatednessComputer;
 import annotatorstub.utils.bing.BingResult;
@@ -10,15 +10,18 @@ import annotatorstub.utils.bing.BingSearchAPI;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
 import annotatorstub.utils.mention.SmaphCandidate;
+import it.unipi.di.acube.batframework.data.Mention;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.data.Tag;
 import it.unipi.di.acube.batframework.problems.Sa2WSystem;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
+import it.unipi.di.acube.batframework.utils.Pair;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.util.parsing.combinator.testing.Str;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.ConnectException;
@@ -39,6 +42,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
     private Optional<Smaph1Pruner> pruner;
     private CandidateEntitiesGenerator.QueryMethod generatorQueryMethod;
+    private EntityToAnchors entityToAnchors;
 
     public SmaphSAnnotator(Smaph1Pruner pruner) {
         this(Optional.of(pruner));
@@ -58,7 +62,12 @@ public class SmaphSAnnotator extends FakeAnnotator {
      */
     public SmaphSAnnotator(Optional<Smaph1Pruner> pruner, QueryMethod generatorQueryMethod) {
         this.pruner = pruner;
-        this.generatorQueryMethod= generatorQueryMethod;
+        this.generatorQueryMethod = generatorQueryMethod;
+
+        if (!new File(EntityToAnchors.DATASET_FILENAME).exists()) {
+            this.logger.error("Could not find directory {}. You should download and unzip the file at from https://groviera1.di.unipi.it:5001/sharing/HpajtMYjn");
+        }
+        this.entityToAnchors = EntityToAnchors.e2a();
 
         BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
         bingApi = BingSearchAPI.getInstance();
@@ -97,6 +106,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
     private List<Double> getEntityFeatures(Integer entity, String query, BingResult bingResult, CandidateEntities candidateEntities) throws IOException {
         // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
         ArrayList<Double> features = new ArrayList<>();
+        List<HashMap<Mention, HashMap<String, Double>>> watAdditionalAnnotationInfoList =
+                candidateEntities.getAdditionalInfoList();
+        // TODO use this list to calculate our features
 
         // ====================================================================================
         // region Features drawn from all sources
@@ -181,8 +193,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f9_freq = 0.0;
         Double f10_avgRank = 0.0;
 
-        // mentionSnippetPairs: the set X(q) of pairs (mention, snippet) as explained in the paper
-        ArrayList<Pair<String, String>> mentionSnippetPairs = new ArrayList<>();
+        // mentionSnippetPairs: the set X(q) of pairs (mention, snippetID) as explained in the paper (snippet ID is its rank in the Bing results)
+        ArrayList<MentionEntitySnippetTriple> mentionEntitySnippetTriples = new ArrayList<>();
 
         // TODO bingSnippets doesn't need to be calculated again for every entity
         // bingSnippets: snippets returned by querying bing with the original query
@@ -200,59 +212,70 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // WATSnippetAnnotations: for each snippet, the set of annotations found by annotating the snippet with WAT
         List<Set<ScoredAnnotation>> WATSnippetAnnotations = candidateEntities.getWATSnippetAnnotations();
 
-        int rankCounter = 0;
-        for(String snippet : bingSnippets) {
-            rankCounter++;
+        for(int rankCounter=0; rankCounter < bingSnippets.size(); rankCounter++) {
 
-            boolean snippetHasEntity = snippetEntities.get(rankCounter-1).contains(entity); // Do we find our desired entity in the annotations of this snippet?
-            Set<ScoredAnnotation> WATannotations = WATSnippetAnnotations.get(rankCounter-1);
+            boolean snippetHasEntity = snippetEntities.get(rankCounter).contains(entity); // Do we find our desired entity in the annotations of this snippet?
+            Set<ScoredAnnotation> WATannotations = WATSnippetAnnotations.get(rankCounter);
             for(ScoredAnnotation scoredAnnotation : WATannotations) {
 
-                String mention = snippet.substring(scoredAnnotation.getPosition(),
-                        scoredAnnotation.getPosition() + scoredAnnotation.getLength());
-                mentionSnippetPairs.add(new Pair<>(mention, snippet));
+                Mention mention = new Mention(scoredAnnotation.getPosition(), scoredAnnotation.getLength());
+                mentionEntitySnippetTriples.add(new MentionEntitySnippetTriple(mention, scoredAnnotation.getConcept(), rankCounter));
             }
 
             if(snippetHasEntity) {
                 f9_freq += 1;
                 f10_avgRank += rankCounter;
             } else {
-                f10_avgRank += TOP_K_SNIPPETS;
+                f10_avgRank += bingSnippets.size();
             }
+
         }
         f9_freq /= bingSnippets.size();
-        f10_avgRank /= TOP_K_SNIPPETS;
+        f10_avgRank /= bingSnippets.size();
 
         Double f11_pageRank = SmaphSMockDataSources.getWikiPageRankScore(entity);
 
         ArrayList<Double> linkProbabilities = new ArrayList<>();
         ArrayList<Double> commonnesses = new ArrayList<>();
         ArrayList<Double> ambiguities = new ArrayList<>();
+        ArrayList<Double> rhoScores = new ArrayList<>();
         ArrayList<Double> minEDs = new ArrayList<>();
-        for(Pair<String, String> mentionSnippetPair : mentionSnippetPairs) {
-          String mention = mentionSnippetPair.fst;
-          String snippet = mentionSnippetPair.snd;
 
-          // TODO(andrei): Maybe get commonness from:
-          //   WATRelatednessComputer.getCommonness("obama", obamaId));
+        for(MentionEntitySnippetTriple mentionEntitySnippetTriple : mentionEntitySnippetTriples) {
+            Integer mentionedEntity = mentionEntitySnippetTriple.getEntity();
 
-            linkProbabilities.add(WATRelatednessComputer.getLp(mention));
-            commonnesses.add(WATRelatednessComputer.getCommonness(mention, entity));
-            ambiguities.add(SmaphSMockDataSources.getWikiAmbiguity(mention));
-            minEDs.add(StringUtils.minED(mention, query));
+            //System.out.printf("Scoring entity %d, current entity %d\n", entity, mentionedEntity);
+
+            if(mentionedEntity.equals(entity)) { // Only consider mentions if this is the entity we're calculating features for
+                Mention mentionInSnippet = mentionEntitySnippetTriple.getMention();
+                Integer snippetRank = mentionEntitySnippetTriple.getSnippetRank();
+                String mentionStringInSnippet = bingSnippets.get(snippetRank).substring(
+                        mentionInSnippet.getPosition(), mentionInSnippet.getPosition() + mentionInSnippet.getLength()
+                );
+
+                HashMap<String, Double> snippetAdditionalInfo =
+                        watAdditionalAnnotationInfoList.get(snippetRank).get(mentionInSnippet);
+
+                linkProbabilities.add(snippetAdditionalInfo.get("lp"));
+                commonnesses.add(snippetAdditionalInfo.get("commonness"));
+                ambiguities.add(snippetAdditionalInfo.get("ambiguity"));
+                rhoScores.add(snippetAdditionalInfo.get("rhoScore"));
+                minEDs.add(StringUtils.minED(mentionStringInSnippet, query));
+            }
         }
 
-        Double f15_lp_min;
-        Double f16_lp_max;
-        if(linkProbabilities.isEmpty()) {
-            f15_lp_min = 0.0;
-            f16_lp_max = 0.0;
+        //System.out.printf("|X| = %d, |total triples| = %d\n", count, mentionEntitySnippetTriples.size());
+
+        if(linkProbabilities.isEmpty()) {   // Add dummy elements so that min, max and average methods don't crash
+            linkProbabilities.add(0.0);
+            commonnesses.add(0.0);
+            ambiguities.add(0.0);
+            rhoScores.add(0.0);
+            minEDs.add(0.0);
         }
-        else {
-            f15_lp_min = Collections.min(linkProbabilities);
-            f16_lp_max = Collections.max(linkProbabilities);
-        }
-        // TODO(andrei): Re-add these ensuring that we check for empty lists so that '.min/max' don't crash.
+
+        Double f15_lp_min = Collections.min(linkProbabilities);
+        Double f16_lp_max = Collections.max(linkProbabilities);
         Double f17_comm_min = Collections.min(commonnesses);
         Double f18_comm_max = Collections.max(commonnesses);
         Double f19_comm_avg = average(commonnesses);
@@ -286,9 +309,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
         features.add(f17_comm_min);
         features.add(f18_comm_max);
         features.add(f19_comm_avg);
-        /*features.add(f20_ambig_min);
+        features.add(f20_ambig_min);
         features.add(f21_ambig_max);
-        features.add(f22_ambig_avg);*/
+        features.add(f22_ambig_avg);
         features.add(f23_mentMED_min);
         features.add(f24_mentMED_max);
 
@@ -314,8 +337,10 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f25_anchorsAvgED;
         Double sum_enumerator = 0.0;
         Double sum_denominator = 0.0;
-        for(String anchor : SmaphSMockDataSources.getWikiAnchorsLinkingToEntity(entity)) {
-            Double sqrt_F = Math.sqrt(SmaphSMockDataSources.getWikiEntityAnchorLinkCount(entity, anchor));
+        for(Pair<String, Integer> anchorAndFreq : entityToAnchors.getAnchors(entity)) {
+            String anchor = anchorAndFreq.first;
+            Integer freq = anchorAndFreq.second;
+            Double sqrt_F = Math.sqrt(freq);
             sum_enumerator += sqrt_F * StringUtils.ED(anchor, mentionString);
             sum_denominator += sqrt_F;
         }
@@ -330,7 +355,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f28_commonness = WATRelatednessComputer.getCommonness(mentionString, entity);
         Double f29_lp = WATRelatednessComputer.getLp(mentionString);
 
-        //features.add(f25_anchorsAvgED);
+        features.add(f25_anchorsAvgED);
         features.add(f26_minEDTitle);
         features.add(f27_EdTitle);
         features.add(f28_commonness);
