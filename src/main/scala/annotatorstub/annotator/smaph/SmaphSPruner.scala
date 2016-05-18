@@ -172,6 +172,8 @@ object SmaphSPruner {
   val FeatureCount = 10
 
   def parseCsvLine(line: String): (SmaphCandidate, Boolean) = {
+    throw new RuntimeException("This method is deprecated. Please use Python.")
+
     val segments = line.split("\\s*,\\s*").ensuring(
       _.length == ExpectedLineLength,
       s"Bad component length in line: ${line} (expected $ExpectedLineLength)")
