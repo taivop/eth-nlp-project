@@ -19,9 +19,10 @@ from data_util import impute_nan_inf, load_training_data, rescale
 # TODO(andrei): This should be in a common config.
 FEATURE_COUNT = 20
 
+np.random.seed(0xF00BA2)
 
 def usage():
-    print("Usage: train_smaph_model.py <csv_file> <dest_pickle_file> <C>")
+    print("Usage: train_smaph_model.py <csv_file> <dest_pickle_file_prefix> <C>")
     exit(1)
 
 
@@ -40,19 +41,24 @@ def main():
         usage()
 
     for arg in sys.argv:
-        print("Arg: {}", arg)
+        print("Arg: {}".format(arg))
 
     print("Will train SVM. Assuming every training data point has {0} "
           "features.".format(FEATURE_COUNT))
     csv_file = sys.argv[1]
-    dest_pickle_file = sys.argv[2]
+    dest_pickle_file_prefix = sys.argv[2]
     C = float(sys.argv[3])
 
     # A simple linear (for the time being) SVM classifier using the optimal
     # parameters established via grid search in the notebook.
-    clf = SGDClassifier(class_weight='balanced', loss='log', penalty='l1',
-                        n_iter=25,
-                        alpha=0.0005)
+    loss = 'log'
+    penalty = 'l1'
+    n_iter = 5
+    alpha = 0.001
+    clf = SGDClassifier(class_weight='balanced', loss=loss, penalty=penalty,
+                        n_iter=n_iter, alpha=alpha)
+    dest_pickle_file = "{}-sgd-loss-{}-pen-{}-niter-{}-alpha-{}.pkl".format(
+        dest_pickle_file_prefix, loss, penalty, n_iter, alpha)
     print("Ignoring C parameter and training using SGD.")
 
     # The non-linear version. Much more expensive to train, but yields somewhat
