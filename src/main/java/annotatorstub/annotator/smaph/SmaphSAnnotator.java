@@ -286,11 +286,22 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 HashMap<String, Double> snippetAdditionalInfo =
                         watAdditionalAnnotationInfoList.get(snippetRank).get(mentionInSnippet);
 
-                linkProbabilities.add(snippetAdditionalInfo.get("lp"));
-                commonnesses.add(snippetAdditionalInfo.get("commonness"));
-                ambiguities.add(snippetAdditionalInfo.get("ambiguity"));
-                rhoScores.add(snippetAdditionalInfo.get("rhoScore"));
-                minEDs.add(StringUtils.minED(mentionStringInSnippet, query));
+                if(snippetAdditionalInfo == null) {
+                    // TODO(andrei): Find out why this happens.
+                    System.err.println("Warning: null snippet info");
+                    linkProbabilities.add(0.0);
+                    commonnesses.add(0.0);
+                    ambiguities.add(0.0);
+                    rhoScores.add(0.0);
+                    minEDs.add(1000.0);
+                }
+                else {
+                    linkProbabilities.add(snippetAdditionalInfo.get("lp"));
+                    commonnesses.add(snippetAdditionalInfo.get("commonness"));
+                    ambiguities.add(snippetAdditionalInfo.get("ambiguity"));
+                    rhoScores.add(snippetAdditionalInfo.get("rhoScore"));
+                    minEDs.add(StringUtils.minED(mentionStringInSnippet, query));
+                }
             }
         }
 
@@ -367,13 +378,16 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f25_anchorsAvgED;
         Double sum_enumerator = 0.0;
         Double sum_denominator = 0.0;
-        for(Pair<String, Integer> anchorAndFreq : entityToAnchors.getAnchors(entity)) {
-            String anchor = anchorAndFreq.first;
-            Integer freq = anchorAndFreq.second;
-            Double sqrt_F = Math.sqrt(freq);
-            sum_enumerator += sqrt_F * StringUtils.ED(anchor, mentionString);
-            sum_denominator += sqrt_F;
+        if(entityToAnchors.containsId(entity)) {
+            for (Pair<String, Integer> anchorAndFreq : entityToAnchors.getAnchors(entity)) {
+                String anchor = anchorAndFreq.first;
+                Integer freq = anchorAndFreq.second;
+                Double sqrt_F = Math.sqrt(freq);
+                sum_enumerator += sqrt_F * StringUtils.ED(anchor, mentionString);
+                sum_denominator += sqrt_F;
+            }
         }
+
         if(sum_denominator == 0.0) {
             f25_anchorsAvgED = 0.0;
         } else {
