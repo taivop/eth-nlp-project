@@ -495,7 +495,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
             annotations.add(scoredAnnotation);
         }
 
-        logger.info("Found {} annotations.", annotations.size());
+        logger.info("Found {} final annotations.", annotations.size());
         return annotations;
     }
 

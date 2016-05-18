@@ -19,3 +19,5 @@ data/
 *.pkl
 watapi.cache.old
 log/
+e2a_dataset
+e2a_dataset.p
