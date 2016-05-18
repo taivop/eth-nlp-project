@@ -52,12 +52,6 @@ public class BenchmarkMain {
          */
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
-//            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-0.7.pkl");
-//            svmApi.startPythonServer("models/sgdc-linear-gerdaq-a-b-alpha-0.01-hinge-l1.pkl");
-            // TODO(andrei): Figure out why F1 scores don't make sense!!
-//            svmApi.startPythonServer("models/sgdc-linear-gerdaq-a-b-alpha-0.0005-log-l1-25-iter.pkl");
-            // This one is bad:
-//            svmApi.startPythonServer("models/m-sgd-loss-log-pen-l1-niter-5-alpha-0.001.pkl");
             svmApi.startPythonServer("models/m-svc-c-0.1000.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
                 Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
