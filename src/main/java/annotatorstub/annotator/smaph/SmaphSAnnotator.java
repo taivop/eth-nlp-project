@@ -2,7 +2,7 @@ package annotatorstub.annotator.smaph;
 
 import annotatorstub.annotator.FakeAnnotator;
 import annotatorstub.annotator.smaph.CandidateEntitiesGenerator.QueryMethod;
-import annotatorstub.utils.Pair;
+import annotatorstub.utils.EntityToAnchors;
 import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.WATRelatednessComputer;
 import annotatorstub.utils.bing.BingResult;
@@ -15,11 +15,13 @@ import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.data.Tag;
 import it.unipi.di.acube.batframework.problems.Sa2WSystem;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
+import it.unipi.di.acube.batframework.utils.Pair;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.util.parsing.combinator.testing.Str;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.net.ConnectException;
@@ -34,12 +36,13 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
     private static BingSearchAPI bingApi;
     private WikipediaApiInterface wikiApi;
-    public CandidateEntitiesGenerator candidateEntitiesGenerator;
+    private CandidateEntitiesGenerator candidateEntitiesGenerator;
     private static final int TOP_K_SNIPPETS = 25;
     private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private Optional<Smaph1Pruner> pruner;
     private CandidateEntitiesGenerator.QueryMethod generatorQueryMethod;
+    private EntityToAnchors entityToAnchors;
 
     public SmaphSAnnotator(Smaph1Pruner pruner) {
         this(Optional.of(pruner));
@@ -59,7 +62,12 @@ public class SmaphSAnnotator extends FakeAnnotator {
      */
     public SmaphSAnnotator(Optional<Smaph1Pruner> pruner, QueryMethod generatorQueryMethod) {
         this.pruner = pruner;
-        this.generatorQueryMethod= generatorQueryMethod;
+        this.generatorQueryMethod = generatorQueryMethod;
+
+        if (!new File(EntityToAnchors.DATASET_FILENAME).exists()) {
+            this.logger.error("Could not find directory {}. You should download and unzip the file at from https://groviera1.di.unipi.it:5001/sharing/HpajtMYjn");
+        }
+        this.entityToAnchors = EntityToAnchors.e2a();
 
         BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
         bingApi = BingSearchAPI.getInstance();
@@ -329,8 +337,10 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f25_anchorsAvgED;
         Double sum_enumerator = 0.0;
         Double sum_denominator = 0.0;
-        for(String anchor : SmaphSMockDataSources.getWikiAnchorsLinkingToEntity(entity)) {
-            Double sqrt_F = Math.sqrt(SmaphSMockDataSources.getWikiEntityAnchorLinkCount(entity, anchor));
+        for(Pair<String, Integer> anchorAndFreq : entityToAnchors.getAnchors(entity)) {
+            String anchor = anchorAndFreq.first;
+            Integer freq = anchorAndFreq.second;
+            Double sqrt_F = Math.sqrt(freq);
             sum_enumerator += sqrt_F * StringUtils.ED(anchor, mentionString);
             sum_denominator += sqrt_F;
         }
@@ -345,7 +355,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         Double f28_commonness = WATRelatednessComputer.getCommonness(mentionString, entity);
         Double f29_lp = WATRelatednessComputer.getLp(mentionString);
 
-        //features.add(f25_anchorsAvgED);
+        features.add(f25_anchorsAvgED);
         features.add(f26_minEDTitle);
         features.add(f27_EdTitle);
         features.add(f28_commonness);
