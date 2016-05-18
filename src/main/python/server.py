@@ -18,6 +18,7 @@ magnitudes = None
 means = None
 scaler = None
 
+np.random.seed(0xF00BA2)
 
 @app.route("/")
 def hello():
@@ -68,6 +69,7 @@ if __name__ == "__main__":
     classifier, magnitudes, means, scaler = pickle.load(open(MODEL_PATH, 'rb'))
     print("Starting server.")
     print("Classifier: {}".format(classifier))
+    sys.stdout.flush()
 
     app.config['DEBUG'] = True
     app.run(port=PORT)

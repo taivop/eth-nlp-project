@@ -36,7 +36,8 @@ public class PythonApiInterface implements Closeable {
                 SEPARATOR,
                 modelPickleFile);
 
-        if (! new File("log").mkdir()) {
+        File logFolder = new File("log");
+        if (!logFolder.exists() && !logFolder.mkdir()) {
             throw new RuntimeException("Could not create log directory for Python.");
         }
 
@@ -60,7 +61,9 @@ public class PythonApiInterface implements Closeable {
      * Stop the Python server.
      */
     public void stopPythonServer() {
-        serverProcess.destroy();
+        if(null != serverProcess) {
+            serverProcess.destroy();
+        }
     }
 
     private String makeSeparatedString(List<Double> features) {
