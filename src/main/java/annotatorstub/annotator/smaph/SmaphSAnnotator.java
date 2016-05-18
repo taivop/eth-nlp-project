@@ -271,7 +271,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
         ArrayList<Double> ambiguities = new ArrayList<>();
         ArrayList<Double> rhoScores = new ArrayList<>();
         ArrayList<Double> minEDs = new ArrayList<>();
-
         for(MentionEntitySnippetTriple mentionEntitySnippetTriple : mentionEntitySnippetTriples) {
             Integer mentionedEntity = mentionEntitySnippetTriple.getEntity();
             //System.out.printf("Scoring entity %d, current entity %d\n", entity, mentionedEntity);
