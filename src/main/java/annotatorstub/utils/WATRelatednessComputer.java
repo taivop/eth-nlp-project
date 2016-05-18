@@ -1,17 +1,25 @@
 package annotatorstub.utils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
 import java.net.URLEncoder;
+import java.io.IOException;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import it.unipi.di.acube.batframework.utils.Pair;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unipi.di.acube.batframework.utils.Pair;
 
 public class WATRelatednessComputer implements Serializable {
 	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -144,7 +152,11 @@ public class WATRelatednessComputer implements Serializable {
 				}
 			}
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			if ((e.getCause() != null) && (e.getCause() instanceof IOException)){
+				return;
+			}
+			else
+				throw new RuntimeException(e);
 		}
 	}
 
@@ -164,7 +176,11 @@ public class WATRelatednessComputer implements Serializable {
 			}
 			return 0.0;
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			if ((e.getCause() != null) && (e.getCause() instanceof IOException)){
+				return 0.0;
+			}
+			else
+				throw new RuntimeException(e);
 		}
 	}
 

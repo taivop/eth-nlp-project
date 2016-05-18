@@ -20,6 +20,7 @@ package annotatorstub.annotator.wat;
 
 import annotatorstub.utils.Pair;
 import annotatorstub.utils.caching.SimpleCache;
+import annotatorstub.utils.caching.WATRequestCache;
 import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.data.Mention;
 import it.unipi.di.acube.batframework.data.MultipleAnnotation;
@@ -66,28 +67,38 @@ public class HelperWATAnnotator implements
      *
      * The key consists of (URL, Parameters) tuples.
      */
-    private SimpleCache<Pair<URL, String>, String> requestCache;
+    private WATRequestCache requestCache;
 
     /**
      * More elaborate cache, which sits one level above the JSON cache, allowing faster caching
      * of preprocessed 'ScoredAnnotation' objects, which avoids the JSON processing overhead
      * (significant, as confirmed by VisualVM).
      */
-    private SimpleCache<String, HashSet<ScoredAnnotation>> fullCache;
+    // Disabled because it leads to subtle bugs.
+//    private SimpleCache<String, HashSet<ScoredAnnotation>> fullCache;
 
-    public HelperWATAnnotator(String ip, int port, String method) {
-        this(ip, port, method, "PAGERANK", "mw", "", "");
-    }
-
-    public HelperWATAnnotator(String ip, int port, String method, String sortBy,
-                        String relatedness, String epsilon, String minLinkProbability) {
-        this(ip, port, method, sortBy, relatedness, epsilon,
-                minLinkProbability, false, false, false);
+    public HelperWATAnnotator(
+        String ip,
+        int port,
+        String method,
+        WATRequestCache requestCache
+    ) {
+        this(ip, port, method, "PAGERANK", "mw", "", "", requestCache);
     }
 
     public HelperWATAnnotator(String ip, int port, String method, String sortBy,
                         String relatedness, String epsilon, String minLinkProbability,
-                        boolean useContext, boolean useTagger, boolean bogusFilter) {
+                        WATRequestCache requestCache) {
+        this(
+            ip, port, method, sortBy, relatedness, epsilon,
+            minLinkProbability, false, false, false, requestCache);
+    }
+
+    public HelperWATAnnotator(String ip, int port, String method, String sortBy,
+                        String relatedness, String epsilon, String minLinkProbability,
+                        boolean useContext, boolean useTagger, boolean bogusFilter,
+                        WATRequestCache requestCache) {
+
         this.urlTag = String.format("http://%s:%d/tag/tag", ip, port);
         this.urlSpot = String.format("http://%s:%d/tag/spot", ip, port);
         this.urlD2W = String.format("http://%s:%d/tag/disambiguate", ip, port);
@@ -103,16 +114,8 @@ public class HelperWATAnnotator implements
         this.sortBy = sortBy;
         this.relatedness = relatedness;
 
-        try {
-            // TODO(andrei): Parameterize this.
-            this.requestCache = new SimpleCache<>("watapi.cache", "WAT cache", 250);
-            this.fullCache = new SimpleCache<>("watapi.nojson.cache", "WAT native cache", 250);
-        }
-        catch(IOException ex) {
-            System.err.println("IOException while setting up WAT cache.");
-            System.err.println(ex.getMessage());
-            ex.printStackTrace();
-        }
+            this.requestCache = requestCache;
+//            this.fullCache = new SimpleCache<>("watapi.nojson.cache", "WAT native cache", 250);
     }
 
     @Override
@@ -289,10 +292,14 @@ public class HelperWATAnnotator implements
         // Note: I currently seems that this is the only method used by the SMAPH-S annotator for
         // generating the E3 set.
 
-        if(fullCache.containsKey(text)) {
-            lastTime = 0;
-            return fullCache.get(text);
-        }
+        // TODO(andrei): Make sure 'additionalInfo' still populated when item is cached,
+        // otherwise we get lots of garbage results.
+        // TODO(andrei): Consider adding other things to key to avoid subtle errors.
+        String fullCacheKey = text + "-" + method;
+//        if(fullCache.containsKey(fullCacheKey)) {
+//            lastTime = 0;
+//            return fullCache.get(fullCacheKey);
+//        }
 
         HashSet<ScoredAnnotation> res = new HashSet<ScoredAnnotation>();
         JSONObject obj = null;
@@ -349,12 +356,12 @@ public class HelperWATAnnotator implements
             throw new AnnotationException(e.getMessage());
         }
 
-        try {
-            fullCache.put(text, res);
-        }
-        catch(IOException ex) {
-            throw new RuntimeException("Error while caching scored annotations.", ex);
-        }
+//        try {
+//            fullCache.put(fullCacheKey, res);
+//        }
+//        catch(IOException ex) {
+//            throw new RuntimeException("Error while caching scored annotations.", ex);
+//        }
         return res;
     }
 

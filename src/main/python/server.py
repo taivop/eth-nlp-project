@@ -43,6 +43,28 @@ def predict():
 
     return str(s[0])
 
+@app.route("/predict_proba", methods=['GET', 'POST'])
+def predict_proba():
+    features_string = request.args.get("features_string")
+    features = [float(x) for x in features_string.split(SEPARATOR)]
+
+    pruning_threshold = features[0]
+    features = features[1:]
+
+    # Ensure that our data is a one row matrix, as expected by sklearn.
+    x = np.array(features).reshape((1, -1))
+    # Perform the scaling.
+    x = impute_nan_inf(x)
+    x = scaler.transform((x - means) / magnitudes)
+    try:
+        s = classifier.predict(x)
+    except ValueError as err:
+        print("Predict exception:", err, file=sys.stderr)
+    except:
+        print("Unexpected exception.", sys.exc_info()[0], file=sys.stderr)
+
+    return str(s[0])
+
 
 if __name__ == "__main__":
     global classifier, magnitudes, means, scaler

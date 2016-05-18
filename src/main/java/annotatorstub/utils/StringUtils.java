@@ -78,12 +78,21 @@ public class StringUtils {
     /**
      * Check if string is capitalised (positive examples: Taivo, Escher-Wyss Platz; negative: OMG, banana).
      * TODO Not sure if all-caps strings ("OMG") should return true or not -- the article doesn't specify.
+     * TODO Still fails in some cases, e.g. "United States of America" returns false.
      */
     public static boolean isCapitalised(String s) {
+        if(s.length() == 0) {
+            return false;
+        }
+
         String[] parts = s.split(" |-");
         for(String part : parts) {
+            if(part.length() == 0) {
+                continue;
+            }
+
             boolean firstLetterUpperCase = Character.isUpperCase(part.charAt(0));
-            boolean restLowerCase = part.substring(1) == part.substring(1).toLowerCase();
+            boolean restLowerCase = part.substring(1).equals(part.substring(1).toLowerCase());
 
             if(!firstLetterUpperCase || !restLowerCase) {
                 return false;
@@ -91,6 +100,26 @@ public class StringUtils {
         }
 
         return true;
+    }
+
+    /**
+     * (EXPERIMENTAL) Calculate the 'capitalisedness' of a string: the proportion of words that are capitalised.
+     * Examples: 'Taivo Pungas' -> 1.0, 'Taivo pungas' -> 0.5, 'people walking in the Park' -> 0.2.
+     */
+    public static Double capitalisedness(String s) {
+        String[] parts = s.split(" |-");
+        Double capitalisedness = 0.0;
+        for(String part : parts) {
+            boolean firstLetterUpperCase = Character.isUpperCase(part.charAt(0));
+            boolean restLowerCase = part.substring(1).equals(part.substring(1).toLowerCase());
+
+            if(firstLetterUpperCase && restLowerCase) {
+                capitalisedness += 1;
+            }
+        }
+        capitalisedness /= parts.length;
+
+        return capitalisedness;
     }
 
     /**

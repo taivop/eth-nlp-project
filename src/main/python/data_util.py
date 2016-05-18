@@ -3,9 +3,13 @@
 from __future__ import print_function
 
 import numpy as np
-from sklearn import preprocessing
+#from sklearn import preprocessing
+
 from sklearn.preprocessing import StandardScaler
 
+from sklearn.decomposition import PCA
+
+import sklearn
 
 # pylint: disable=invalid-name
 # Disable spurious error messages (known issue with syntastic + pylint + np).
@@ -19,15 +23,15 @@ def load_training_data(csv_file_name, feature_count):
     with open(csv_file_name, 'r') as f:
         bad_lines = 0
         for line_number, line in enumerate(f.readlines()):
-            if bad_lines > 10:
+            if bad_lines > 1000:
                 print("Too many bad lines. The parsing code is bugged or the "
                       "CSV is badly formatted. Get yo shit together fam.")
                 break
 
             parts = line[:-1].split(",")
-            if len(parts) != 18:
+            if len(parts) != 8 + feature_count:
                 bad_lines += 1
-                print("Skipping bad line")
+                # print("Skipping bad line")
                 continue
 
             # Example CSV line, as of May 10.
@@ -54,8 +58,8 @@ def load_training_data(csv_file_name, feature_count):
         else:
             print("Import was successful.")
 
-        print("Feature shape: {0}".format(X_raw.shape))
-        print("Label shape: {0}".format(y_raw.shape))
+        # print("Feature shape: {0}".format(X_raw.shape))
+        # print("Label shape: {0}".format(y_raw.shape))
 
         X_raw = impute_nan_inf(X_raw)
         return X_raw, y_raw
@@ -89,9 +93,119 @@ def rescale(X, y):
     X = (X - means) / ranges
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
-    print(np.mean(X, axis=1))
-    print(np.std(X, axis=1))
+    # print(np.mean(X, axis=1))
+    # print(np.std(X, axis=1))
 
     # No scaling needed for y.
     return X, y, ranges, means, scaler
+
+def split_dataset(X_rescaled,y_rescaled,neg_to_pos_ratio,valid_set_ratio):
+    # X, y = sklearn.utils.shuffle(X_rescaled, y_rescaled)
+
+    pos_count = np.sum(y_rescaled == 1)
+    neg_count = np.sum(y_rescaled == 0)
+
+    # print("We have {0} positive labels.".format(pos_count))
+    # print("We have {0} negative labels.".format(neg_count))
+
+    pos_ids = np.where(y_rescaled==1)[0]
+    neg_ids = np.where(y_rescaled==0)[0]
+
+    pos_count_valid = int(round(pos_count * valid_set_ratio))
+    neg_count_valid = int(round(neg_count * valid_set_ratio))
+
+    pos_ids_valid = np.random.choice(pos_ids,size=pos_count_valid,replace=False)
+    neg_ids_valid = np.random.choice(neg_ids,size=neg_count_valid,replace=False)
+
+    pos_ids_valid_idx = list(map(lambda x : np.where(pos_ids == x),pos_ids_valid))
+    neg_ids_valid_idx = list(map(lambda x : np.where(neg_ids == x),neg_ids_valid))
+
+    pos_ids_train = np.delete(pos_ids,pos_ids_valid_idx)
+    neg_ids_train = np.delete(neg_ids,neg_ids_valid_idx)
+
+    # oversample positive samples so that neg_to_pos_ratio is met
+    # reps = int(np.ceil(neg_count / (pos_count * neg_to_pos_ratio)))
+    # pos_ids_valid = np.tile(pos_ids_valid,reps=[reps])
+
+    X_train_pos = X_rescaled[pos_ids_train,:]
+    X_train_neg = X_rescaled[neg_ids_train,:]
+    X_train = np.append(X_train_pos,X_train_neg,axis=0)
+
+    y_train_pos = y_rescaled[pos_ids_train]
+    y_train_neg = y_rescaled[neg_ids_train]
+    y_train = np.append(y_train_pos,y_train_neg)
+
+    y_train_exp = np.expand_dims(y_train,axis=1)
+
+    train_set = np.append(y_train_exp,X_train,axis=1)
+    np.random.shuffle(train_set)
+
+    X_train = train_set[:,1:]
+    y_train = train_set[:,0]
+
+    X_valid_pos = X_rescaled[pos_ids_valid,:]
+    X_valid_neg = X_rescaled[neg_ids_valid,:]
+    X_valid = np.append(X_valid_pos,X_valid_neg,axis=0)
+
+    y_valid_pos = y_rescaled[pos_ids_valid]
+    y_valid_neg = y_rescaled[neg_ids_valid]
+
+    y_valid = np.append(y_valid_pos,y_valid_neg)
+
+    y_valid_exp = np.expand_dims(y_valid,axis=1)
+
+    valid_set = np.append(y_valid_exp,X_valid,axis=1)
+    np.random.shuffle(valid_set)
+
+    X_valid = valid_set[:,1:]
+    y_valid = valid_set[:,0]
+
+    return X_train, y_train, X_valid, y_valid
+
+def load_dataset(csv_file_name,feature_count,neg_to_pos_ratio,valid_set_ratio):
+    X_raw, Y_raw = load_training_data(csv_file_name=csv_file_name,feature_count=feature_count)
+    X_rescaled, y_rescaled, _, _, _ = rescale(X=X_raw, y=Y_raw)
+    X_train, y_train, X_valid, y_valid = split_dataset(X_rescaled=X_rescaled,
+                                                       y_rescaled=y_rescaled,
+                                                       neg_to_pos_ratio=neg_to_pos_ratio,
+                                                       valid_set_ratio=valid_set_ratio)
+
+    return X_train, y_train, X_valid, y_valid
+
+def pca_components(x,n_components):
+    x_t = x.T
+
+    pca = PCA(n_components=n_components)
+    pca.fit(x_t)
+
+    pca_components_t = pca.components_
+
+    pca_components = pca_components_t.T
+
+    for i in range(n_components):
+        explained_variance = np.sum(pca.explained_variance_ratio_[:(i+1)])
+        # print("Principal components = " + str(i+1) + " Explained variance = " + str(explained_variance))
+
+    return pca_components
+
+def load_dataset_pca(csv_file_name,feature_count,neg_to_pos_ratio,valid_set_ratio,n_components):
+    X_raw, Y_raw = load_training_data(csv_file_name=csv_file_name,feature_count=feature_count)
+    X_rescaled, y_rescaled, _, _, _ = rescale(X=X_raw, y=Y_raw)
+
+    X_rescaled_pca = pca_components(X_rescaled,n_components=n_components)
+
+    X_train, y_train, X_valid, y_valid = split_dataset(X_rescaled=X_rescaled_pca,
+                                                       y_rescaled=y_rescaled,
+                                                       neg_to_pos_ratio=neg_to_pos_ratio,
+                                                       valid_set_ratio=valid_set_ratio)
+
+    return X_train, y_train, X_valid, y_valid
+
+if __name__ ==  "__main__":
+    X_raw, Y_raw = load_training_data(csv_file_name="../../../data/all-candidates-5-18-15-13.csv",feature_count=20)
+    X_rescaled, y_rescaled, _, _, _ = rescale(X=X_raw, y=Y_raw)
+    X_train, y_train, X_valid, y_valid = split_dataset(X_rescaled=X_rescaled, y_rescaled=y_rescaled,neg_to_pos_ratio=1,valid_set_ratio=0.1)
+
+
+
 
