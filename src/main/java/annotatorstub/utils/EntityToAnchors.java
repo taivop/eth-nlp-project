@@ -220,9 +220,10 @@ public class EntityToAnchors {
 	}
 
 	public List<Pair<String, Integer>> getAnchors(int id) {
-		if (!containsId(id))
-			throw new RuntimeException("Anchors for page id=" + id
-					+ " not found.");
+		if (!containsId(id)) {
+			throw new RuntimeException("Anchors for page id=" + id + " not found.");
+		}
+
 		int[] anchors = entityToAnchorIDs.get(id);
 		int[] freqs = entityToFreqs.get(id);
 		

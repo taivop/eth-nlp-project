@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -35,32 +36,34 @@ public class PythonApiInterface implements Closeable {
                 SEPARATOR,
                 modelPickleFile);
 
+        File logFolder = new File("log");
+        if (!logFolder.exists() && !logFolder.mkdir()) {
+            throw new RuntimeException("Could not create log directory for Python.");
+        }
+
+        String pyStdOutFileName = "log/pyout.txt";
+        String pyStdErrFileName = "log/pyerr.txt";
         logger.info("Starting Python server: {}", processBuilder.command());
-        // 'inheritIO()' simply redirects the server's error output to Java's.
+        logger.info("Server stdout will go to: {}", pyStdOutFileName);
+        logger.info("Server stderr will go to: {}", pyStdErrFileName);
+        File pyStdOut = new File(pyStdOutFileName);
+        File pyStdErr = new File(pyStdErrFileName);
         serverProcess = processBuilder
-                .inheritIO()
-                .start();
+            .redirectOutput(ProcessBuilder.Redirect.to(pyStdOut))
+            .redirectError(ProcessBuilder.Redirect.to(pyStdErr))
+            .start();
 
-
-        /*BufferedReader bri = new BufferedReader(new InputStreamReader(serverProcess.getInputStream()));
-        BufferedReader bre = new BufferedReader(new InputStreamReader(serverProcess.getErrorStream()));
-        while ((line = bri.readLine()) != null) {
-            System.out.println(line);
-        }
-        bri.close();
-        while ((line = bre.readLine()) != null) {
-            System.out.println(line);
-        }
-        bre.close();*/
-
-        Thread.sleep(2000);     // TODO hacky way to make sure the server is started...
+        // TODO hacky way to make sure the server is started...
+        TimeUnit.MILLISECONDS.sleep(2000);
     }
 
     /**
      * Stop the Python server.
      */
     public void stopPythonServer() {
-        serverProcess.destroy();
+        if(null != serverProcess) {
+            serverProcess.destroy();
+        }
     }
 
     private String makeSeparatedString(List<Double> features) {
@@ -77,50 +80,70 @@ public class PythonApiInterface implements Closeable {
         return separatedString;
     }
 
+    public boolean binClassifyFlask(List<Double> features) throws IOException {
+        return binClassifyFlask(features, 3);
+    }
+
     /**
      * Classify given list of features by calling the Python API.
+     *
+     * TODO(andrei): Reuse same connection.
+     *
      * @see http://stackoverflow.com/questions/1359689/how-to-send-http-request-in-java
      */
-    public boolean binClassifyFlask(List<Double> features) throws IOException {
+    public boolean binClassifyFlask(List<Double> features, int retriesLeft) throws IOException {
+        if(retriesLeft == 0) {
+            throw new RuntimeException("No more Flask API retries left. There's probably " +
+                "something wrong with the Python server.");
+        }
+
         String urlParameters = "?features_string=" + makeSeparatedString(features);
         String queryUrl = API_ADDRESS + ":" + API_PORT + "/" + API_ENDPOINT;
 
-        // Set up connection and send the request
-        URL url = new URL(queryUrl + urlParameters);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        try {
+            // Set up connection and send the request
+            URL url = new URL(queryUrl + urlParameters);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-        // Set some sensible timeouts to prevent us waiting too much in case an error occurs.
-        connection.setConnectTimeout(1500);
-        connection.setReadTimeout(10000);
-        connection.setRequestMethod("GET");
-        connection.setUseCaches(false);
-        connection.setDoOutput(true);
+            // Set some sensible timeouts to prevent us waiting too much in case an error occurs.
+            connection.setConnectTimeout(1500);
+            connection.setReadTimeout(3000);
+            connection.setRequestMethod("GET");
+            connection.setUseCaches(false);
+            connection.setDoOutput(true);
 
-        // Read response
-        InputStream is = connection.getInputStream();
-        BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-        StringBuilder response = new StringBuilder();
-        String line;
-        while((line = rd.readLine()) != null) {
-            response.append(line);
-            response.append('\r');
-        }
-        rd.close();
+            // TODO(andrei): Sometimes the Python API seems to act up. Consider implementing retries.
+            // Read response
+            InputStream is = connection.getInputStream();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = rd.readLine()) != null) {
+                response.append(line);
+                response.append('\r');
+            }
+            rd.close();
 
-        String responseString = response.toString().trim();
+            String responseString = response.toString().trim();
 //        logger.info(String.format("Response from Python server: %s", responseString));
 
-        // Note: `Boolean.parseBoolean(responseString);` expects 'true'/'false' strings.
-        if(responseString.equals("0")) {
-            return false;
+            // Note: `Boolean.parseBoolean(responseString);` expects 'true'/'false' strings.
+            if (responseString.equals("0")) {
+                return false;
+            }
+            else if (responseString.equals("1")) {
+                return true;
+            }
+            else {
+                throw new RuntimeException(
+                    String.format(
+                        "Could not parse classifier output [%s] as a 0/1 boolean.",
+                        responseString));
+            }
         }
-        else if(responseString.equals("1")) {
-            return true;
-        }
-        else {
-            throw new RuntimeException(String.format(
-                    "Could not parse classifier output [%s] as a 0/1 boolean.",
-                    responseString));
+        catch(SocketTimeoutException timeout) {
+            System.err.println("Possible issue with Python API. Retrying connection.");
+            return binClassifyFlask(features, retriesLeft - 1);
         }
     }
 
