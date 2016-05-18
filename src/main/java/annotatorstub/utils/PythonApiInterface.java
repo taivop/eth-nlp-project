@@ -35,22 +35,17 @@ public class PythonApiInterface implements Closeable {
                 SEPARATOR,
                 modelPickleFile);
 
+        String pyStdOutFileName = "log/pyout.txt";
+        String pyStdErrFileName = "log/pyerr.txt";
         logger.info("Starting Python server: {}", processBuilder.command());
-        // 'inheritIO()' simply redirects the server's error output to Java's.
+        logger.info("Server stdout will go to: {}", pyStdOutFileName);
+        logger.info("Server stderr will go to: {}", pyStdErrFileName);
+        File pyStdOut = new File(pyStdOutFileName);
+        File pyStdErr = new File(pyStdErrFileName);
         serverProcess = processBuilder
-            .inheritIO()
+            .redirectOutput(ProcessBuilder.Redirect.to(pyStdOut))
+            .redirectError(ProcessBuilder.Redirect.to(pyStdErr))
             .start();
-
-        /*BufferedReader bri = new BufferedReader(new InputStreamReader(serverProcess.getInputStream()));
-        BufferedReader bre = new BufferedReader(new InputStreamReader(serverProcess.getErrorStream()));
-        while ((line = bri.readLine()) != null) {
-            System.out.println(line);
-        }
-        bri.close();
-        while ((line = bre.readLine()) != null) {
-            System.out.println(line);
-        }
-        bre.close();*/
 
         Thread.sleep(2000);     // TODO hacky way to make sure the server is started...
     }

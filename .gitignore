@@ -18,3 +18,4 @@ models/
 data/
 *.pkl
 watapi.cache.old
+log/
