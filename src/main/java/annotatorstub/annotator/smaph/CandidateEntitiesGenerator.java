@@ -28,7 +28,7 @@ public class CandidateEntitiesGenerator {
 	/**
 	 * WAT annotator parameters
 	 */
-	private String watMethod = "salsa-auth";
+	private String watMethod = "base-t";
 	private String watEpsilon = "0.0";
 	private String watSortBy = "PAGERANK";
 	private String watRelatedness = "jaccard";
