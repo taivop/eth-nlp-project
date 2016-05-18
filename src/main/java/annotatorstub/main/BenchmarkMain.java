@@ -56,12 +56,14 @@ public class BenchmarkMain {
 //            svmApi.startPythonServer("models/sgdc-linear-gerdaq-a-b-alpha-0.01-hinge-l1.pkl");
             // TODO(andrei): Figure out why F1 scores don't make sense!!
 //            svmApi.startPythonServer("models/sgdc-linear-gerdaq-a-b-alpha-0.0005-log-l1-25-iter.pkl");
-            svmApi.startPythonServer("models/m-sgd-loss-log-pen-l1-niter-5-alpha-0.001.pkl");
+            // This one is bad:
+//            svmApi.startPythonServer("models/m-sgd-loss-log-pen-l1-niter-5-alpha-0.001.pkl");
+            svmApi.startPythonServer("models/m-svc-c-0.1000.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
                 Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
                 CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
                 // look only at the top k = <below> snippets
-                25);
+                5);
 //            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
 
             WATRelatednessComputer.setCache("relatedness.cache");
@@ -79,7 +81,7 @@ public class BenchmarkMain {
                 resTag,
                 ds.getC2WGoldStandardList(),
                 new StrongTagMatch(wikiApi));
-            System.out.println("C2W results:\n");
+            System.out.println("C2W results:");
             Utils.printMetricsResultSet("C2W", C2WRes, ann.getName());
 
             Metrics<Annotation> metricsAnn = new Metrics<>();
@@ -87,6 +89,7 @@ public class BenchmarkMain {
                 resAnn,
                 ds.getA2WGoldStandardList(),
                 new StrongAnnotationMatch(wikiApi));
+            System.out.println("A2W-SAM:");
             Utils.printMetricsResultSet("A2W-SAM", rsA2W, ann.getName());
 
             Utils.serializeResult(ann, ds, new File("annotations.bin"));

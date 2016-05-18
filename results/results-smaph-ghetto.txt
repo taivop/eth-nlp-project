@@ -84,26 +84,6 @@ Added 10 more features from Taivo's side.
 ========================================================================================================================
 
 
-* SGDClassifier
-  * Details:
-      SGDClassifier(alpha=0.01, average=False, class_weight='balanced', epsilon=0.1,
-            eta0=0.0, fit_intercept=True, l1_ratio=0.15,
-            learning_rate='optimal', loss='hinge', n_iter=5, n_jobs=1,
-            penalty='l1', power_t=0.5, random_state=None, shuffle=True,
-            verbose=0, warm_start=False)
-  * Train data confusion matrix:
-         [[58424 22816]
-          [  141   746]]
-  * Numbers:
-   * C2W	mac-P/R/F1: 0.488/0.647/0.472 mic-P/R/F1: 0.416/0.616/0.497 TP/FP/FN: 252/354/157 std-P/R/F1: 0.366/0.401/0.350	SMAPH-S annotator
-   * A2W-SAM	mac-P/R/F1: 0.225/0.288/0.189 mic-P/R/F1: 0.145/0.215/0.173 TP/FP/FN: 88/518/321 std-P/R/F1: 0.343/0.390/0.303	SMAPH-S annotator
-  * Numbers with top-k-snippets = 5:
-   * <PENDING>
-  * Numbers with top-k-snippets = 25 (classic) but with 'watMethod = "base-t"':
-   * <PENDING>
-  * Numbers with top-k-snippets = 5 and 'watMethod = "base-t"':
-   * <PENDING>
-
  * SVC; C = 0.7
   * Details:
       SVC(C=0.7, cache_size=200, class_weight='balanced', coef0=0.0,
@@ -157,4 +137,22 @@ Added 10 more features from Taivo's side.
     * C2W	mac-P/R/F1: 0.311/0.727/0.352 mic-P/R/F1: 0.204/0.694/0.316 TP/FP/FN: 284/1105/125 std-P/R/F1: 0.300/0.368/0.279	SMAPH-S annotator
     * A2W-SAM	mac-P/R/F1: 0.164/0.301/0.147 mic-P/R/F1: 0.068/0.230/0.105 TP/FP/FN: 94/1296/315 std-P/R/F1: 0.303/0.400/0.261	SMAPH-S annotator
 
-TODO(andrei): Try SVC with C = 0.1 or smaller; the current ones may still be overfitting.
+  * SVC; C = 0.1
+   * Details:
+        SVC(C=0.1, cache_size=200, class_weight='balanced', coef0=0.0,
+          decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+          max_iter=-1, probability=False, random_state=None, shrinking=True,
+          tol=0.001, verbose=False)
+   * Train data confusion matrix:
+        [[72727  8513]
+         [   80   807]]
+   * Numbers:
+       * C2W	mac-P/R/F1: 0.431/0.717/0.466 mic-P/R/F1: 0.348/0.677/0.460 TP/FP/FN: 277/518/132 std-P/R/F1: 0.326/0.371/0.318	SMAPH-S annotator
+  * Numbers with top-k-snippets = 5:
+   * <PENDING>
+  * Numbers with top-k-snippets = 25 (classic) but with 'watMethod = "base-t"':
+   * <PENDING>
+  * Numbers with top-k-snippets = 5 and 'watMethod = "base-t"':
+   * <PENDING>
+
+
