@@ -98,8 +98,15 @@ Added 10 more features from Taivo's side.
    * C2W	mac-P/R/F1: 0.488/0.647/0.472 mic-P/R/F1: 0.416/0.616/0.497 TP/FP/FN: 252/354/157 std-P/R/F1: 0.366/0.401/0.350	SMAPH-S annotator
    * A2W-SAM	mac-P/R/F1: 0.225/0.288/0.189 mic-P/R/F1: 0.145/0.215/0.173 TP/FP/FN: 88/518/321 std-P/R/F1: 0.343/0.390/0.303	SMAPH-S annotator
   * Numbers with top-k-snippets = 5:
-   * C2W	mac-P/R/F1: 0.306/0.686/0.364 mic-P/R/F1: 0.231/0.643/0.340 TP/FP/FN: 263/874/146 std-P/R/F1: 0.290/0.380/0.289	SMAPH-S annotator
-   * A2W-SAM	mac-P/R/F1: 0.121/0.256/0.122 mic-P/R/F1: 0.054/0.149/0.079 TP/FP/FN: 61/1077/348 std-P/R/F1: 0.260/0.398/0.247	SMAPH-S annotator
+   !!! PROBABLY BAD
+   * C2W	mac-P/R/F1: 0.192/0.688/0.261 mic-P/R/F1: 0.158/0.645/0.254 TP/FP/FN: 264/1409/145 std-P/R/F1: 0.210/0.382/0.227	SMAPH-S annotator
+   * A2W-SAM	mac-P/R/F1: 0.053/0.210/0.057 mic-P/R/F1: 0.023/0.093/0.036 TP/FP/FN: 38/1636/371 std-P/R/F1: 0.174/0.379/0.166	SMAPH-S annotator
+  * Numbers with top-k-snippets = 25 (classic) but with 'watMethod = "base-t"':
+   !!! PROBABLY BAD
+   * C2W	mac-P/R/F1: 0.198/0.713/0.257 mic-P/R/F1: 0.133/0.687/0.223 TP/FP/FN: 281/1830/128 std-P/R/F1: 0.236/0.377/0.236	SMAPH-S annotator
+   * A2W-SAM	mac-P/R/F1: 0.072/0.244/0.076 mic-P/R/F1: 0.027/0.139/0.045 TP/FP/FN: 57/2055/352 std-P/R/F1: 0.205/0.382/0.190	SMAPH-S annotator
+  * Numbers with top-k-snippets = 5 and 'watMethod = "base-t"':
+   * <PENDING>
 
  * SVC; C = 0.7
   * Details:
@@ -154,4 +161,4 @@ Added 10 more features from Taivo's side.
     * C2W	mac-P/R/F1: 0.311/0.727/0.352 mic-P/R/F1: 0.204/0.694/0.316 TP/FP/FN: 284/1105/125 std-P/R/F1: 0.300/0.368/0.279	SMAPH-S annotator
     * A2W-SAM	mac-P/R/F1: 0.164/0.301/0.147 mic-P/R/F1: 0.068/0.230/0.105 TP/FP/FN: 94/1296/315 std-P/R/F1: 0.303/0.400/0.261	SMAPH-S annotator
 
-TODO(andrei): Try SVC with C = 0.1 or smaller.
+TODO(andrei): Try SVC with C = 0.1 or smaller; the current ones may still be overfitting.

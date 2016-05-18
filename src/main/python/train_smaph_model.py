@@ -49,7 +49,7 @@ def main():
     # parameters established via grid search in the notebook.
     clf = SGDClassifier(class_weight='balanced', loss='hinge', penalty='l1',
                         n_iter=5,
-                        alpha=0.01)
+                        alpha=0.001)
     print("Ignoring C parameter and training using SGD.")
 
     # The non-linear version. Much more expensive to train, but yields somewhat
