@@ -38,6 +38,11 @@ object SmaphSPruner {
       jHashSet.asScala.toSet
     }
 
+    // The number of times we encountered possible duplicates when generating training data. A
+    // small number should be ok, as sometimes words are repeated in a query (e.g. "how to tie
+    // a tie").
+    var posDupes: Int = 0
+
     // if a generated entity-mention pair is actually present in gold standard, the label is
     // positive, otherwise it's a 0.
 
@@ -111,7 +116,9 @@ object SmaphSPruner {
           missing.map { _.getConcept }.mkString(","))
       }
       else if(positiveCandidates.size > goldAnnotations.size) {
-        throw new RuntimeException("Possible duplicate positives found.")
+//        throw new RuntimeException("Possible duplicate positives found.")
+        System.err.println("Possible duplicate positives found.")
+        posDupes += 1
       }
 
       println(s"Found ${positiveCandidates.length} positive candidate(s).")
@@ -130,6 +137,7 @@ object SmaphSPruner {
     }
 
     dummyAnnotator.getAuxiliaryAnnotator.asInstanceOf[HelperWATAnnotator].getRequestCache.flush()
+    println(s"Possible duplicate data points generated: $posDupes")
   }
 
   /**
