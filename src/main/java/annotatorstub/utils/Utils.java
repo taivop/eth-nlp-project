@@ -20,6 +20,7 @@ import java.io.*;
 import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +39,7 @@ import it.unipi.di.acube.batframework.metrics.StrongAnnotationMatch;
 import it.unipi.di.acube.batframework.metrics.StrongTagMatch;
 import it.unipi.di.acube.batframework.problems.A2WDataset;
 import it.unipi.di.acube.batframework.problems.A2WSystem;
+import it.unipi.di.acube.batframework.utils.Pair;
 import it.unipi.di.acube.batframework.utils.ProblemReduction;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 
@@ -45,6 +47,13 @@ public class Utils {
 	private final static Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	public static final String BASE_DBPEDIA_URI = "http://dbpedia.org/resource/";
 	public static final String WIKITITLE_ENDPAR_REGEX = "\\s*\\([^\\)]*\\)\\s*$";
+
+	public static class ComparePairsBySecondElement<E extends Serializable, T extends Comparable<T> & Serializable> implements Comparator<Pair<E, T>> {
+		@Override
+		public int compare(Pair<E, T> o1, Pair<E, T> o2) {
+			return o1.second.compareTo(o2.second);
+		}
+	}
 
 	public static JSONObject httpQueryJson(String urlAddr) {
 		String resultStr = null;
