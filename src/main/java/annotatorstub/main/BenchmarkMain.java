@@ -52,16 +52,19 @@ public class BenchmarkMain {
          */
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
-            svmApi.startPythonServer("models/svc-nonlin-gerdaq-a-b-c-0.7.pkl");
+            svmApi.startPythonServer("models/m-svc-c-0.0010.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
-                Optional.of(new Smaph1RemoteSvmPruner(svmApi))
-//                CandidateEntitiesGenerator.QueryMethod.ALL
-            );
+                Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
+                CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
+                // look only at the top k = <below> snippets
+                25);
 //            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
 
             WATRelatednessComputer.setCache("relatedness.cache");
 
+            System.out.println("\nDoing C2W tags:\n");
             List<HashSet<Tag>> resTag = BenchmarkCache.doC2WTags(ann, ds);
+            System.out.println("\nDoing D2W annotations:\n");
             List<HashSet<Annotation>> resAnn = BenchmarkCache.doA2WAnnotations(ann, ds);
             DumpData.dumpCompareList(
                 ds.getTextInstanceList(),
@@ -74,6 +77,7 @@ public class BenchmarkMain {
                 resTag,
                 ds.getC2WGoldStandardList(),
                 new StrongTagMatch(wikiApi));
+            System.out.println("C2W results:");
             Utils.printMetricsResultSet("C2W", C2WRes, ann.getName());
 
             Metrics<Annotation> metricsAnn = new Metrics<>();
@@ -81,6 +85,7 @@ public class BenchmarkMain {
                 resAnn,
                 ds.getA2WGoldStandardList(),
                 new StrongAnnotationMatch(wikiApi));
+            System.out.println("A2W-SAM:");
             Utils.printMetricsResultSet("A2W-SAM", rsA2W, ann.getName());
 
             Utils.serializeResult(ann, ds, new File("annotations.bin"));
