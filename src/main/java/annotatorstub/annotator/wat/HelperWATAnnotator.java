@@ -353,12 +353,12 @@ public class HelperWATAnnotator implements
             throw new AnnotationException(e.getMessage());
         }
 
-        try {
-            fullCache.put(fullCacheKey, res);
-        }
-        catch(IOException ex) {
-            throw new RuntimeException("Error while caching scored annotations.", ex);
-        }
+//        try {
+//            fullCache.put(fullCacheKey, res);
+//        }
+//        catch(IOException ex) {
+//            throw new RuntimeException("Error while caching scored annotations.", ex);
+//        }
         return res;
     }
 
