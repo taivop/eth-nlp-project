@@ -137,16 +137,16 @@ Added 10 more features from Taivo's side.
     * C2W	mac-P/R/F1: 0.311/0.727/0.352 mic-P/R/F1: 0.204/0.694/0.316 TP/FP/FN: 284/1105/125 std-P/R/F1: 0.300/0.368/0.279	SMAPH-S annotator
     * A2W-SAM	mac-P/R/F1: 0.164/0.301/0.147 mic-P/R/F1: 0.068/0.230/0.105 TP/FP/FN: 94/1296/315 std-P/R/F1: 0.303/0.400/0.261	SMAPH-S annotator
 
-  * SVC; C = 0.1
-   * Details:
+* SVC; C = 0.1
+  * Details:
         SVC(C=0.1, cache_size=200, class_weight='balanced', coef0=0.0,
           decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
           max_iter=-1, probability=False, random_state=None, shrinking=True,
           tol=0.001, verbose=False)
-   * Train data confusion matrix:
+  * Train data confusion matrix:
         [[72727  8513]
          [   80   807]]
-   * Numbers:
+  * Numbers:
     * C2W	mac-P/R/F1: 0.431/0.717/0.466 mic-P/R/F1: 0.348/0.677/0.460 TP/FP/FN: 277/518/132 std-P/R/F1: 0.326/0.371/0.318	SMAPH-S annotator
   * Numbers with top-k-snippets = 5:
     * Worse
@@ -155,6 +155,91 @@ Added 10 more features from Taivo's side.
     * Better
     * C2W	mac-P/R/F1: 0.429/0.726/0.468 mic-P/R/F1: 0.346/0.692/0.462 TP/FP/FN: 283/534/126 std-P/R/F1: 0.323/0.368/0.317	SMAPH-S annotator
   * Numbers with top-k-snippets = 5 and 'watMethod = "base-t"':
-   * <PENDING>
+    * <PENDING>
+
+* Same SVC with C = 0.1, but with more features, including f#25
+  * LOTS of errors with missing data. Working on trying to fix that.
+  * Details:
+       SVC(C=0.1, cache_size=200, class_weight='balanced', coef0=0.0,
+          decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+          max_iter=-1, probability=False, random_state=None, shrinking=True,
+          tol=0.001, verbose=False)
+  * Train data confusion matrix:
+       [[73847  8350]
+        [   67   834]]
+  * Numbers:
+    * C2W	mac-P/R/F1: 0.764/0.167/0.119 mic-P/R/F1: 0.200/0.051/0.082 TP/FP/FN: 21/84/388 std-P/R/F1: 0.413/0.365/0.303	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.754/0.110/0.078 mic-P/R/F1: 0.028/0.005/0.008 TP/FP/FN: 2/70/407 std-P/R/F1: 0.430/0.310/0.265	SMAPH-S annotator
+  * Numbers after fixing bug, but NOT regenerating training data:
+    * C2W	mac-P/R/F1: 0.407/0.720/0.445 mic-P/R/F1: 0.338/0.689/0.453 TP/FP/FN: 282/553/127 std-P/R/F1: 0.318/0.372/0.312	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.160/0.257/0.142 mic-P/R/F1: 0.085/0.174/0.114 TP/FP/FN: 71/765/338 std-P/R/F1: 0.297/0.386/0.267	SMAPH-S annotator
+  * Numbers after also regenerating training data with high-level cache disabled:
+    * C2W	mac-P/R/F1: 0.407/0.720/0.445 mic-P/R/F1: 0.338/0.689/0.453 TP/FP/FN: 282/553/127 std-P/R/F1: 0.318/0.372/0.312	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.148/0.246/0.131 mic-P/R/F1: 0.075/0.154/0.101 TP/FP/FN: 63/773/346 std-P/R/F1: 0.290/0.384/0.260	SMAPH-S annotator
+
+  * C := 0.5
+  SVC(C=0.5, cache_size=200, class_weight='balanced', coef0=0.0,
+    decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+    max_iter=-1, probability=False, random_state=None, shrinking=True,
+    tol=0.001, verbose=False)
+  [[75078  7119]
+   [   43   858]]
+   * Numbers:
+     * C2W	mac-P/R/F1: 0.422/0.702/0.431 mic-P/R/F1: 0.342/0.672/0.453 TP/FP/FN: 275/530/134 std-P/R/F1: 0.326/0.385/0.313	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.193/0.278/0.153 mic-P/R/F1: 0.093/0.183/0.123 TP/FP/FN: 75/731/334 std-P/R/F1: 0.321/0.390/0.267	SMAPH-S annotator
+
+  * C := 0.001
+
+  * C := 0.01
+      SVC(C=0.01, cache_size=200, class_weight='balanced', coef0=0.0,
+        decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+        max_iter=-1, probability=False, random_state=None, shrinking=True,
+        tol=0.001, verbose=False)
+      [[71992 10205]
+       [  121   780]]
+    * Numbers:
+      * C2W	mac-P/R/F1: 0.395/0.722/0.446 mic-P/R/F1: 0.329/0.687/0.445 TP/FP/FN: 281/572/128 std-P/R/F1: 0.313/0.371/0.315	SMAPH-S annotator
+      * A2W-SAM	mac-P/R/F1: 0.135/0.246/0.131 mic-P/R/F1: 0.074/0.154/0.100 TP/FP/FN: 63/791/346 std-P/R/F1: 0.270/0.380/0.256	SMAPH-S annotator
+
+  * C := 0.05
+        SVC(C=0.05, cache_size=200, class_weight='balanced', coef0=0.0,
+            decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+            max_iter=-1, probability=False, random_state=None, shrinking=True,
+            tol=0.001, verbose=False)
+        [[73331  8866]
+         [   87   814]]
+     * C2W	mac-P/R/F1: 0.399/0.721/0.446 mic-P/R/F1: 0.336/0.687/0.451 TP/FP/FN: 281/555/128 std-P/R/F1: 0.316/0.372/0.313	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.143/0.250/0.135 mic-P/R/F1: 0.076/0.156/0.103 TP/FP/FN: 64/773/345 std-P/R/F1: 0.284/0.387/0.265	SMAPH-S annotator
+
+ * C := 0.70
+   SVC(C=0.7, cache_size=200, class_weight='balanced', coef0=0.0,
+     decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+     max_iter=-1, probability=False, random_state=None, shrinking=True,
+     tol=0.001, verbose=False)
+   [[75431  6766]
+    [   39   862]]
+    C2W	mac-P/R/F1: 0.425/0.694/0.431 mic-P/R/F1: 0.344/0.665/0.453 TP/FP/FN: 272/519/137 std-P/R/F1: 0.330/0.386/0.316	SMAPH-S annotator
+    A2W-SAM	mac-P/R/F1: 0.198/0.282/0.157 mic-P/R/F1: 0.097/0.188/0.128 TP/FP/FN: 77/715/332 std-P/R/F1: 0.325/0.390/0.270	SMAPH-S annotator
+
+ * C := 0.90
+  SVC(C=0.9, cache_size=200, class_weight='balanced', coef0=0.0,
+    decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+    max_iter=-1, probability=False, random_state=None, shrinking=True,
+    tol=0.001, verbose=False)
+  [[75698  6499]
+   [   36   865]]
+C2W	mac-P/R/F1: 0.432/0.690/0.431 mic-P/R/F1: 0.349/0.660/0.456 TP/FP/FN: 270/504/139 std-P/R/F1: 0.336/0.392/0.320	SMAPH-S annotator
+A2W-SAM	mac-P/R/F1: 0.216/0.301/0.171 mic-P/R/F1: 0.108/0.205/0.142 TP/FP/FN: 84/691/325 std-P/R/F1: 0.336/0.399/0.280	SMAPH-S annotator
+
+ * C := 1.50
+  SVC(C=1.5, cache_size=200, class_weight='balanced', coef0=0.0,
+    decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+    max_iter=-1, probability=False, random_state=None, shrinking=True,
+    tol=0.001, verbose=False)
+  [[76292  5905]
+   [   25   876]]
+   * Numbers
+   C2W	mac-P/R/F1: 0.438/0.663/0.423 mic-P/R/F1: 0.352/0.641/0.454 TP/FP/FN: 262/482/147 std-P/R/F1: 0.342/0.401/0.322	SMAPH-S annotator
+   A2W-SAM	mac-P/R/F1: 0.237/0.314/0.187 mic-P/R/F1: 0.126/0.230/0.163 TP/FP/FN: 94/650/315 std-P/R/F1: 0.344/0.406/0.290	SMAPH-S annotator
 
 
