@@ -76,7 +76,7 @@ public class EmptyFeatureExtractor {
 
 
 		return f1_total_results+","+f2_wikipeida_results+","+f4_average_lp+","+f5_number_wat+","+f6_query_lenght
-				+","+f7_rank_avg+","+f9_comm_avg+","+f10_ambig_avg+","+f11_anch_avg+","+f12_comm2_avg;
+				+","+f7_rank_avg+","/*+f9_comm_avg+","+f10_ambig_avg+","*/+f11_anch_avg+","+f12_comm2_avg;
 	}
 	
 	
