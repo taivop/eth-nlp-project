@@ -17,7 +17,7 @@ from data_util import impute_nan_inf, load_training_data, rescale
 # pylint: disable=missing-docstring, invalid-name
 
 # TODO(andrei): This should be in a common config.
-FEATURE_COUNT = 20
+FEATURE_COUNT = 24
 
 np.random.seed(0xF00BA2)
 

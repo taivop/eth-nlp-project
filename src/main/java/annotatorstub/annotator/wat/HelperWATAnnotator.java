@@ -289,12 +289,14 @@ public class HelperWATAnnotator implements
         // Note: I currently seems that this is the only method used by the SMAPH-S annotator for
         // generating the E3 set.
 
+        // TODO(andrei): Make sure 'additionalInfo' still populated when item is cached,
+        // otherwise we get lots of garbage results.
         // TODO(andrei): Consider adding other things to key to avoid subtle errors.
         String fullCacheKey = text + "-" + method;
-        if(fullCache.containsKey(fullCacheKey)) {
-            lastTime = 0;
-            return fullCache.get(fullCacheKey);
-        }
+//        if(fullCache.containsKey(fullCacheKey)) {
+//            lastTime = 0;
+//            return fullCache.get(fullCacheKey);
+//        }
 
         HashSet<ScoredAnnotation> res = new HashSet<ScoredAnnotation>();
         JSONObject obj = null;
