@@ -52,14 +52,31 @@ public class EmptyFeatureExtractor {
 				count += 1.0;
 			}
 		}
-		
-        List<SmaphCandidate> candidate = smaphSAnnotator.getCandidatesWithFeatures(query);
-        System.out.println(candidate.get(0).getFeatures().size());
-        System.exit(-1);
-		
 		double f4_average_lp = (lp/count);
 		int f5_number_wat = ann.solveA2W(query).size();
-		return f1_total_results+","+f2_wikipeida_results+","+f4_average_lp+","+f5_number_wat+","+query.length();
+		int f6_query_lenght = query.length();
+		
+        List<SmaphCandidate> candidateList = smaphSAnnotator.getCandidatesWithFeatures(query);
+        double f7_rank_avg = 0.0, f8_page_rank_avg = 0.0, f9_comm_avg = 0.0, f10_ambig_avg = 0.0, f11_anch_avg = 0.0, f12_comm2_avg = 0.0;
+        // 3 rank 11 page rank  19 commoness 22 ambig  25 anch 28 comm
+        for (SmaphCandidate candidate : candidateList) {
+        	f7_rank_avg += candidate.getFeatures().get(1);
+        	//f8_page_rank_avg += candidate.getFeatures().get(19); TODO not implemented yet
+        	f9_comm_avg += candidate.getFeatures().get(13);
+        	f10_ambig_avg += candidate.getFeatures().get(16);        	
+        	f11_anch_avg += candidate.getFeatures().get(19);
+        	f12_comm2_avg += candidate.getFeatures().get(22);
+        }
+        f7_rank_avg /= candidateList.size();
+        //f8_page_rank_avg /= candidateList.size();
+        f9_comm_avg /= candidateList.size();
+        f10_ambig_avg /= candidateList.size();
+        f11_anch_avg /= candidateList.size();
+        f12_comm2_avg /= candidateList.size();
+
+
+		return f1_total_results+","+f2_wikipeida_results+","+f4_average_lp+","+f5_number_wat+","+f6_query_lenght
+				+","+f7_rank_avg+","+f9_comm_avg+","+f10_ambig_avg+","+f11_anch_avg+","+f12_comm2_avg;
 	}
 	
 	
@@ -92,19 +109,16 @@ public class EmptyFeatureExtractor {
 		FileOutputStream fos = new FileOutputStream(fout);
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
         
-		
 		writeDataset(DatasetBuilder.getGerdaqTrainA(), bw);
 		writeDataset(DatasetBuilder.getGerdaqTrainB(), bw);
 		
 		bw.close();
-
-        fout = new File("./data/nonempty_valid.csv");
-		fos = new FileOutputStream(fout);
-		bw = new BufferedWriter(new OutputStreamWriter(fos));
 		
+        fout = new File("./data/nonempty_valid.csv");
+        fos = new FileOutputStream(fout);
+        bw = new BufferedWriter(new OutputStreamWriter(fos));
 		
 		writeDataset(DatasetBuilder.getGerdaqDevel(), bw);
-
 
 		bw.close();
 
