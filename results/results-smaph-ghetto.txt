@@ -1,3 +1,8 @@
+# SMAPH results using the SVM step.
+Note: this file is written into as an experiment log, mostly by Andrei. The lower you go, the
+more up to date the information is (i.e. better algorithm, more features, less bugs, more data,
+etc.).
+
 # First results of the SMAPH-1 implementation (which also uses some SMAPH-S elements)
  * SVM: nonlinear SVC with RBF kernel and C = 1.
  * WAT: used defaults everywhere
@@ -287,4 +292,56 @@ Added new features to set
     * C2W	mac-P/R/F1: 0.438/0.663/0.423 mic-P/R/F1: 0.352/0.641/0.454 TP/FP/FN: 262/482/147 std-P/R/F1: 0.342/0.401/0.322	SMAPH-S annotator
     * A2W-SAM	mac-P/R/F1: 0.237/0.314/0.187 mic-P/R/F1: 0.126/0.230/0.163 TP/FP/FN: 94/650/315 std-P/R/F1: 0.344/0.406/0.290	SMAPH-S annotator
 
+========================================================================================================================
+Fixed duplicate positive label gen bug
+========================================================================================================================
 
+ * SGDClassifier
+   * Details:
+       Classifier: SGDClassifier(alpha=0.025, average=False, class_weight='balanced',
+              epsilon=0.1, eta0=0.0, fit_intercept=True, l1_ratio=0.15,
+              learning_rate='optimal', loss='log', n_iter=5, n_jobs=1,
+              penalty='elasticnet', power_t=0.5, random_state=None, shuffle=True,
+              verbose=0, warm_start=False)
+   * Numbers:
+     * C2W	mac-P/R/F1: 0.427/0.695/0.443 mic-P/R/F1: 0.348/0.660/0.456 TP/FP/FN: 270/505/139 std-P/R/F1: 0.318/0.376/0.307	SMAPH-S annotator
+     * BUG FIX => WAY, WAY better A2W SCORE!
+     * A2W-SAM	mac-P/R/F1: 0.294/0.442/0.281 mic-P/R/F1: 0.214/0.406/0.280 TP/FP/FN: 166/609/243 std-P/R/F1: 0.334/0.418/0.313	SMAPH-S annotator
+
+ * SVC; C = 0.7
+   * Details:
+        SVC(C=0.7, cache_size=200, class_weight='balanced', coef0=0.0,
+          decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+          max_iter=-1, probability=False, random_state=None, shrinking=True,
+          tol=0.001, verbose=False)
+   * Train data confusion matrix:
+        [[118703   3832]
+         [    37   1499]]
+   * Numbers:
+     * C2W	mac-P/R/F1: 0.443/0.682/0.443 mic-P/R/F1: 0.368/0.650/0.470 TP/FP/FN: 266/457/143 std-P/R/F1: 0.343/0.393/0.327	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.332/0.486/0.312 mic-P/R/F1: 0.257/0.455/0.328 TP/FP/FN: 186/538/223 std-P/R/F1: 0.349/0.423/0.325	SMAPH-S annotator
+
+ * SVC; C = 1.2
+   * Details:
+     * SVC(C=1.2, cache_size=200, class_weight='balanced', coef0=0.0,
+         decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+         max_iter=-1, probability=False, random_state=None, shrinking=True,
+         tol=0.001, verbose=False)
+     * Train data confusion matrix:
+       [[119141   3394]
+        [    27   1509]]
+   * Numbers:
+     * C2W	mac-P/R/F1: 0.448/0.668/0.443 mic-P/R/F1: 0.376/0.636/0.472 TP/FP/FN: 260/432/149 std-P/R/F1: 0.351/0.398/0.333	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.344/0.492/0.321 mic-P/R/F1: 0.271/0.460/0.341 TP/FP/FN: 188/505/221 std-P/R/F1: 0.356/0.421/0.329	SMAPH-S annotator
+
+ * SVC; C = 0.01
+   * Details:
+        SVC(C=0.01, cache_size=200, class_weight='balanced', coef0=0.0,
+          decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+          max_iter=-1, probability=False, random_state=None, shrinking=True,
+          tol=0.001, verbose=False)
+   * Train data confusion matrix:
+        [[116560   5975]
+         [   123   1413]]
+   * Numbers:
+     *
