@@ -107,7 +107,7 @@ public class WATRelatednessComputer implements Serializable {
 
 	public static double getCommonness(String anchor, int wid) {
 		if (!instance.cacheAnchors.containsKey(anchor))
-			queryJsonComm(anchor);
+				queryJsonComm(anchor);
 
 		Pair<String, Integer> key = new Pair<>(anchor, wid);
 		if (!instance.cacheComm.containsKey(key))
