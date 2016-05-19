@@ -64,9 +64,10 @@ object SmaphSPruner {
     val csvFileName = genCsvFileName()
     val start = System.nanoTime()
 
-    val allTrainingData: List[(SmaphCandidate, Boolean)] = queryGroundTruths
+//    val allTrainingData: List[(SmaphCandidate, Boolean)] = queryGroundTruths
+      queryGroundTruths
       .zipWithIndex
-      .flatMap { case ((query, goldAnnotations), index) =>
+      .foreach { case ((query, goldAnnotations), index) =>
       val now = System.nanoTime()
       val elapsedSeconds = (now - start).toDouble / 1000 / 1000 / 1000
 
@@ -86,22 +87,20 @@ object SmaphSPruner {
         "\t" + _.getConcept
       } foreach println
 
-      val countedCandidates = allCandidates.map { smaphCandidate =>
+      val matchedCandidates = allCandidates.map { smaphCandidate =>
         // For every generated candidate, see if it matches anything in the gold standard.
         val matchedGoldMention: Boolean = goldAnnotations.exists { goldAnnotation =>
           goldAnnotation.getPosition == smaphCandidate.getMentionCandidate.getQueryStartPosition &&
           goldAnnotation.getLength == smaphCandidate.getMentionCandidate.getLength &&
           goldAnnotation.getConcept == smaphCandidate.getEntityID
         }
-          // This is just a sanity check
-//        .ensuring { mentionCount => mentionCount == 0 || mentionCount == 1 }
 
         (smaphCandidate, matchedGoldMention)
       }
 
       // Take the candidates which appear in the gold standard as positive training samples.
-      val positiveCandidates = countedCandidates.filter { case (_, inGold) =>   inGold }.map { _._1 }
-      val negativeCandidates = countedCandidates.filter { case (_, inGold) => ! inGold}.map { _._1 }
+      val positiveCandidates = matchedCandidates.filter { case (_, inGold) =>   inGold }.map { _._1 }
+      val negativeCandidates = matchedCandidates.filter { case (_, inGold) => ! inGold }.map { _ ._1 }
 
       if (positiveCandidates.size < goldAnnotations.size) {
         // Note: this may happen occasionally, but should not be the norm.
@@ -116,8 +115,8 @@ object SmaphSPruner {
           missing.map { _.getConcept }.mkString(","))
       }
       else if(positiveCandidates.size > goldAnnotations.size) {
-//        throw new RuntimeException("Possible duplicate positives found.")
-        System.err.println("Possible duplicate positives found.")
+        System.err.println("\nWARNING: Possible duplicate positives found. This may disturb your " +
+          "SVM.")
         posDupes += 1
       }
 
@@ -125,7 +124,7 @@ object SmaphSPruner {
       println(s"Found ${negativeCandidates.length} negative candidate(s).")
 
       // Dumps all the labeled training information into a CSV file, for later inspection and
-      // validation.
+      // training.
       positiveCandidates.foreach { candidate =>
         dumpTrainingLine(csvFileName, candidate, relevant = true)
       }
@@ -133,39 +132,11 @@ object SmaphSPruner {
         dumpTrainingLine(csvFileName, candidate, relevant = false)
       }
 
-      positiveCandidates.map { c => (c, true) } ++ negativeCandidates.map { c => (c, false) }
+//      positiveCandidates.map { c => (c, true) } ++ negativeCandidates.map { c => (c, false) }
     }
 
     dummyAnnotator.getAuxiliaryAnnotator.asInstanceOf[HelperWATAnnotator].getRequestCache.flush()
     println(s"Possible duplicate data points generated: $posDupes")
-  }
-
-  /**
-   * Trains the pruning classifier using annotation candidates matched with the ground truth.
-   */
-  def genPrunerData(processedTrainingData: List[(SmaphCandidate, Boolean)]): Unit = {
-    throw new RuntimeException("Training in Java/Scala not supported.")
-
-    println(s"Will now train the pruner using ${processedTrainingData.length} data points.")
-
-    // Temporarily limiting the data used for training in order to evaluate Smile's SVM
-    // implementation. It seems slow as balls. Looks like it's implemented in pure Java, and
-    // there's no stochastic option.
-    val X: Array[Array[Double]] = processedTrainingData.slice(0, 250)
-      .map { case(candidate, _) => candidate.getFeatures.asScala.map { _.toDouble }.toArray }
-      .toArray
-    val y: Array[Int] = processedTrainingData.slice(0, 250)
-      .map { case(_, relevance) => if(relevance) 1 else 0 }.toArray
-
-    val linKernel = new LinearKernel
-    val C = 10e-1
-
-    println("Will perform kfold cross-validation")
-    // Note: need to use custom SVM constructor in order to be able to specify class weights.
-    cv(X, y, k = 3) { case(xfold, yfold) => {
-        svm(xfold, yfold, linKernel, C)
-      }
-    }
   }
 
   /**
@@ -234,7 +205,6 @@ object SmaphSPruner {
    }
 
   private def appendCsvLine(fileName: String, line: String): Unit = {
-    // TODO(andrei): Use scala-arm to make this code safer.
     val writer = new FileWriter(fileName, true)
     writer.append(line)
     writer.close()
@@ -242,10 +212,10 @@ object SmaphSPruner {
 
   private def genCsvFileName(): String = {
     val now: Calendar = new GregorianCalendar
-    val day = now.get(Calendar.DAY_OF_MONTH)
-    val month = now.get(Calendar.MONTH) + 1
-    val hour = now.get(Calendar.HOUR_OF_DAY)
-    val min = now.get(Calendar.MINUTE)
+    val day = "%02d" format now.get(Calendar.DAY_OF_MONTH)
+    val month = "%02d" format now.get(Calendar.MONTH) + 1
+    val hour = "%02d" format now.get(Calendar.HOUR_OF_DAY)
+    val min = "%02d" format now.get(Calendar.MINUTE)
 
     s"data/all-candidates-$month-$day-$hour-$min.csv"
   }

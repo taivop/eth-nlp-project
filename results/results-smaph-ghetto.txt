@@ -334,6 +334,19 @@ Fixed duplicate positive label gen bug
      * C2W	mac-P/R/F1: 0.448/0.668/0.443 mic-P/R/F1: 0.376/0.636/0.472 TP/FP/FN: 260/432/149 std-P/R/F1: 0.351/0.398/0.333	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.344/0.492/0.321 mic-P/R/F1: 0.271/0.460/0.341 TP/FP/FN: 188/505/221 std-P/R/F1: 0.356/0.421/0.329	SMAPH-S annotator
 
+ * SVC; C = 0.1 (should be good according to CV)
+   * Details:
+       SVC(C=0.1, cache_size=200, class_weight='balanced', coef0=0.0,
+         decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+         max_iter=-1, probability=False, random_state=None, shrinking=True,
+         tol=0.001, verbose=False)
+   * Train data confusion matrix:
+       [[117663   4872]
+        [    71   1465]]
+   * Numbers:
+     * C2W	mac-P/R/F1: 0.430/0.702/0.455 mic-P/R/F1: 0.358/0.670/0.467 TP/FP/FN: 274/491/135 std-P/R/F1: 0.328/0.378/0.318	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.309/0.475/0.308 mic-P/R/F1: 0.239/0.447/0.312 TP/FP/FN: 183/582/226 std-P/R/F1: 0.342/0.422/0.329	SMAPH-S annotator
+
  * SVC; C = 0.01
    * Details:
         SVC(C=0.01, cache_size=200, class_weight='balanced', coef0=0.0,
@@ -344,4 +357,36 @@ Fixed duplicate positive label gen bug
         [[116560   5975]
          [   123   1413]]
    * Numbers:
-     *
+     * C2W	mac-P/R/F1: 0.434/0.697/0.460 mic-P/R/F1: 0.366/0.658/0.470 TP/FP/FN: 269/466/140 std-P/R/F1: 0.331/0.376/0.321	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.308/0.468/0.309 mic-P/R/F1: 0.242/0.435/0.311 TP/FP/FN: 178/558/231 std-P/R/F1: 0.340/0.416/0.329	SMAPH-S annotator*
+
+ * SVC; C = 0.001
+   * Details:
+       SVC(C=0.001, cache_size=200, class_weight='balanced', coef0=0.0,
+         decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+         max_iter=-1, probability=False, random_state=None, shrinking=True,
+         tol=0.001, verbose=False)
+   * Train data confusion matrix:
+       [[115478   7057]
+        [   197   1339]]
+   * Numbers:
+     * C2W	mac-P/R/F1: 0.480/0.668/0.469 mic-P/R/F1: 0.399/0.626/0.487 TP/FP/FN: 256/386/153 std-P/R/F1: 0.352/0.382/0.333	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.344/0.440/0.311 mic-P/R/F1: 0.257/0.403/0.314 TP/FP/FN: 165/477/244 std-P/R/F1: 0.376/0.420/0.349	SMAPH-S annotator
+
+ * SVC; C = 0.0005
+   * <pending>
+
+ * SVC; C = 0.0001
+   * Details:
+       SVC(C=0.0001, cache_size=200, class_weight='balanced', coef0=0.0,
+         decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+         max_iter=-1, probability=False, random_state=None, shrinking=True,
+         tol=0.001, verbose=False)
+   * Train data confusion matrix:
+       [[116369   6166]
+        [   285   1251]]
+   * Numbers:
+     * C2W	mac-P/R/F1: 0.506/0.623/0.448 mic-P/R/F1: 0.372/0.587/0.455 TP/FP/FN: 240/405/169 std-P/R/F1: 0.377/0.401/0.349	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.382/0.423/0.307 mic-P/R/F1: 0.242/0.381/0.296 TP/FP/FN: 156/489/253 std-P/R/F1: 0.401/0.415/0.351	SMAPH-S annotatorng>
+
+
