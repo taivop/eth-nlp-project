@@ -206,6 +206,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
             }
 
             // Check if word is capitalised (first letter uppercase and the rest lowercase)
+            //System.out.printf("%s is capitalised? %b\n", boldPortion, StringUtils.isCapitalised(boldPortion));
+            //System.out.printf("%s capitalisedness: %.2f\n", boldPortion, StringUtils.capitalisedness(boldPortion));
             if(StringUtils.isCapitalised(boldPortion)) {
                 f7_captBolds += 1;
             }
