@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -52,31 +53,46 @@ public class EmptyFeatureExtractor {
 				count += 1.0;
 			}
 		}
+		
 		double f4_average_lp = (lp/count);
 		int f5_number_wat = ann.solveA2W(query).size();
 		int f6_query_lenght = query.length();
 		
-        List<SmaphCandidate> candidateList = smaphSAnnotator.getCandidatesWithFeatures(query);
-        double f7_rank_avg = 0.0, f8_page_rank_avg = 0.0, f9_comm_avg = 0.0, f10_ambig_avg = 0.0, f11_anch_avg = 0.0, f12_comm2_avg = 0.0;
+		List<SmaphCandidate> candidateList = smaphSAnnotator.getCandidatesWithFeatures(query);
+		int numFeatures = 24;
+		List<Double> smaphSfeatures = new ArrayList<Double>();
+		for (int i=0;i<numFeatures;i++) {
+			smaphSfeatures.add(i, 0.0);
+		}
+		
+        
+        //double f7_rank_avg = 0.0, f8_page_rank_avg = 0.0, f9_comm_avg = 0.0, f10_ambig_avg = 0.0, f11_anch_avg = 0.0, f12_comm2_avg = 0.0;
         // 3 rank 11 page rank  19 commoness 22 ambig  25 anch 28 comm
         for (SmaphCandidate candidate : candidateList) {
-        	f7_rank_avg += candidate.getFeatures().get(1);
+    		for (int i=0;i<numFeatures;i++) {
+    			smaphSfeatures.set(i, smaphSfeatures.get(i)+candidate.getFeatures().get(i));
+    		}
+        	/*f7_rank_avg += candidate.getFeatures().get(1);
         	//f8_page_rank_avg += candidate.getFeatures().get(19); TODO not implemented yet
         	f9_comm_avg += candidate.getFeatures().get(13);
         	f10_ambig_avg += candidate.getFeatures().get(16);        	
         	f11_anch_avg += candidate.getFeatures().get(19);
-        	f12_comm2_avg += candidate.getFeatures().get(22);
+        	f12_comm2_avg += candidate.getFeatures().get(22);*/
         }
-        f7_rank_avg /= candidateList.size();
+        /*f7_rank_avg /= candidateList.size();
         //f8_page_rank_avg /= candidateList.size();
         f9_comm_avg /= candidateList.size();
         f10_ambig_avg /= candidateList.size();
         f11_anch_avg /= candidateList.size();
         f12_comm2_avg /= candidateList.size();
+		*/
+        String smaphSfeatureString = "";
+		for (int i=0;i<numFeatures;i++) {
+			smaphSfeatureString += ","+(smaphSfeatures.get(i)/candidateList.size());
+		}
 
-
-		return f1_total_results+","+f2_wikipeida_results+","+f4_average_lp+","+f5_number_wat+","+f6_query_lenght
-				+","+f7_rank_avg+","/*+f9_comm_avg+","+f10_ambig_avg+","*/+f11_anch_avg+","+f12_comm2_avg;
+		return f1_total_results+","+f2_wikipeida_results+","+f3_wikipedia_results_extended+","+f4_average_lp+","+f5_number_wat+","+f6_query_lenght
+				+smaphSfeatureString;
 	}
 	
 	
