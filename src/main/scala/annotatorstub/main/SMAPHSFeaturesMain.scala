@@ -10,6 +10,11 @@ object SMAPHSFeaturesMain {
     // TODO(andrei): Check if additional Yahoo data is useful.
 
     // This only generates the CSV dump.
-    SmaphSPruner.genPrunerData(DatasetBuilder.getGerdaqTrainA, DatasetBuilder.getGerdaqTrainB)
+    SmaphSPruner.genPrunerData(
+      DatasetBuilder.getGerdaqTrainA,
+      DatasetBuilder.getGerdaqTrainB
+      // This is our secret weapon.
+      ,WebScopeXMLProcessing.getWebscope
+    )
   }
 }

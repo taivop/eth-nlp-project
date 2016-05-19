@@ -38,12 +38,10 @@ object SmaphSPruner {
       jHashSet.asScala.toSet
     }
 
-    // flatMap goldStandard into (candidateFeatures from SmaphSAnnotator with
-    // corresponding labels).
-
     // if a generated entity-mention pair is actually present in gold standard, the label is
     // positive, otherwise it's a 0.
 
+    // All the query texts from all the datasets in a single list.
     val queries: List[String] = datasets.flatMap { _.getTextInstanceList.asScala }.toList
 
     println(s"We have a total of ${queries.length} queries from ${datasets.length} datasets:")
@@ -54,6 +52,7 @@ object SmaphSPruner {
     val queryGroundTruths = queries zip goldStandard
 
     // TODO(andrei): Move feature creation to separate object.
+    // Right now we create an annotator just to use it for feature generation.
     val dummyAnnotator = new SmaphSAnnotator(Optional.empty[Smaph1Pruner]())
 
     // The file where we will be saving our training data for safe keeping.
@@ -83,19 +82,21 @@ object SmaphSPruner {
       } foreach println
 
       val countedCandidates = allCandidates.map { smaphCandidate =>
-        val matchedGoldMentions: Int = goldAnnotations.count { goldAnnotation =>
+        // For every generated candidate, see if it matches anything in the gold standard.
+        val matchedGoldMention: Boolean = goldAnnotations.exists { goldAnnotation =>
+          goldAnnotation.getPosition == smaphCandidate.getMentionCandidate.getQueryStartPosition &&
           goldAnnotation.getLength == smaphCandidate.getMentionCandidate.getLength &&
-            goldAnnotation.getConcept == smaphCandidate.getEntityID
+          goldAnnotation.getConcept == smaphCandidate.getEntityID
         }
           // This is just a sanity check
-        .ensuring { mentionCount => mentionCount == 0 || mentionCount == 1 }
+//        .ensuring { mentionCount => mentionCount == 0 || mentionCount == 1 }
 
-        (smaphCandidate, matchedGoldMentions)
+        (smaphCandidate, matchedGoldMention)
       }
 
       // Take the candidates which appear in the gold standard as positive training samples.
-      val positiveCandidates = countedCandidates.filter { _._2 > 0 }.map { _._1 }
-      val negativeCandidates = countedCandidates.filter { _._2 == 0 }.map { _._1 }
+      val positiveCandidates = countedCandidates.filter { case (_, inGold) =>   inGold }.map { _._1 }
+      val negativeCandidates = countedCandidates.filter { case (_, inGold) => ! inGold}.map { _._1 }
 
       if (positiveCandidates.size < goldAnnotations.size) {
         // Note: this may happen occasionally, but should not be the norm.
@@ -110,11 +111,9 @@ object SmaphSPruner {
           missing.map { _.getConcept }.mkString(","))
       }
       else if(positiveCandidates.size > goldAnnotations.size) {
-        System.err.println("Possible duplicate positives found.")
+        throw new RuntimeException("Possible duplicate positives found.")
       }
 
-      // TODO(andrei): Some duplicates seem to be occurring. Make sure you dedupe everything
-      // correctly.
       println(s"Found ${positiveCandidates.length} positive candidate(s).")
       println(s"Found ${negativeCandidates.length} negative candidate(s).")
 
