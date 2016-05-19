@@ -52,7 +52,7 @@ public class BenchmarkMain {
          */
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
-            svmApi.startPythonServer("models/m-svc-c-0.0100.pkl");
+            svmApi.startPythonServer("models/m-svc-c-0.0010.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
                 Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
                 CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,

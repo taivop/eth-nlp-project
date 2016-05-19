@@ -187,6 +187,9 @@ Added 10 more features from Taivo's side.
    * Numbers:
      * C2W	mac-P/R/F1: 0.422/0.702/0.431 mic-P/R/F1: 0.342/0.672/0.453 TP/FP/FN: 275/530/134 std-P/R/F1: 0.326/0.385/0.313	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.193/0.278/0.153 mic-P/R/F1: 0.093/0.183/0.123 TP/FP/FN: 75/731/334 std-P/R/F1: 0.321/0.390/0.267	SMAPH-S annotator
+
+  * C := 0.001
+
   * C := 0.01
       SVC(C=0.01, cache_size=200, class_weight='balanced', coef0=0.0,
         decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
@@ -195,15 +198,16 @@ Added 10 more features from Taivo's side.
       [[71992 10205]
        [  121   780]]
     * Numbers:
-
+      * C2W	mac-P/R/F1: 0.395/0.722/0.446 mic-P/R/F1: 0.329/0.687/0.445 TP/FP/FN: 281/572/128 std-P/R/F1: 0.313/0.371/0.315	SMAPH-S annotator
+      * A2W-SAM	mac-P/R/F1: 0.135/0.246/0.131 mic-P/R/F1: 0.074/0.154/0.100 TP/FP/FN: 63/791/346 std-P/R/F1: 0.270/0.380/0.256	SMAPH-S annotator
 
   * C := 0.05
         SVC(C=0.05, cache_size=200, class_weight='balanced', coef0=0.0,
             decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
             max_iter=-1, probability=False, random_state=None, shrinking=True,
             tol=0.001, verbose=False)
-[[73331  8866]
- [   87   814]]
+        [[73331  8866]
+         [   87   814]]
      * C2W	mac-P/R/F1: 0.399/0.721/0.446 mic-P/R/F1: 0.336/0.687/0.451 TP/FP/FN: 281/555/128 std-P/R/F1: 0.316/0.372/0.313	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.143/0.250/0.135 mic-P/R/F1: 0.076/0.156/0.103 TP/FP/FN: 64/773/345 std-P/R/F1: 0.284/0.387/0.265	SMAPH-S annotator
 
