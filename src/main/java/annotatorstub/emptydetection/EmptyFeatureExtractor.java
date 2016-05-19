@@ -6,11 +6,16 @@ import it.unipi.di.acube.batframework.datasetPlugins.GERDAQDataset;
 import it.unipi.di.acube.batframework.systemPlugins.WATAnnotator;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,11 +31,14 @@ import annotatorstub.utils.mention.SmaphCandidate;
 
 public class EmptyFeatureExtractor {
     private static BingSearchAPI bingApi;
-	private static WATAnnotator ann = new WATAnnotator("wikisense.mkapp.it", 80, "salsa-auth");
-	private static SmaphSAnnotator smaphSAnnotator = new SmaphSAnnotator(Optional.empty());
+	private static WATAnnotator ann =null;//= new WATAnnotator("wikisense.mkapp.it", 80, "salsa-auth");
+	private static SmaphSAnnotator smaphSAnnotator = null;//new SmaphSAnnotator(Optional.empty());
 
 	private static String getFeatures(String query) {
 		BingResult bingResult = null;
+		System.err.println(query);
+		System.err.println(query);
+		System.err.println(query);
         
 		try {
             bingResult = bingApi.query(query);
@@ -65,27 +73,12 @@ public class EmptyFeatureExtractor {
 			smaphSfeatures.add(i, 0.0);
 		}
 		
-        
-        //double f7_rank_avg = 0.0, f8_page_rank_avg = 0.0, f9_comm_avg = 0.0, f10_ambig_avg = 0.0, f11_anch_avg = 0.0, f12_comm2_avg = 0.0;
-        // 3 rank 11 page rank  19 commoness 22 ambig  25 anch 28 comm
         for (SmaphCandidate candidate : candidateList) {
     		for (int i=0;i<numFeatures;i++) {
     			smaphSfeatures.set(i, smaphSfeatures.get(i)+candidate.getFeatures().get(i));
     		}
-        	/*f7_rank_avg += candidate.getFeatures().get(1);
-        	//f8_page_rank_avg += candidate.getFeatures().get(19); TODO not implemented yet
-        	f9_comm_avg += candidate.getFeatures().get(13);
-        	f10_ambig_avg += candidate.getFeatures().get(16);        	
-        	f11_anch_avg += candidate.getFeatures().get(19);
-        	f12_comm2_avg += candidate.getFeatures().get(22);*/
         }
-        /*f7_rank_avg /= candidateList.size();
-        //f8_page_rank_avg /= candidateList.size();
-        f9_comm_avg /= candidateList.size();
-        f10_ambig_avg /= candidateList.size();
-        f11_anch_avg /= candidateList.size();
-        f12_comm2_avg /= candidateList.size();
-		*/
+       
         String smaphSfeatureString = "";
 		for (int i=0;i<numFeatures;i++) {
 			smaphSfeatureString += ","+(smaphSfeatures.get(i)/candidateList.size());
@@ -93,6 +86,18 @@ public class EmptyFeatureExtractor {
 
 		return f1_total_results+","+f2_wikipeida_results+","+f3_wikipedia_results_extended+","+f4_average_lp+","+f5_number_wat+","+f6_query_lenght
 				+smaphSfeatureString;
+	}
+	
+	private static String getAlteredQueryString(String query) {
+		BingResult bingResult = null;
+        
+		try {
+            bingResult = bingApi.query(query);
+        } catch (Exception e) {
+            throw new AnnotationException(e.getMessage()); 
+        }
+		
+		return bingResult.getAlteredQueryString().replace(',', ' ');
 	}
 	
 	
@@ -106,12 +111,33 @@ public class EmptyFeatureExtractor {
 				label = true;
 			}
 			if (label) {
-				bw.write(1+","+getFeatures(queries.get(i)));
+				bw.write("1,"+getAlteredQueryString(queries.get(i)));
 				bw.newLine();
 			} else {
-				bw.write(0+","+getFeatures(queries.get(i)));
+				bw.write("0,"+getAlteredQueryString(queries.get(i)));
 				bw.newLine();
 			}
+		}
+
+	}
+	
+	private static void writeAdaptedDataset(String csvFileName, BufferedWriter bw) throws IOException {
+		String line;
+		try (
+		    InputStream fis = new FileInputStream(csvFileName);
+		    InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+		    BufferedReader br = new BufferedReader(isr);
+		) {
+			//TODO REMOVE!!!
+			boolean skip=true;
+		    while ((line = br.readLine()) != null) {
+		    	skip = !skip;
+		    	if (skip) continue;
+		        String[] label_string = line.split(",");
+		        String query_text = label_string.length==1 ? "" : label_string[1];  
+		        bw.write(label_string[0]+","+getFeatures(query_text));
+				bw.newLine();
+		    }
 		}
 
 	}
@@ -119,24 +145,37 @@ public class EmptyFeatureExtractor {
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
         BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
         bingApi = BingSearchAPI.getInstance();
-        WATRelatednessComputer.setCache("relatedness.cache");
+        //WATRelatednessComputer.setCache("relatedness.cache");
 		
-        File fout = new File("./data/nonempty_train.csv");
+        File fout = new File("./data/nonempty_lululu_dict.csv");
 		FileOutputStream fos = new FileOutputStream(fout);
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-        
-		writeDataset(DatasetBuilder.getGerdaqTrainA(), bw);
-		writeDataset(DatasetBuilder.getGerdaqTrainB(), bw);
-		
+		writeAdaptedDataset("./data/altered_queries_lululu_dict.csv",bw);
 		bw.close();
 		
-        fout = new File("./data/nonempty_valid.csv");
+		/*
+		fout = new File("./data/nonempty_valid_dict.csv");
+		fos = new FileOutputStream(fout);
+		bw = new BufferedWriter(new OutputStreamWriter(fos));
+		writeAdaptedDataset("./data/altered_queries_valid_dict.csv",bw);
+		bw.close();
+		
+        File fout = new File("./data/lululu_queries.csv");
+		FileOutputStream fos = new FileOutputStream(fout);
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+		
+		writeDataset(DatasetBuilder.getGerdaqTest(), bw);
+		
+		bw.close();
+		/*
+        fout = new File("./data/valid_queries.csv");
         fos = new FileOutputStream(fout);
         bw = new BufferedWriter(new OutputStreamWriter(fos));
 		
 		writeDataset(DatasetBuilder.getGerdaqDevel(), bw);
 
-		bw.close();
+		bw.close();*/
 
 	}
 }
+
