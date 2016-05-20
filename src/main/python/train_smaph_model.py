@@ -22,7 +22,7 @@ FEATURE_COUNT = 24
 np.random.seed(0xF00BA2)
 
 def usage():
-    print("Usage: train_smaph_model.py <csv_file> <dest_pickle_file_prefix> <C>")
+    print("Usage: train_smaph_model.py <csv_file> <dest_pickle_file_prefix> <C> <probabilistic>")
     exit(1)
 
 
@@ -37,7 +37,7 @@ def pickle_check(pickle_file, X_raw, y_raw):
 
 
 def main():
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         usage()
 
     for arg in sys.argv:
@@ -48,6 +48,7 @@ def main():
     csv_file = sys.argv[1]
     dest_pickle_file_prefix = sys.argv[2]
     C = float(sys.argv[3])
+    probabilistic = sys.argv[4] == "1"
 
     # A simple linear (for the time being) SVM classifier using the optimal
     # parameters established via grid search in the notebook.
@@ -63,8 +64,8 @@ def main():
 
     # The non-linear version. Much more expensive to train, but yields somewhat
     # better results, and corresponds to what is described in the paper.
-    # dest_pickle_file = "{0}-svc-c-{1:6.4f}.pkl".format(dest_pickle_file_prefix, C)
-    # clf = SVC(C=C, class_weight='balanced')
+    dest_pickle_file = "{0}-svc-c-{1:6.4f}.pkl".format(dest_pickle_file_prefix, C)
+    clf = SVC(C=C, class_weight='balanced', probability=probabilistic)
 
     print("Will read data from {0} and write the pickled model to "
           "{1}.".format(csv_file, dest_pickle_file))
