@@ -17,7 +17,7 @@ import smile.validation._
 import collection.JavaConverters._
 
 import java.util.{HashSet => JHashSet, Optional, Calendar, GregorianCalendar, Date}
-import scala.collection.Set
+import scala.collection.{mutable, Set}
 
 object SmaphSPruner {
   /**
@@ -42,6 +42,9 @@ object SmaphSPruner {
     // small number should be ok, as sometimes words are repeated in a query (e.g. "how to tie
     // a tie").
     var posDupes: Int = 0
+
+    // Keep track of all exceptions thrown processing individual elements.
+    val exceptions = mutable.MutableList.empty[Exception]
 
     // if a generated entity-mention pair is actually present in gold standard, the label is
     // positive, otherwise it's a 0.
@@ -68,75 +71,100 @@ object SmaphSPruner {
       queryGroundTruths
       .zipWithIndex
       .foreach { case ((query, goldAnnotations), index) =>
-      val now = System.nanoTime()
-      val elapsedSeconds = (now - start).toDouble / 1000 / 1000 / 1000
+        try {
+          // TODO(andrei): Wrap this block in generic try catch and skip all problematic queries.
+          val now = System.nanoTime()
+          val elapsedSeconds = (now - start).toDouble / 1000 / 1000 / 1000
 
-      // Get all the candidates and Scalafy them (Java Pair -> Scala Tuple).
-      val allCandidates: List[SmaphCandidate] = dummyAnnotator
-        .getCandidatesWithFeatures(query)
-        .asScala
-        .toList
+          // Get all the candidates and Scalafy them (Java Pair -> Scala Tuple).
+          val allCandidates: List[SmaphCandidate] = dummyAnnotator
+            .getCandidatesWithFeatures(query)
+            .asScala
+            .toList
 
-      println()
-      println(s"Query [${index + 1}/$totalQueries]: $query")
-      println(f"Elapsed time: $elapsedSeconds%2.2f s")
-      println(s"All computed candidates: ${allCandidates.length}")
-      println(s"Gold standard has: ${goldAnnotations.size}")
-      // TODO(andrei): Find nice way of getting the actual entity title, for more informative data dumps.
-      goldAnnotations.map {
-        "\t" + _.getConcept
-      } foreach println
+          println()
+          println(s"Query [${index + 1}/$totalQueries]: $query")
+          println(f"Elapsed time: $elapsedSeconds%2.2f s")
+          println(s"All computed candidates: ${allCandidates.length}")
+          println(s"Gold standard has: ${goldAnnotations.size}")
+          // TODO(andrei): Find nice way of getting the actual entity title, for more informative data dumps.
+          goldAnnotations.map {
+            "\t" + _.getConcept
+          } foreach println
 
-      val matchedCandidates = allCandidates.map { smaphCandidate =>
-        // For every generated candidate, see if it matches anything in the gold standard.
-        val matchedGoldMention: Boolean = goldAnnotations.exists { goldAnnotation =>
-          goldAnnotation.getPosition == smaphCandidate.getMentionCandidate.getQueryStartPosition &&
-          goldAnnotation.getLength == smaphCandidate.getMentionCandidate.getLength &&
-          goldAnnotation.getConcept == smaphCandidate.getEntityID
+          val matchedCandidates = allCandidates.map { smaphCandidate =>
+            // For every generated candidate, see if it matches anything in the gold standard.
+            val matchedGoldMention: Boolean = goldAnnotations.exists { goldAnnotation =>
+              goldAnnotation.getPosition == smaphCandidate
+                .getMentionCandidate
+                .getQueryStartPosition &&
+                goldAnnotation.getLength == smaphCandidate.getMentionCandidate.getLength &&
+                goldAnnotation.getConcept == smaphCandidate.getEntityID
+            }
+
+            (smaphCandidate, matchedGoldMention)
+          }
+
+          // Take the candidates which appear in the gold standard as positive training samples.
+          val positiveCandidates = matchedCandidates.filter { case (_, inGold) => inGold }.map {
+            _._1
+          }
+          val negativeCandidates = matchedCandidates.filter { case (_, inGold) => !inGold }.map {
+            _._1
+          }
+
+          if (positiveCandidates.size < goldAnnotations.size) {
+            // Note: this may happen occasionally, but should not be the norm.
+            System
+              .err
+              .println(
+                "There exist gold standard candidates NOT found by our mention entity pair gen.")
+
+            val missing = goldAnnotations.filterNot {
+              positiveCandidates.contains(_)
+            }
+            println(
+              s"Missing IDs that are in the gold standard:",
+              missing.map {
+                _.getConcept
+              }.mkString(","))
+          }
+          else if (positiveCandidates.size > goldAnnotations.size) {
+            System.err.println(
+              "\nWARNING: Possible duplicate positives found. This may disturb your " +
+                "SVM.")
+            posDupes += 1
+          }
+
+          println(s"Found ${positiveCandidates.length} positive candidate(s).")
+          println(s"Found ${negativeCandidates.length} negative candidate(s).")
+
+          // Dumps all the labeled training information into a CSV file, for later inspection and
+          // training.
+          positiveCandidates.foreach { candidate =>
+            dumpTrainingLine(csvFileName, candidate, relevant = true)
+          }
+          negativeCandidates.foreach { candidate =>
+            dumpTrainingLine(csvFileName, candidate, relevant = false)
+          }
+
+          //      positiveCandidates.map { c => (c, true) } ++ negativeCandidates.map { c => (c, false) }
         }
-
-        (smaphCandidate, matchedGoldMention)
-      }
-
-      // Take the candidates which appear in the gold standard as positive training samples.
-      val positiveCandidates = matchedCandidates.filter { case (_, inGold) =>   inGold }.map { _._1 }
-      val negativeCandidates = matchedCandidates.filter { case (_, inGold) => ! inGold }.map { _ ._1 }
-
-      if (positiveCandidates.size < goldAnnotations.size) {
-        // Note: this may happen occasionally, but should not be the norm.
-        System
-          .err
-          .println("There exist gold standard candidates NOT found by our mention entity pair gen.")
-
-        val missing = goldAnnotations.filterNot {
-          positiveCandidates.contains(_)
+        catch {
+          case e: Exception =>
+            System.err.println("Caught weird exception while generating CSV. Ignoring for now and" +
+              " moving to next element.")
+            e.printStackTrace(System.err)
+            exceptions += e
         }
-        println(s"Missing IDs that are in the gold standard:",
-          missing.map { _.getConcept }.mkString(","))
-      }
-      else if(positiveCandidates.size > goldAnnotations.size) {
-        System.err.println("\nWARNING: Possible duplicate positives found. This may disturb your " +
-          "SVM.")
-        posDupes += 1
-      }
-
-      println(s"Found ${positiveCandidates.length} positive candidate(s).")
-      println(s"Found ${negativeCandidates.length} negative candidate(s).")
-
-      // Dumps all the labeled training information into a CSV file, for later inspection and
-      // training.
-      positiveCandidates.foreach { candidate =>
-        dumpTrainingLine(csvFileName, candidate, relevant = true)
-      }
-      negativeCandidates.foreach { candidate =>
-        dumpTrainingLine(csvFileName, candidate, relevant = false)
-      }
-
-//      positiveCandidates.map { c => (c, true) } ++ negativeCandidates.map { c => (c, false) }
     }
 
     dummyAnnotator.getAuxiliaryAnnotator.asInstanceOf[HelperWATAnnotator].getRequestCache.flush()
     println(s"Possible duplicate data points generated: $posDupes")
+    println(s"Found ${exceptions.size} exceptions processing dudes:")
+    exceptions.map { e => s"\t-${e.getMessage}" } foreach println
+
+    println("All done!")
   }
 
   /**

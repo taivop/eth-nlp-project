@@ -53,7 +53,9 @@ public class BenchmarkMain {
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
 //            svmApi.startPythonServer("models/m-sgd-loss-log-pen-elasticnet-niter-5-alpha-0.025.pkl");
-            svmApi.startPythonServer("models/m-svc-c-0.0005.pkl");
+//            svmApi.startPythonServer("models/m-svc-c-0.0005.pkl");
+//            svmApi.startPythonServer("models/m-2k-webscope-sgd-loss-log-pen-elasticnet-niter-5-alpha-0.01.pkl");
+            svmApi.startPythonServer("models/m-2k-webscope-sgd-loss-log-pen-l1-niter-5-alpha-0.0005.pkl");
 //            models/m-svc-c-1.2000.pkl
             SmaphSAnnotator ann = new SmaphSAnnotator(
                 Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
