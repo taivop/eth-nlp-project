@@ -7,6 +7,7 @@ import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.WATRelatednessComputer;
 import annotatorstub.utils.bing.BingResult;
 import annotatorstub.utils.bing.BingSearchAPI;
+import annotatorstub.utils.caching.WATRequestCache;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
 import annotatorstub.utils.mention.SmaphCandidate;
@@ -45,12 +46,12 @@ public class SmaphSAnnotator extends FakeAnnotator {
     private CandidateEntitiesGenerator.QueryMethod generatorQueryMethod;
     private EntityToAnchors entityToAnchors;
 
-    public SmaphSAnnotator(Smaph1Pruner pruner) {
-        this(Optional.of(pruner));
+    public SmaphSAnnotator(Smaph1Pruner pruner, WATRequestCache watRequestCache) {
+        this(Optional.of(pruner), watRequestCache);
     }
 
-    public SmaphSAnnotator(Optional<Smaph1Pruner> pruner) {
-        this(pruner, QueryMethod.ALL_OVERLAP, DEFAULT_TOP_K_SNIPPETS);
+    public SmaphSAnnotator(Optional<Smaph1Pruner> pruner, WATRequestCache watRequestCache) {
+        this(pruner, QueryMethod.ALL_OVERLAP, DEFAULT_TOP_K_SNIPPETS, watRequestCache);
     }
 
     /**
@@ -64,7 +65,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
     public SmaphSAnnotator(
         Optional<Smaph1Pruner> pruner,
         QueryMethod generatorQueryMethod,
-        int topKSnippets
+        int topKSnippets,
+        WATRequestCache watRequestCache
     ) {
         this.pruner = pruner;
         this.generatorQueryMethod = generatorQueryMethod;
@@ -90,7 +92,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         logger.info("Using top k snippets: {}", topKSnippets);
 
         this.wikiApi = WikipediaApiInterface.api();
-        candidateEntitiesGenerator = new CandidateEntitiesGenerator();
+        candidateEntitiesGenerator = new CandidateEntitiesGenerator(watRequestCache);
         try {
             WATRelatednessComputer.setCache("relatedness.cache");
         }

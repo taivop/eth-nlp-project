@@ -8,6 +8,7 @@ import annotatorstub.annotator.wat.HelperWATAnnotator;
 import annotatorstub.utils.PythonApiInterface;
 import annotatorstub.utils.Utils;
 import annotatorstub.utils.WATRelatednessComputer;
+import annotatorstub.utils.caching.WATRequestCache;
 import it.unipi.di.acube.batframework.cache.BenchmarkCache;
 import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.data.Tag;
@@ -52,12 +53,19 @@ public class BenchmarkMain {
          */
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
+            // Use a separate cache when running the benchmark as opposed to when doing the data
+            // generation, since this lets us keep the benchmark-only cache small. The data gen
+            // one, especially when also using the Yahoo! data, ends up blowing up to several Gb,
+            // and takes around a minute to load.
+            WATRequestCache watRequestCache = new WATRequestCache("watapi.benchmark.cache",
+                "Small WAT API cache (benchmark only).", 500);
             svmApi.startPythonServer("models/m-2k-webscope-sgd-loss-log-pen-elasticnet-niter-5-alpha-0.01.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
                 Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
                 CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
                 // look only at the top k = <below> snippets
-                25);
+                25,
+                watRequestCache);
 
             WATRelatednessComputer.setCache("relatedness.cache");
 

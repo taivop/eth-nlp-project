@@ -14,27 +14,8 @@ import java.util.Optional;
 
 public class SMAPHMain {
 
-    /**
-     * Toy example to function as a smoke test for the SMAPH-S feature generation.
-     */
-    public static void verifySMAPHFeatures() {
-        System.out.println("Simple SMAPH-S feature preview.");
-        String sampleQuery = "neil armstrong moon landing";
-        System.out.printf("Using sample query: %s%n", sampleQuery);
-
-        try {
-            // TODO(andrei) Use the pruner.
-            SmaphSAnnotator smaphSAnnotator = new SmaphSAnnotator(Optional.empty());
-            smaphSAnnotator.getCandidatesWithFeatures(sampleQuery);
-        } catch (Exception e) {
-            System.err.println("Something went wrong running the SMAPH-S annotator.");
-            e.printStackTrace();
-        }
-    }
 
     public static void main(String[] args) throws Exception {
-        verifySMAPHFeatures();
-
 		/*WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
         A2WDataset dataSet = DatasetBuilder.getGerdaqTrainB();
 		SMAPHAnnotator smaphAnnotator = new SMAPHAnnotator();

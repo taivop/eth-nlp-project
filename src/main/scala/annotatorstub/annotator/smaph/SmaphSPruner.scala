@@ -3,6 +3,7 @@ package annotatorstub.annotator.smaph
 import java.io.FileWriter
 
 import annotatorstub.annotator.wat.HelperWATAnnotator
+import annotatorstub.utils.caching.WATRequestCache
 import annotatorstub.utils.mention.{SmaphCandidate, MentionCandidate}
 import it.unipi.di.acube.batframework.data.Annotation
 import it.unipi.di.acube.batframework.problems.A2WDataset
@@ -58,10 +59,11 @@ object SmaphSPruner {
 
     val totalQueries = goldStandard.length
     val queryGroundTruths = queries zip goldStandard
+    val watRequestCache = new WATRequestCache("watapi.cache", "Full WAT API cache.", 1000)
 
     // TODO(andrei): Move feature creation to separate object.
     // Right now we create an annotator just to use it for feature generation.
-    val dummyAnnotator = new SmaphSAnnotator(Optional.empty[Smaph1Pruner]())
+    val dummyAnnotator = new SmaphSAnnotator(Optional.empty[Smaph1Pruner](), watRequestCache)
 
     // The file where we will be saving our training data for safe keeping.
     val csvFileName = genCsvFileName()
