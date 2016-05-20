@@ -13,8 +13,7 @@ public class BingSearchMain {
 	
 	public static void main(String[] args) throws Exception {
 		// YOU HAVE TO DO THIS ONLY ONCE:
-//		BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
-		BingSearchAPI.KEY = "eQ7iWx2in91LwcKKFKnTaOv+ZKgecyu6FVuBwwi/N7g";
+		BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
 		/////////////////////////////////
 
 		/*
