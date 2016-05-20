@@ -18,8 +18,9 @@ import matplotlib.pyplot as plt
 
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
-from data_util import impute_nan_inf, load_training_data, rescale, load_dataset
+from data_util import impute_nan_inf, load_training_data, rescale, load_dataset, pca_components, load_dataset_pca
 
 # pylint: disable=missing-docstring, invalid-name
 
@@ -98,8 +99,9 @@ def train_ada_boost(x_train,
                     n_estimators,
                     learning_rate):
 
-    tree_classifier = DecisionTreeClassifier(max_depth=10,
+    tree_classifier = DecisionTreeClassifier(max_depth=2,
                                              class_weight="balanced")
+
 
     ada_boost_classifier = AdaBoostClassifier(base_estimator=tree_classifier,
                                               n_estimators=n_estimators,
@@ -138,7 +140,7 @@ def eval_ada_boost(ada_boost_classifier,
 
     return eval_train_pos, eval_train_neg, eval_valid_pos, eval_valid_neg
 
-def plot_ada_boost(eval_train_pos,eval_train_neg, eval_valid_pos, eval_valid_neg):
+def plot_ada_boost(eval_train_pos,eval_train_neg, eval_valid_pos, eval_valid_neg, image_file):
     n_estimators = len(eval_train_pos)
 
     plt.figure()
@@ -149,57 +151,240 @@ def plot_ada_boost(eval_train_pos,eval_train_neg, eval_valid_pos, eval_valid_neg
     plt.ylim([-0.1,1.1])
     plt.grid()
     #plt.legend(bbox_to_anchor=(0, 1), loc='upper center', ncol=1)
-    plt.show()
+    plt.savefig(image_file)
 
-def pca_visualize(x_train,y_train):
+def plot_classification_boundaries(X,
+                                   y,
+                                   plot_step,
+                                   classifier,
+                                   class_names,
+                                   plot_colors):
+    plt.figure()
+    x_min, x_max = X[:, 0].min() - 0.01, X[:, 0].max() + 0.01
+    y_min, y_max = X[:, 1].min() - 0.01, X[:, 1].max() + 0.01
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, plot_step),
+                         np.arange(y_min, y_max, plot_step))
+
+    Z = classifier.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Paired)
+    plt.axis("tight")
+
+    # Plot the training points
+    for i, n, c in zip(range(2), class_names, plot_colors):
+        idx = np.where(y == i)
+        plt.scatter(X[idx, 0], X[idx, 1],
+                    c=c, cmap=plt.cm.Paired,
+                    label="Class %s" % n,s=8)
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    plt.legend(loc='upper right')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Decision Boundary')
+
+    plt.savefig("ada_boost_classification_boundaries.png")
+
+    plt.figure()
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Paired)
+    plt.axis("tight")
+
+    idx = np.where(y == 0)
+    plt.scatter(X[idx, 0], X[idx, 1],
+                c='b', cmap=plt.cm.Paired,
+                label="Class %s" % '0',s=8)
+
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    plt.legend(loc='upper right')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Decision Boundary (Negative)')
+
+    plt.savefig("ada_boost_classification_boundaries_negative.png")
+
+    plt.figure()
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Paired)
+    plt.axis("tight")
+
+    idx = np.where(y == 1)
+    plt.scatter(X[idx, 0], X[idx, 1],
+                c='r', cmap=plt.cm.Paired,
+                label="Class %s" % '1',s=8)
+
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    plt.legend(loc='upper right')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Decision Boundary (Positive)')
+
+    plt.savefig("ada_boost_classification_boundaries_positive.png")
+
+def train_knn(x_train,
+              y_train,
+              n_neighbors):
+    knn = KNeighborsClassifier(n_neighbors=n_neighbors)
+    knn.fit(x_train,y_train)
+
+    return knn
+
+def eval_knn(knn,
+             x_train,
+             y_train,
+             x_valid,
+             y_valid):
+
+    x_train_pos = x_train[y_train == 1,:]
+    y_train_pos = y_train[y_train == 1]
+
+    eval_train_pos = knn.score(x_train_pos,y_train_pos)
+
+    x_train_neg = x_train[y_train == 0,:]
+    y_train_neg = y_train[y_train == 0]
+
+    eval_train_neg = knn.score(x_train_neg,y_train_neg)
+
+    x_valid_pos = x_valid[y_valid == 1,:]
+    y_valid_pos = y_valid[y_valid == 1]
+
+    eval_valid_pos = knn.score(x_valid_pos,y_valid_pos)
+
+    x_valid_neg = x_valid[y_valid == 0,:]
+    y_valid_neg = y_valid[y_valid == 0]
+
+    eval_valid_neg = knn.score(x_valid_neg,y_valid_neg)
+
+    return eval_train_pos, eval_train_neg, eval_valid_pos, eval_valid_neg
+
+def train_knn_iter(x_train,
+                   y_train,
+                   x_valid,
+                   y_valid,
+                   n_neighbors_list):
+
+    eval_train_pos_list = []
+    eval_train_neg_list = []
+    eval_valid_pos_list = []
+    eval_valid_neg_list = []
+
+    for n_neighbors in n_neighbors_list:
+        knn = train_knn(x_train=x_train,
+                        y_train=y_train,
+                        n_neighbors=n_neighbors)
+
+        eval_train_pos, eval_train_neg, eval_valid_pos, eval_valid_neg = \
+            eval_knn(knn=knn,
+                     x_train=x_train,
+                     y_train=y_train,
+                     x_valid=x_valid,
+                     y_valid=y_valid)
+
+        eval_train_pos_list += [eval_train_pos]
+        eval_train_neg_list += [eval_train_neg]
+        eval_valid_pos_list += [eval_valid_pos]
+        eval_valid_neg_list += [eval_valid_neg]
+
+    return eval_train_pos_list, eval_train_neg_list, eval_valid_pos_list, eval_valid_neg_list
+
+def plot_knn(eval_train_pos_list,
+             eval_train_neg_list,
+             eval_valid_pos_list,
+             eval_valid_neg_list,
+             n_neighbors_list,
+             image_file):
+
+    plt.figure()
+    plt.plot(n_neighbors_list,eval_train_pos_list,c="y",linewidth=2,label="Training Set, Positive Samples Accuracy")
+    plt.plot(n_neighbors_list,eval_train_neg_list,c="m",linewidth=2,label="Training Set, Negative Samples Accuracy")
+    plt.plot(n_neighbors_list,eval_valid_pos_list,c="b",linewidth=2,label="Validation Set, Positive Samples Accuracy")
+    plt.plot(n_neighbors_list,eval_valid_neg_list,c="r",linewidth=2,label="Validation Set, Negative Samples Accuracy")
+    plt.ylim([-0.1,1.1])
+    plt.grid()
+    #plt.legend(bbox_to_anchor=(0, 1), loc='upper center', ncol=1)
+    plt.savefig(image_file)
+
+def pca_visualize(x_train,y_train,n_components):
     x_train_t = x_train.T
 
-    pca = PCA(n_components=20)
+    pca = PCA(n_components=n_components)
     pca.fit(x_train_t)
 
-    for i in range(20):
-        explained_variance = np.sum(pca.explained_variance_ratio_[:i])
+    for i in range(n_components):
+        explained_variance = np.sum(pca.explained_variance_ratio_[:(i+1)])
         print("Principal components = " + str(i+1) + " Explained variance = " + str(explained_variance))
 
-    x_train_pos_t = x_train[y_train == 1,:].T
-    x_train_neg_t = x_train[y_train == 0,:].T
+    x_train_pca = pca.components_.T
 
+    x_pca_pos = x_train_pca[y_train == 1,:]
+    x_pca_neg = x_train_pca[y_train == 0,:]
+
+    '''
     print("x train pos = " + str(x_train_pos_t.shape))
     print("x train neg = " + str(x_train_neg_t.shape))
 
-    pca_pos = PCA(n_components=3)
+    pca_pos = PCA(n_components=2)
     pca_pos.fit(x_train_pos_t)
 
     x_pca_pos = pca_pos.components_
 
-    pca_neg = PCA(n_components=3)
+    pca_neg = PCA(n_components=2)
     pca_neg.fit(x_train_neg_t)
 
     x_pca_neg = pca_neg.components_
+    '''
 
     plt.figure()
-    plt.scatter(x=x_pca_neg[0,:],y=x_pca_neg[1,:],c="y",marker="o",s=30)
-    plt.scatter(x=x_pca_pos[0,:],y=x_pca_pos[1,:],c="b",marker="o",s=30)
-    #plt.xlim([-0.1,0.1])
-    #plt.ylim([-0.5,0.5])
+    plt.scatter(x=x_pca_neg[:,0],y=x_pca_neg[:,1],c="y",marker="o",s=4)
+    plt.scatter(x=x_pca_pos[:,0],y=x_pca_pos[:,1],c="b",marker="o",s=4)
+    # plt.xlim([-0.025,0.015])
+    # plt.ylim([-0.02,0.04])
     plt.grid()
     plt.savefig("pca_1_2.png")
 
     plt.figure()
-    plt.scatter(x=x_pca_neg[0,:],y=x_pca_neg[2,:],c="y",marker="o",s=30)
-    plt.scatter(x=x_pca_pos[0,:],y=x_pca_pos[2,:],c="b",marker="o",s=30)
+    plt.scatter(x=x_pca_pos[:,0],y=x_pca_pos[:,1],c="b",marker="o",s=4)
+    # plt.xlim([-0.025,0.015])
+    # plt.ylim([-0.02,0.04])
+    plt.grid()
+    plt.savefig("pca_1_2_pos.png")
+
+    plt.figure()
+    plt.scatter(x=x_pca_neg[:,0],y=x_pca_neg[:,1],c="y",marker="o",s=4)
+    # plt.xlim([-0.025,0.015])
+    # plt.ylim([-0.02,0.04])
+    plt.grid()
+    plt.savefig("pca_1_2_neg.png")
+
+    '''
+    plt.figure()
+    plt.scatter(x=x_pca_neg[0,:],y=x_pca_neg[2,:],c="y",marker="o",s=4)
+    plt.scatter(x=x_pca_pos[0,:],y=x_pca_pos[2,:],c="b",marker="o",s=4)
     #plt.xlim([-0.1,0.1])
     #plt.ylim([-0.5,0.5])
     plt.grid()
     plt.savefig("pca_1_3.png")
 
     plt.figure()
-    plt.scatter(x=x_pca_neg[1,:],y=x_pca_neg[2,:],c="y",marker="o",s=30)
-    plt.scatter(x=x_pca_pos[1,:],y=x_pca_pos[2,:],c="b",marker="o",s=30)
+    plt.scatter(x=x_pca_neg[1,:],y=x_pca_neg[2,:],c="y",marker="o",s=4)
+    plt.scatter(x=x_pca_pos[1,:],y=x_pca_pos[2,:],c="b",marker="o",s=4)
     #plt.xlim([-0.1,0.1])
     #plt.ylim([-0.5,0.5])
     plt.grid()
     plt.savefig("pca_2_3.png")
+    '''
+
+# serializes classifier object to binary file
+def store_classifier(classifier,filename):
+    with open(filename,"wb") as fid:
+        pickle.dump(classifier,fid)
+
+# loads classifier object from binary file
+def load_classifier(filename):
+    with open(filename,"rb") as fid:
+        classifier = pickle.load(fid)
+
+    return classifier
 
 def main():
     if len(sys.argv) != 4:
@@ -238,7 +423,12 @@ def main():
     pickle_check(open(dest_pickle_file, 'rb'), X_raw, y_raw)
 
 def main2():
-    x_train,y_train,x_valid,y_valid = load_dataset(csv_file_name="../../../data/all-candidates-5-18-15-13.csv",feature_count=20)
+    x_train,y_train,x_valid,y_valid = load_dataset_pca(csv_file_name="../../../data/all-candidates-5-19-19-20.csv",
+                                                       feature_count=24,
+                                                       valid_set_ratio=0.01,
+                                                       neg_to_pos_ratio=1,
+                                                       n_components=18)
+
     '''
     train_svm(x_train=x_train,
               y_train=y_train,
@@ -248,11 +438,20 @@ def main2():
               penalty="l2",
               alpha=0.0001,
               n_iter=100)
+    x_train_pca = pca_components(x=x_train,n_components=2)
+    x_valid_pca = pca_components(x=x_valid,n_components=2)
+
     '''
+
     ada_boost_classifier = train_ada_boost(x_train=x_train,
                                            y_train=y_train,
-                                           n_estimators=50,
+                                           n_estimators=500,
                                            learning_rate=0.1)
+    store_classifier(ada_boost_classifier,"ada_boost_classifier.pkl")
+
+    '''
+    ada_boost_classifier = load_classifier("ada_boost_classifier.pkl")
+    '''
 
     eval_train_pos, eval_train_neg, eval_valid_pos, eval_valid_neg = \
                              eval_ada_boost(ada_boost_classifier=ada_boost_classifier,
@@ -264,7 +463,39 @@ def main2():
     plot_ada_boost(eval_train_pos=eval_train_pos,
                    eval_train_neg=eval_train_neg,
                    eval_valid_pos=eval_valid_pos,
-                   eval_valid_neg=eval_valid_neg)
+                   eval_valid_neg=eval_valid_neg,
+                   image_file="ada_boost_12.png")
 
+    '''
+    X = np.append(x_train,x_valid,axis=0)
+    y = np.append(y_train,y_valid,axis=0)
+
+    plot_classification_boundaries(X=X,
+                                   y=y,
+                                   plot_step=0.001,
+                                   classifier=ada_boost_classifier,
+                                   class_names="01",
+                                   plot_colors="br")
+
+    pca_visualize(x_train,y_train)
+
+    x_train_pca = pca_components(x=x_train,n_components=3)
+    x_valid_pca = pca_components(x=x_valid,n_components=3)
+
+    n_neighbors_list = range(1,21)
+    eval_train_pos_list, eval_train_neg_list, eval_valid_pos_list, eval_valid_neg_list = \
+        train_knn_iter(x_train=x_train_pca,
+                       y_train=y_train,
+                       x_valid=x_valid_pca,
+                       y_valid=y_valid,
+                       n_neighbors_list=n_neighbors_list)
+
+    plot_knn(eval_train_pos_list=eval_train_pos_list,
+             eval_train_neg_list=eval_train_neg_list,
+             eval_valid_pos_list=eval_valid_pos_list,
+             eval_valid_neg_list=eval_valid_neg_list,
+             n_neighbors_list=n_neighbors_list,
+             image_file="knn_5.png")
+    '''
 if __name__ == '__main__':
     main2()

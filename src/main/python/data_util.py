@@ -7,6 +7,8 @@ import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 
+from sklearn.decomposition import PCA
+
 import sklearn
 
 # pylint: disable=invalid-name
@@ -102,10 +104,11 @@ def split_dataset(X_rescaled,y_rescaled,neg_to_pos_ratio,valid_set_ratio):
 
     pos_count = np.sum(y == 1)
     neg_count = np.sum(y == 0)
-    '''
+
     print("We have {0} positive labels.".format(pos_count))
     print("We have {0} negative labels.".format(neg_count))
 
+    '''
     # Use a much smaller ratio of negative to positive samples in the validation
     # set, for more accurate validation results.
 
@@ -202,10 +205,42 @@ def split_dataset(X_rescaled,y_rescaled,neg_to_pos_ratio,valid_set_ratio):
 
     return X_train, y_train, X_valid, y_valid
 
-def load_dataset(csv_file_name,feature_count):
+def load_dataset(csv_file_name,feature_count,neg_to_pos_ratio,valid_set_ratio):
     X_raw, Y_raw = load_training_data(csv_file_name=csv_file_name,feature_count=feature_count)
     X_rescaled, y_rescaled, _, _, _ = rescale(X=X_raw, y=Y_raw)
-    X_train, y_train, X_valid, y_valid = split_dataset(X_rescaled=X_rescaled, y_rescaled=y_rescaled,neg_to_pos_ratio=1,valid_set_ratio=0.1)
+    X_train, y_train, X_valid, y_valid = split_dataset(X_rescaled=X_rescaled,
+                                                       y_rescaled=y_rescaled,
+                                                       neg_to_pos_ratio=neg_to_pos_ratio,
+                                                       valid_set_ratio=valid_set_ratio)
+
+    return X_train, y_train, X_valid, y_valid
+
+def pca_components(x,n_components):
+    x_t = x.T
+
+    pca = PCA(n_components=n_components)
+    pca.fit(x_t)
+
+    pca_components_t = pca.components_
+
+    pca_components = pca_components_t.T
+
+    for i in range(n_components):
+        explained_variance = np.sum(pca.explained_variance_ratio_[:(i+1)])
+        print("Principal components = " + str(i+1) + " Explained variance = " + str(explained_variance))
+
+    return pca_components
+
+def load_dataset_pca(csv_file_name,feature_count,neg_to_pos_ratio,valid_set_ratio,n_components):
+    X_raw, Y_raw = load_training_data(csv_file_name=csv_file_name,feature_count=feature_count)
+    X_rescaled, y_rescaled, _, _, _ = rescale(X=X_raw, y=Y_raw)
+
+    X_rescaled_pca = pca_components(X_rescaled,n_components=n_components)
+
+    X_train, y_train, X_valid, y_valid = split_dataset(X_rescaled=X_rescaled_pca,
+                                                       y_rescaled=y_rescaled,
+                                                       neg_to_pos_ratio=neg_to_pos_ratio,
+                                                       valid_set_ratio=valid_set_ratio)
 
     return X_train, y_train, X_valid, y_valid
 
