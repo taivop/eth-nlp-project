@@ -76,6 +76,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         this.entityToAnchors = EntityToAnchors.e2a();
 
         BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
+        // This employs Andrei's key.
+        BingSearchAPI.KEY = "eQ7iWx2in91LwcKKFKnTaOv+ZKgecyu6FVuBwwi/N7g";
         bingApi = BingSearchAPI.getInstance();
 
         if(pruner.isPresent()) {

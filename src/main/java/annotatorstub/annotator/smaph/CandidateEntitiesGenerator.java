@@ -144,6 +144,8 @@ public class CandidateEntitiesGenerator {
 			}
 			else if (queryMethod.equals(QueryMethod.HIGHLIGHTED)){
 				List<String> highlightedWords = wikiResult.getHighlightedWords();
+                // TODO(andrei): Make sure this doesn't kill all spaces, because then WAT would
+                // only return garbage.
 				watQuery = highlightedWords.stream().reduce("", (a,b) -> a + b);
 				scoredAnnotations = helperWatAnnotator.solveSa2W(watQuery);
 			}

@@ -17,7 +17,7 @@ import smile.validation._
 import collection.JavaConverters._
 
 import java.util.{HashSet => JHashSet, Optional, Calendar, GregorianCalendar, Date}
-import scala.collection.Set
+import scala.collection.{mutable, Set}
 
 object SmaphSPruner {
   /**
@@ -38,12 +38,18 @@ object SmaphSPruner {
       jHashSet.asScala.toSet
     }
 
-    // flatMap goldStandard into (candidateFeatures from SmaphSAnnotator with
-    // corresponding labels).
+    // The number of times we encountered possible duplicates when generating training data. A
+    // small number should be ok, as sometimes words are repeated in a query (e.g. "how to tie
+    // a tie").
+    var posDupes: Int = 0
+
+    // Keep track of all exceptions thrown processing individual elements.
+    val exceptions = mutable.MutableList.empty[Exception]
 
     // if a generated entity-mention pair is actually present in gold standard, the label is
     // positive, otherwise it's a 0.
 
+    // All the query texts from all the datasets in a single list.
     val queries: List[String] = datasets.flatMap { _.getTextInstanceList.asScala }.toList
 
     println(s"We have a total of ${queries.length} queries from ${datasets.length} datasets:")
@@ -54,111 +60,111 @@ object SmaphSPruner {
     val queryGroundTruths = queries zip goldStandard
 
     // TODO(andrei): Move feature creation to separate object.
+    // Right now we create an annotator just to use it for feature generation.
     val dummyAnnotator = new SmaphSAnnotator(Optional.empty[Smaph1Pruner]())
 
     // The file where we will be saving our training data for safe keeping.
     val csvFileName = genCsvFileName()
     val start = System.nanoTime()
 
-    val allTrainingData: List[(SmaphCandidate, Boolean)] = queryGroundTruths
+//    val allTrainingData: List[(SmaphCandidate, Boolean)] = queryGroundTruths
+      queryGroundTruths
       .zipWithIndex
-      .flatMap { case ((query, goldAnnotations), index) =>
-      val now = System.nanoTime()
-      val elapsedSeconds = (now - start).toDouble / 1000 / 1000 / 1000
+      .foreach { case ((query, goldAnnotations), index) =>
+        try {
+          // TODO(andrei): Wrap this block in generic try catch and skip all problematic queries.
+          val now = System.nanoTime()
+          val elapsedSeconds = (now - start).toDouble / 1000 / 1000 / 1000
 
-      // Get all the candidates and Scalafy them (Java Pair -> Scala Tuple).
-      val allCandidates: List[SmaphCandidate] = dummyAnnotator
-        .getCandidatesWithFeatures(query)
-        .asScala
-        .toList
+          // Get all the candidates and Scalafy them (Java Pair -> Scala Tuple).
+          val allCandidates: List[SmaphCandidate] = dummyAnnotator
+            .getCandidatesWithFeatures(query)
+            .asScala
+            .toList
 
-      println()
-      println(s"Query [${index + 1}/$totalQueries]: $query")
-      println(f"Elapsed time: $elapsedSeconds%2.2f s")
-      println(s"All computed candidates: ${allCandidates.length}")
-      println(s"Gold standard has: ${goldAnnotations.size}")
-      // TODO(andrei): Find nice way of getting the actual entity title, for more informative data dumps.
-      goldAnnotations.map {
-        "\t" + _.getConcept
-      } foreach println
+          println()
+          println(s"Query [${index + 1}/$totalQueries]: $query")
+          println(f"Elapsed time: $elapsedSeconds%2.2f s")
+          println(s"All computed candidates: ${allCandidates.length}")
+          println(s"Gold standard has: ${goldAnnotations.size}")
+          // TODO(andrei): Find nice way of getting the actual entity title, for more informative data dumps.
+          goldAnnotations.map {
+            "\t" + _.getConcept
+          } foreach println
 
-      val countedCandidates = allCandidates.map { smaphCandidate =>
-        val matchedGoldMentions: Int = goldAnnotations.count { goldAnnotation =>
-          goldAnnotation.getLength == smaphCandidate.getMentionCandidate.getLength &&
-            goldAnnotation.getConcept == smaphCandidate.getEntityID
+          val matchedCandidates = allCandidates.map { smaphCandidate =>
+            // For every generated candidate, see if it matches anything in the gold standard.
+            val matchedGoldMention: Boolean = goldAnnotations.exists { goldAnnotation =>
+              goldAnnotation.getPosition == smaphCandidate
+                .getMentionCandidate
+                .getQueryStartPosition &&
+                goldAnnotation.getLength == smaphCandidate.getMentionCandidate.getLength &&
+                goldAnnotation.getConcept == smaphCandidate.getEntityID
+            }
+
+            (smaphCandidate, matchedGoldMention)
+          }
+
+          // Take the candidates which appear in the gold standard as positive training samples.
+          val positiveCandidates = matchedCandidates.filter { case (_, inGold) => inGold }.map {
+            _._1
+          }
+          val negativeCandidates = matchedCandidates.filter { case (_, inGold) => !inGold }.map {
+            _._1
+          }
+
+          if (positiveCandidates.size < goldAnnotations.size) {
+            // Note: this may happen occasionally, but should not be the norm.
+            System
+              .err
+              .println(
+                "There exist gold standard candidates NOT found by our mention entity pair gen.")
+
+            val missing = goldAnnotations.filterNot {
+              positiveCandidates.contains(_)
+            }
+            println(
+              s"Missing IDs that are in the gold standard:",
+              missing.map {
+                _.getConcept
+              }.mkString(","))
+          }
+          else if (positiveCandidates.size > goldAnnotations.size) {
+            System.err.println(
+              "\nWARNING: Possible duplicate positives found. This may disturb your " +
+                "SVM.")
+            posDupes += 1
+          }
+
+          println(s"Found ${positiveCandidates.length} positive candidate(s).")
+          println(s"Found ${negativeCandidates.length} negative candidate(s).")
+
+          // Dumps all the labeled training information into a CSV file, for later inspection and
+          // training.
+          positiveCandidates.foreach { candidate =>
+            dumpTrainingLine(csvFileName, candidate, relevant = true)
+          }
+          negativeCandidates.foreach { candidate =>
+            dumpTrainingLine(csvFileName, candidate, relevant = false)
+          }
+
+          //      positiveCandidates.map { c => (c, true) } ++ negativeCandidates.map { c => (c, false) }
         }
-          // This is just a sanity check
-        .ensuring { mentionCount => mentionCount == 0 || mentionCount == 1 }
-
-        (smaphCandidate, matchedGoldMentions)
-      }
-
-      // Take the candidates which appear in the gold standard as positive training samples.
-      val positiveCandidates = countedCandidates.filter { _._2 > 0 }.map { _._1 }
-      val negativeCandidates = countedCandidates.filter { _._2 == 0 }.map { _._1 }
-
-      if (positiveCandidates.size < goldAnnotations.size) {
-        // Note: this may happen occasionally, but should not be the norm.
-        System
-          .err
-          .println("There exist gold standard candidates NOT found by our mention entity pair gen.")
-
-        val missing = goldAnnotations.filterNot {
-          positiveCandidates.contains(_)
+        catch {
+          case e: Exception =>
+            System.err.println("Caught weird exception while generating CSV. Ignoring for now and" +
+              " moving to next element.")
+            e.printStackTrace(System.err)
+            exceptions += e
         }
-        println(s"Missing IDs that are in the gold standard:",
-          missing.map { _.getConcept }.mkString(","))
-      }
-      else if(positiveCandidates.size > goldAnnotations.size) {
-        System.err.println("Possible duplicate positives found.")
-      }
-
-      // TODO(andrei): Some duplicates seem to be occurring. Make sure you dedupe everything
-      // correctly.
-      println(s"Found ${positiveCandidates.length} positive candidate(s).")
-      println(s"Found ${negativeCandidates.length} negative candidate(s).")
-
-      // Dumps all the labeled training information into a CSV file, for later inspection and
-      // validation.
-      positiveCandidates.foreach { candidate =>
-        dumpTrainingLine(csvFileName, candidate, relevant = true)
-      }
-      negativeCandidates.foreach { candidate =>
-        dumpTrainingLine(csvFileName, candidate, relevant = false)
-      }
-
-      positiveCandidates.map { c => (c, true) } ++ negativeCandidates.map { c => (c, false) }
     }
 
     dummyAnnotator.getAuxiliaryAnnotator.asInstanceOf[HelperWATAnnotator].getRequestCache.flush()
-  }
+    println(s"Possible duplicate data points generated: $posDupes")
+    println(s"Found ${exceptions.size} exceptions processing dudes:")
+    exceptions.map { e => s"\t-${e.getMessage}" } foreach println
 
-  /**
-   * Trains the pruning classifier using annotation candidates matched with the ground truth.
-   */
-  def genPrunerData(processedTrainingData: List[(SmaphCandidate, Boolean)]): Unit = {
-    throw new RuntimeException("Training in Java/Scala not supported.")
-
-    println(s"Will now train the pruner using ${processedTrainingData.length} data points.")
-
-    // Temporarily limiting the data used for training in order to evaluate Smile's SVM
-    // implementation. It seems slow as balls. Looks like it's implemented in pure Java, and
-    // there's no stochastic option.
-    val X: Array[Array[Double]] = processedTrainingData.slice(0, 250)
-      .map { case(candidate, _) => candidate.getFeatures.asScala.map { _.toDouble }.toArray }
-      .toArray
-    val y: Array[Int] = processedTrainingData.slice(0, 250)
-      .map { case(_, relevance) => if(relevance) 1 else 0 }.toArray
-
-    val linKernel = new LinearKernel
-    val C = 10e-1
-
-    println("Will perform kfold cross-validation")
-    // Note: need to use custom SVM constructor in order to be able to specify class weights.
-    cv(X, y, k = 3) { case(xfold, yfold) => {
-        svm(xfold, yfold, linKernel, C)
-      }
-    }
+    println("All done!")
   }
 
   /**
@@ -227,7 +233,6 @@ object SmaphSPruner {
    }
 
   private def appendCsvLine(fileName: String, line: String): Unit = {
-    // TODO(andrei): Use scala-arm to make this code safer.
     val writer = new FileWriter(fileName, true)
     writer.append(line)
     writer.close()
@@ -235,10 +240,10 @@ object SmaphSPruner {
 
   private def genCsvFileName(): String = {
     val now: Calendar = new GregorianCalendar
-    val day = now.get(Calendar.DAY_OF_MONTH)
-    val month = now.get(Calendar.MONTH) + 1
-    val hour = now.get(Calendar.HOUR_OF_DAY)
-    val min = now.get(Calendar.MINUTE)
+    val day = "%02d" format now.get(Calendar.DAY_OF_MONTH)
+    val month = "%02d" format now.get(Calendar.MONTH) + 1
+    val hour = "%02d" format now.get(Calendar.HOUR_OF_DAY)
+    val min = "%02d" format now.get(Calendar.MINUTE)
 
     s"data/all-candidates-$month-$day-$hour-$min.csv"
   }

@@ -5,6 +5,9 @@ import annotatorstub.utils.mention.SmaphCandidate;
 
 import java.io.IOException;
 
+/**
+ * Relies on an external Python API to perform the pruning decisions using scikit-learn.
+ */
 public class Smaph1RemoteSvmPruner implements Smaph1Pruner {
 
     private PythonApiInterface svmApi;

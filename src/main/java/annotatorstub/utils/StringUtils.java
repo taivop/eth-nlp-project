@@ -81,8 +81,16 @@ public class StringUtils {
      * TODO Still fails in some cases, e.g. "United States of America" returns false.
      */
     public static boolean isCapitalised(String s) {
+        if(s.length() == 0) {
+            return false;
+        }
+
         String[] parts = s.split(" |-");
         for(String part : parts) {
+            if(part.length() == 0) {
+                continue;
+            }
+
             boolean firstLetterUpperCase = Character.isUpperCase(part.charAt(0));
             boolean restLowerCase = part.substring(1).equals(part.substring(1).toLowerCase());
 

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.invoke.MethodHandles;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
@@ -143,6 +144,12 @@ public class PythonApiInterface implements Closeable {
         }
         catch(SocketTimeoutException timeout) {
             System.err.println("Possible issue with Python API. Retrying connection.");
+            timeout.printStackTrace();
+            return binClassifyFlask(features, retriesLeft - 1);
+        }
+        catch(ConnectException connectException) {
+            System.err.println("Possible issue with Python API. Retrying connection.");
+            connectException.printStackTrace();
             return binClassifyFlask(features, retriesLeft - 1);
         }
     }

@@ -16,6 +16,7 @@ def load_training_data(csv_file_name, feature_count):
 
     X_raw = []
     y_raw = []
+    expected_part_count = 8 + feature_count
     with open(csv_file_name, 'r') as f:
         bad_lines = 0
         for line_number, line in enumerate(f.readlines()):
@@ -25,9 +26,11 @@ def load_training_data(csv_file_name, feature_count):
                 break
 
             parts = line[:-1].split(",")
-            if len(parts) != 8 + feature_count:
+            if len(parts) != expected_part_count:
                 bad_lines += 1
                 print("Skipping bad line: {}".format(line))
+                print("Expected {} but found {} columns.".format(
+                    expected_part_count, len(parts)))
                 continue
 
             # Example CSV line, as of May 10.
