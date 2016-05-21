@@ -421,7 +421,6 @@ Now also added MORE Yahoo! queries up to a total of 2.2k train queries
      * A2W-SAM	mac-P/R/F1: 0.371/0.395/0.320 mic-P/R/F1: 0.341/0.345/0.343 TP/FP/FN: 141/273/268 std-P/R/F1: 0.417/0.426/0.385	SMAPH-S annotator
 
 
-
  * SGDC:
    * Details:
        SGDClassifier(alpha=0.0005, average=False, class_weight='balanced',
@@ -447,3 +446,10 @@ Now also added MORE Yahoo! queries up to a total of 2.2k train queries
    * Numbers:
      * C2W	mac-P/R/F1: 0.480/0.668/0.467 mic-P/R/F1: 0.397/0.626/0.486 TP/FP/FN: 256/389/153 std-P/R/F1: 0.350/0.382/0.332	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.346/0.439/0.310 mic-P/R/F1: 0.256/0.403/0.313 TP/FP/FN: 165/480/244 std-P/R/F1: 0.376/0.418/0.346	SMAPH-S annotator
+
+ * SVC; C = 0.0005
+   * Details:
+   * Numbers:
+     * C2W	mac-P/R/F1: 0.588/0.494/0.453 mic-P/R/F1: 0.561/0.428/0.485 TP/FP/FN: 175/137/234 std-P/R/F1: 0.458/0.410/0.402	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.333/0.332/0.263 mic-P/R/F1: 0.324/0.262/0.290 TP/FP/FN: 107/223/302 std-P/R/F1: 0.436/0.428/0.387	SMAPH-S annotator
+

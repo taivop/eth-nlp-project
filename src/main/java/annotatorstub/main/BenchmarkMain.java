@@ -59,7 +59,8 @@ public class BenchmarkMain {
             // and takes around a minute to load.
             WATRequestCache watRequestCache = new WATRequestCache("watapi.benchmark.cache",
                 "Small WAT API cache (benchmark only).", 500);
-            svmApi.startPythonServer("models/m-2k-webscope-sgd-loss-log-pen-elasticnet-niter-5-alpha-0.01.pkl");
+//            svmApi.startPythonServer("models/m-2k-webscope-sgd-loss-log-pen-elasticnet-niter-5-alpha-0.01.pkl");
+            svmApi.startPythonServer("models/m-2k-webscope-svc-c-0.0005.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
                 Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
                 CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
