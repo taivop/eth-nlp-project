@@ -60,7 +60,7 @@ def main():
         # A simple linear (for the time being) SVM classifier using the optimal
         # parameters established via grid search in the notebook.
         loss = 'log'
-        penalty = 'l1'
+        penalty = 'l2'
         n_iter = 5
         alpha = 0.01
         if probabilistic and loss != 'log':
