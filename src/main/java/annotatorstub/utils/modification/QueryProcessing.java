@@ -38,8 +38,14 @@ public class QueryProcessing {
 		}
 	}
 	
-	public String alterQueryForBingSearch(String query) throws Exception {
-		query = bingApi.query(query).getAlteredQueryString();
+	public String alterQueryForBingSearch(String query) {
+		try {
+			query = bingApi.query(query).getAlteredQueryString();
+		} catch (Exception e) {
+			/* Not critical as long as it is not happening too often since we will just proceed with the
+			 * original query as if it wouldn't be altered by bing  which is the case for most queries anyways*/
+			System.err.println("Exception when trying to alter the query by bing: "+e.getMessage());
+		}
 		
 		/*
 		 *  if the query contains more than one word leave it as is
