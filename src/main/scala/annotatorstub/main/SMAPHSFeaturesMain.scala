@@ -12,7 +12,8 @@ object SMAPHSFeaturesMain {
       DatasetBuilder.getGerdaqTrainA,
       DatasetBuilder.getGerdaqTrainB
       // This is our secret weapon.
-      ,WebScopeXMLProcessing.getWebscope
+      // Disregard that, we can't use it since it's also what our final evaluation will be on. :/
+//      ,WebScopeXMLProcessing.getWebscope
     )
   }
 }

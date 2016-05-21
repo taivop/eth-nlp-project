@@ -160,7 +160,7 @@ Added 10 more features from Taivo's side.
     * Better
     * C2W	mac-P/R/F1: 0.429/0.726/0.468 mic-P/R/F1: 0.346/0.692/0.462 TP/FP/FN: 283/534/126 std-P/R/F1: 0.323/0.368/0.317	SMAPH-S annotator
   * Numbers with top-k-snippets = 5 and 'watMethod = "base-t"':
-    * <PENDING>
+    * <not evaluated>
 
 ========================================================================================================================
 Added new features to set
@@ -481,3 +481,59 @@ After doing the refactor to support Taivo's changes
      * C2W	mac-P/R/F1: 0.382/0.518/0.375 mic-P/R/F1: 0.324/0.457/0.379 TP/FP/FN: 187/390/222 std-P/R/F1: 0.367/0.408/0.351	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.223/0.306/0.206 mic-P/R/F1: 0.170/0.240/0.199 TP/FP/FN: 98/480/311 std-P/R/F1: 0.325/0.388/0.304	SMAPH-S annotator
 
+ * SVC; C = 0.0005; Probabilistic
+   * Using naive annotation picker but Smaph-S-style pruning:
+   * Details:
+       SVC(C=0.0005, cache_size=200, class_weight='balanced', coef0=0.0,
+         decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+         max_iter=-1, probability=True, random_state=None, shrinking=True,
+         tol=0.001, verbose=False)
+   * Train data confusion matrix:
+
+   * Numbers:
+     *
+
+
+ * SGDClassifier
+   * Back to no yahoo data :(
+   * Trained on GERDAQ-{A,B} data only
+   * Details:
+       SGDClassifier(alpha=0.0005, average=False, class_weight='balanced',
+              epsilon=0.1, eta0=0.0, fit_intercept=True, l1_ratio=0.15,
+              learning_rate='optimal', loss='log', n_iter=5, n_jobs=1,
+              penalty='l1', power_t=0.5, random_state=None, shuffle=True,
+              verbose=0, warm_start=False)
+   * Train data confusion matrix:
+       [[77986  4490]
+        [   55   567]]
+   * Numbers:
+     * C2W	mac-P/R/F1: 0.297/0.723/0.363 mic-P/R/F1: 0.235/0.692/0.351 TP/FP/FN: 283/919/126 std-P/R/F1: 0.265/0.367/0.270	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.211/0.481/0.245 mic-P/R/F1: 0.151/0.445/0.226 TP/FP/FN: 182/1021/227 std-P/R/F1: 0.269/0.422/0.278	SMAPH-S annotator
+
+ * SGDClassifier
+   * Details:
+       SGDClassifier(alpha=0.01, average=False, class_weight='balanced', epsilon=0.1,
+              eta0=0.0, fit_intercept=True, l1_ratio=0.15,
+              learning_rate='optimal', loss='log', n_iter=5, n_jobs=1,
+              penalty='l1', power_t=0.5, random_state=None, shuffle=True,
+              verbose=0, warm_start=False)
+   * Train data confusion matrix:
+       [[69001 13475]
+        [   56   566]]
+   * Numbers:
+    <PENDING>
+
+ * Logistic Regression
+   * Trained on GERDAQ-{A,B} data only
+   * Using individual pruning (not probability-based)
+   * Details:
+       LogisticRegression(C=0.001, class_weight='balanced', dual=False,
+                 fit_intercept=True, intercept_scaling=1, max_iter=100,
+                 multi_class='ovr', n_jobs=1, penalty='l2', random_state=None,
+                 solver='liblinear', tol=0.0001, verbose=0, warm_start=False)
+   * Train data confusion matrix:
+       [[78241  4235]
+        [   55   567]]
+   * Numbers:
+    * C2W	mac-P/R/F1: 0.372/0.701/0.405 mic-P/R/F1: 0.299/0.670/0.413 TP/FP/FN: 274/643/135 std-P/R/F1: 0.301/0.377/0.294	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.247/0.428/0.245 mic-P/R/F1: 0.173/0.389/0.240 TP/FP/FN: 159/758/250 std-P/R/F1: 0.312/0.421/0.296	SMAPH-S annotator

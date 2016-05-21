@@ -57,11 +57,19 @@ public class BenchmarkMain {
             WATRequestCache watRequestCache = new WATRequestCache(
                 "watapi.benchmark.cache",
                 "Small WAT API cache (benchmark only)", 500);
-            svmApi.startPythonServer("models/m-2k-webscope-sgd-loss-log-pen-elasticnet-niter-5-alpha-0.01.pkl");
+//            svmApi.startPythonServer("models/m-2k-webscope-sgd-loss-log-pen-elasticnet-niter-5-alpha-0.01.pkl");
 //            svmApi.startPythonServer("models/m-2k-webscope-svc-c-0.0005.pkl");
+//            svmApi.startPythonServer("models/m-2k-webscope-svc-c-0.0005-probabilistic.pkl");
+
+            // No Yahoo LogisticRegression
+//            svmApi.startPythonServer("models/m-no-yahoo-lr-c-0.001.pkl");
+            // No Yahoo SGD
+//            svmApi.startPythonServer("models/m-no-yahoo-sgd-loss-log-pen-l1-niter-5-alpha-0.0005.pkl");
+            // No Yahoo SGD with better params maybe
+            svmApi.startPythonServer("models/m-no-yahoo-sgd-loss-log-pen-l1-niter-5-alpha-0.01.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
-//                new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
-                new SmaphSRemoteSvmPruner(svmApi),
+                new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
+//                new SmaphSRemoteSvmPruner(svmApi),
                 CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
                 // look only at the top k = <below> snippets
                 25,
