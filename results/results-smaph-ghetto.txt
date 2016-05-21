@@ -478,12 +478,11 @@ After doing the refactor to support Taivo's changes
    * Numbers (same as before):
      * C2W	mac-P/R/F1: 0.451/0.676/0.457 mic-P/R/F1: 0.365/0.633/0.463 TP/FP/FN: 259/451/150 std-P/R/F1: 0.336/0.381/0.318	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.327/0.463/0.312 mic-P/R/F1: 0.245/0.425/0.311 TP/FP/FN: 174/536/235 std-P/R/F1: 0.355/0.422/0.332	SMAPH-S annotator
-   * Numbers (using Taivo's Smaph-S pruning with threshold 0.2):
+   * Numbers (using Smaph-S pruning with threshold 0.2):
      * C2W	mac-P/R/F1: 0.382/0.518/0.375 mic-P/R/F1: 0.324/0.457/0.379 TP/FP/FN: 187/390/222 std-P/R/F1: 0.367/0.408/0.351	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.223/0.306/0.206 mic-P/R/F1: 0.170/0.240/0.199 TP/FP/FN: 98/480/311 std-P/R/F1: 0.325/0.388/0.304	SMAPH-S annotator
 
  * SVC; C = 0.0005; Probabilistic
-   * Using naive annotation picker but Smaph-S-style pruning:
    * Details:
        SVC(C=0.0005, cache_size=200, class_weight='balanced', coef0=0.0,
          decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
@@ -492,8 +491,17 @@ After doing the refactor to support Taivo's changes
    * Train data confusion matrix:
         [[77307  5169]
          [   99   523]]
-   * Numbers:
-     * <pending>
+   * Numbers (NO smaph-S pruning; naive mention picker):
+     * C2W	mac-P/R/F1: 0.404/0.684/0.423 mic-P/R/F1: 0.271/0.643/0.382 TP/FP/FN: 263/706/146 std-P/R/F1: 0.340/0.377/0.322	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.266/0.399/0.255 mic-P/R/F1: 0.145/0.345/0.204 TP/FP/FN: 141/829/268 std-P/R/F1: 0.346/0.418/0.323	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.2; naive mention picker):
+     * C2W	mac-P/R/F1: 0.724/0.241/0.259 mic-P/R/F1: 0.433/0.191/0.265 TP/FP/FN: 78/102/331 std-P/R/F1: 0.422/0.367/0.378	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.693/0.212/0.231 mic-P/R/F1: 0.356/0.156/0.217 TP/FP/FN: 64/116/345 std-P/R/F1: 0.439/0.348/0.365	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.2; NO extra mention picker):
+     * C2W	mac-P/R/F1: 0.724/0.241/0.259 mic-P/R/F1: 0.433/0.191/0.265 TP/FP/FN: 78/102/331 std-P/R/F1: 0.422/0.367/0.378	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.692/0.212/0.231 mic-P/R/F1: 0.354/0.156/0.217 TP/FP/FN: 64/117/345 std-P/R/F1: 0.440/0.348/0.365	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.1; NO extra mention picker):
+     * <now running>
 
  * SVC; C = 0.7; Non-probabilistic
    * Using naive annotation picker and NO Smaph-S-style pruning:
@@ -523,6 +531,19 @@ After doing the refactor to support Taivo's changes
    * Numbers:
     C2W	mac-P/R/F1: 0.394/0.698/0.424 mic-P/R/F1: 0.332/0.672/0.444 TP/FP/FN: 275/554/134 std-P/R/F1: 0.318/0.388/0.313	SMAPH-S annotator
     A2W-SAM	mac-P/R/F1: 0.276/0.458/0.276 mic-P/R/F1: 0.206/0.418/0.276 TP/FP/FN: 171/660/238 std-P/R/F1: 0.324/0.419/0.310	SMAPH-S annotator
+
+ * SVC; C = 0.1; Probabilistic
+   * models/m-no-yahoo-svc-c-0.1000-probabilistic.pkl.
+   * Details:
+     SVC(C=0.1, cache_size=200, class_weight='balanced', coef0=0.0,
+       decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
+       max_iter=-1, probability=True, random_state=None, shrinking=True,
+       tol=0.001, verbose=False)
+   * Train data confusion matrix:
+       [[79518  2958]
+        [   24   598]]
+   * Numbers:
+     * <PENDING>
 
  * SGDClassifier
    * Back to no yahoo data :(
@@ -582,3 +603,5 @@ After doing the refactor to support Taivo's changes
    * Numbers:
     * C2W	mac-P/R/F1: 0.372/0.701/0.405 mic-P/R/F1: 0.299/0.670/0.413 TP/FP/FN: 274/643/135 std-P/R/F1: 0.301/0.377/0.294	SMAPH-S annotator
     * A2W-SAM	mac-P/R/F1: 0.247/0.428/0.245 mic-P/R/F1: 0.173/0.389/0.240 TP/FP/FN: 159/758/250 std-P/R/F1: 0.312/0.421/0.296	SMAPH-S annotator
+   * Numbers using Smaph-S probability pruning:
+    * <pending>

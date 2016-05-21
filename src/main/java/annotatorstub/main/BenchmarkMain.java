@@ -63,9 +63,10 @@ public class BenchmarkMain {
 //            svmApi.startPythonServer("models/m-no-yahoo-sgd-loss-log-pen-l2-niter-5-alpha-0.01.pkl");
 //            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.1000-NONprobabilistic.pkl");
             svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.0005-probabilistic.pkl");
+//            m-no-yahoo-lr-c-0.001.pkl
             SmaphSAnnotator ann = new SmaphSAnnotator(
-                new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
-//                new SmaphSRemoteSvmPruner(svmApi),
+//                new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
+                new SmaphSRemoteSvmPruner(svmApi),
                 CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
                 // look only at the top k = <below> snippets
                 25,

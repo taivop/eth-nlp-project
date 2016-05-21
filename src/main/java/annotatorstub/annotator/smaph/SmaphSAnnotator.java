@@ -34,8 +34,11 @@ import java.util.stream.Collectors;
  */
 public class SmaphSAnnotator extends FakeAnnotator {
 
-    private static BingSearchAPI bingApi;
+    // Our SMAPH-{1, S} implementation does no scoring.
+    private static final float DUMMY_SCORE = 1.0f;
     private static final int DEFAULT_TOP_K_SNIPPETS = 25;
+
+    private static BingSearchAPI bingApi;
 
     private WikipediaApiInterface wikiApi;
     private CandidateEntitiesGenerator candidateEntitiesGenerator;
@@ -529,7 +532,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
                     candidate.getMentionCandidate().getQueryStartPosition(),
                     candidate.getMentionCandidate().getLength(),
                     candidate.getEntityID(),
-                    dummyScore));
+                        DUMMY_SCORE));
             }
         }
 
@@ -558,16 +561,29 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 keptCandidate.getMentionCandidate().getQueryStartPosition(),
                 keptCandidate.getMentionCandidate().getLength(),
                 keptCandidate.getEntityID(),
-                dummyScore);
+                DUMMY_SCORE);
             annotations.add(scoredAnnotation);
         }
 
         return annotations;
     }
 
-    // Our SMAPH-{1, S} implementation does no scoring.
-    // TODO(andrei): Constantify.
-    static float dummyScore = 1.0f;
+    /**
+     * This does no actual (additional) mention selection, and simply converts each and every
+     * given candidate to a scored annotation, with score set to {@link #DUMMY_SCORE}, like in the
+     * annotation filtering methods.
+     */
+    private static HashSet<ScoredAnnotation> convertCandidates(List<SmaphCandidate> keptCandidates) {
+        HashSet<ScoredAnnotation> annotations = new HashSet<>();
+        for (SmaphCandidate keptCandidate : keptCandidates) {
+            annotations.add(new ScoredAnnotation(
+                keptCandidate.getMentionCandidate().getQueryStartPosition(),
+                keptCandidate.getMentionCandidate().getLength(),
+                keptCandidate.getEntityID(),
+                    DUMMY_SCORE));
+        }
+        return annotations;
+    }
 
     // We have to return a HashSet, not just a set, because that's how the interfaces higher up
     // are designed.
@@ -580,7 +596,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         logger.info("Now processing: {}", query);
         // TODO(andrei): Use flag to switch between these techniques.
 //        HashSet<ScoredAnnotation> annotations = greedyPick(keptCandidates);
-        HashSet<ScoredAnnotation> annotations = naivePick(keptCandidates);
+//        HashSet<ScoredAnnotation> annotations = naivePick(keptCandidates);
+        HashSet<ScoredAnnotation> annotations = convertCandidates(keptCandidates);
         logger.info("Found {} final annotations.", annotations.size());
         return annotations;
     }

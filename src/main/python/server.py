@@ -39,12 +39,9 @@ def predict():
         x = scaler.transform((x - means) / magnitudes)
         try:
             if probabilistic:
-                print("AAAAAAAAAAAAAAA")
                 s = classifier.predict_proba(x)
-                print("BBBBBBBBBBBBBBB")
             else:
                 s = classifier.predict(x)
-                print("CCCCCCCCCCCCCCC")
         except ValueError as err:
             print("Predict exception:", err, file=sys.stderr)
 
