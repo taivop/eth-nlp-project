@@ -31,8 +31,8 @@ import annotatorstub.utils.mention.SmaphCandidate;
 
 public class EmptyFeatureExtractor {
     private static BingSearchAPI bingApi;
-	private static WATAnnotator ann =null;//= new WATAnnotator("wikisense.mkapp.it", 80, "salsa-auth");
-	private static SmaphSAnnotator smaphSAnnotator = null;//new SmaphSAnnotator(Optional.empty());
+	private static WATAnnotator ann = new WATAnnotator("wikisense.mkapp.it", 80, "salsa-auth");
+	private static SmaphSAnnotator smaphSAnnotator = new SmaphSAnnotator(Optional.empty());
 
 	private static String getFeatures(String query) {
 		BingResult bingResult = null;
@@ -111,10 +111,10 @@ public class EmptyFeatureExtractor {
 				label = true;
 			}
 			if (label) {
-				bw.write("1,"+getAlteredQueryString(queries.get(i)));
+				bw.write("1,"+queries.get(i)+","+getFeatures(queries.get(i)));
 				bw.newLine();
 			} else {
-				bw.write("0,"+getAlteredQueryString(queries.get(i)));
+				bw.write("0,"+queries.get(i)+","+getFeatures(queries.get(i)));
 				bw.newLine();
 			}
 		}
@@ -129,12 +129,10 @@ public class EmptyFeatureExtractor {
 		    BufferedReader br = new BufferedReader(isr);
 		) {
 			//TODO REMOVE!!!
-			boolean skip=true;
 		    while ((line = br.readLine()) != null) {
-		    	skip = !skip;
-		    	if (skip) continue;
 		        String[] label_string = line.split(",");
-		        String query_text = label_string.length==1 ? "" : label_string[1];  
+		        String query_text = label_string.length==1 ? "" : label_string[1]; 
+		        query_text = query_text.equals("-") ? "sfd" : label_string[1];  
 		        bw.write(label_string[0]+","+getFeatures(query_text));
 				bw.newLine();
 		    }
@@ -143,38 +141,49 @@ public class EmptyFeatureExtractor {
 	}
 	
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
-        BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
+        BingSearchAPI.KEY = "+MkADwXpOGeryP7sNqlkbtUeZYhs8mUeUBsNq++Yk1U";
         bingApi = BingSearchAPI.getInstance();
-        //WATRelatednessComputer.setCache("relatedness.cache");
-		
-        File fout = new File("./data/nonempty_lululu_dict.csv");
+        WATRelatednessComputer.setCache("relatedness.cache");
+		/*
+        File fout = new File("./data/nonempty_lululu_dict_strict.csv");
 		FileOutputStream fos = new FileOutputStream(fout);
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-		writeAdaptedDataset("./data/altered_queries_lululu_dict.csv",bw);
+		writeAdaptedDataset("./data/altered_queries_lululu_dict_strict.csv",bw);
 		bw.close();
 		
-		/*
+		
 		fout = new File("./data/nonempty_valid_dict.csv");
 		fos = new FileOutputStream(fout);
 		bw = new BufferedWriter(new OutputStreamWriter(fos));
 		writeAdaptedDataset("./data/altered_queries_valid_dict.csv",bw);
 		bw.close();
 		
-        File fout = new File("./data/lululu_queries.csv");
+        
+        File fout = new File("./data/feature_average_trainAB.csv");
+		FileOutputStream fos = new FileOutputStream(fout);
+		BufferedWriter  = new BufferedWriter(new OutputStreamWriter(fos));
+		
+		writeDataset(DatasetBuilder.getGerdaqTrainA(), bw);
+		writeDataset(DatasetBuilder.getGerdaqTrainB(), bw);
+
+		bw.close();
+		*/
+		File fout = new File("./data/feature_average_devel.csv");
 		FileOutputStream fos = new FileOutputStream(fout);
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 		
-		writeDataset(DatasetBuilder.getGerdaqTest(), bw);
-		
+		writeDataset(DatasetBuilder.getGerdaqDevel(), bw);
+
 		bw.close();
-		/*
-        fout = new File("./data/valid_queries.csv");
+
+        fout = new File("./data/feature_average_test.csv");
         fos = new FileOutputStream(fout);
         bw = new BufferedWriter(new OutputStreamWriter(fos));
 		
-		writeDataset(DatasetBuilder.getGerdaqDevel(), bw);
+		writeDataset(DatasetBuilder.getGerdaqTest(), bw);
 
-		bw.close();*/
+		bw.close();
+
 
 	}
 }
