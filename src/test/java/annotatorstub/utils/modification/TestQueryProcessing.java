@@ -10,8 +10,7 @@ import annotatorstub.utils.bing.BingSearchAPI;
 import it.unipi.di.acube.batframework.datasetPlugins.DatasetBuilder;
 import it.unipi.di.acube.batframework.datasetPlugins.GERDAQDataset;
 
-public class TestQueryProcessing {
-	
+public class TestQueryProcessing {	
 	
 	private static List<String> getModifications(GERDAQDataset dataset, QueryProcessing instance) {
 		List<String> changes  = new ArrayList<>();
@@ -28,7 +27,6 @@ public class TestQueryProcessing {
 		WATRelatednessComputer.setCache("relatedness.cache");
 		BingSearchAPI.KEY = "+MkADwXpOGeryP7sNqlkbtUeZYhs8mUeUBsNq++Yk1U";
 		QueryProcessing instance = QueryProcessing.getInstance();		
-
 		
 		List<String> modifications = getModifications(DatasetBuilder.getGerdaqTrainA(), instance);
 		modifications.addAll(getModifications(DatasetBuilder.getGerdaqTrainB(), instance));

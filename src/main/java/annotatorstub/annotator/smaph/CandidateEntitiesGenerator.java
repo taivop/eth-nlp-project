@@ -8,9 +8,9 @@ import annotatorstub.annotator.wat.HelperWATAnnotator;
 import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.bing.BingResult;
 import annotatorstub.utils.bing.BingWebSnippet;
+import annotatorstub.utils.caching.WATRequestCache;
 import it.unipi.di.acube.batframework.data.Mention;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
-import it.unipi.di.acube.batframework.systemPlugins.WATAnnotator;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 
 /**
@@ -59,28 +59,32 @@ public class CandidateEntitiesGenerator {
 		ALL_OVERLAP
 	}
 	
-	public CandidateEntitiesGenerator(){
+	public CandidateEntitiesGenerator(WATRequestCache watRequestCache) {
 		wikipediaApiInterface = WikipediaApiInterface.api();
 		// TODO(andrei): Pass components as parameters for better modularization.
-		helperWatAnnotator = new HelperWATAnnotator(WAT_IP,WAT_PORT,this.watMethod,this.watSortBy,
-										this.watRelatedness,this.watEpsilon,this.watMinLinkProbability);
+		helperWatAnnotator = new HelperWATAnnotator(
+            WAT_IP,WAT_PORT,
+            this.watMethod,
+            this.watSortBy,
+            this.watRelatedness,
+            this.watEpsilon,
+            this.watMinLinkProbability,
+            watRequestCache);
 	}
 	
-	public CandidateEntitiesGenerator(String watMethod, String watEpsilon, String watSortedBy,
-									  String watRelatedness, String watMinLinkProbability){
-        // TODO(andrei): We should reduce code duplication by having other ctors delegate to this
-        // one.
-
-		this.watMethod = watMethod;
-		this.watEpsilon = watEpsilon;
-		this.watSortBy = watSortedBy;
-		this.watRelatedness = watRelatedness;
-		this.watMinLinkProbability = watMinLinkProbability;
-		
-		wikipediaApiInterface = WikipediaApiInterface.api();
-		helperWatAnnotator = new HelperWATAnnotator(WAT_IP,WAT_PORT,this.watMethod,this.watSortBy,
-										this.watRelatedness,this.watEpsilon,this.watMinLinkProbability);
-	}
+//	public CandidateEntitiesGenerator(String watMethod, String watEpsilon, String watSortedBy,
+//									  String watRelatedness, String watMinLinkProbability){
+//
+//		this.watMethod = watMethod;
+//		this.watEpsilon = watEpsilon;
+//		this.watSortBy = watSortedBy;
+//		this.watRelatedness = watRelatedness;
+//		this.watMinLinkProbability = watMinLinkProbability;
+//
+//		wikipediaApiInterface = WikipediaApiInterface.api();
+//		helperWatAnnotator = new HelperWATAnnotator(WAT_IP,WAT_PORT,this.watMethod,this.watSortBy,
+//										this.watRelatedness,this.watEpsilon,this.watMinLinkProbability);
+//	}
 	
 	/**
 	 * Generates candidate entities based on the bing query search results
