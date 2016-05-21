@@ -7,7 +7,7 @@ public class MentionIteratorFactory {
 	 * returns an improved mention iterator for the query
 	 * if split is true it tries to split queries by lp and not only by special chars
 	 */
-	public static GreedyMentionIterator getMentionIteratorForQuery(String query, boolean split) {
+	public static GreedyMentionIterator getMentionIteratorForQuery(String query, boolean splitByLP) {
 		/* 
 		 * two problem cases identified so far:
 		 * - #1 single word query with special chars like saturn/size 
@@ -22,10 +22,10 @@ public class MentionIteratorFactory {
 		 * - having only one word with a positive linking probability
 		 */
 		if (query.split(" ").length > 1 ) {
-			return new GreedyMentionIterator(query);
+			return new ImprovedGreedyMentionIterator(query);
 		}
 		if (query.length() <= 5 || WATRelatednessComputer.getLp(query)>0) {
-			return new GreedyMentionIterator(query);
+			return new ImprovedGreedyMentionIterator(query);
 		}
 
 		/*
@@ -39,16 +39,16 @@ public class MentionIteratorFactory {
 		assert altered_query.length() == query.length();
 		// was splitting successful?
 		if (altered_query.split(" ").length > 1 ) {
-			return new GreedyMentionIterator(altered_query);
+			return new ImprovedGreedyMentionIterator(altered_query);
 		}
 		
 		/* Splitting by special chars not successful. If split is true
 		 * pass query to the Iterator doing splitting by LP otherwise
 		 * use the old-fashioned one which will just return one mention */
 		
-		if (split)
+		if (splitByLP)
 			return new GreedySplitMentionIterator(query);
 		else 
-			return new GreedyMentionIterator(query);
+			return new ImprovedGreedyMentionIterator(query);
 	}
 }
