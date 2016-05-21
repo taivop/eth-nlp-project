@@ -49,7 +49,7 @@ public class BenchmarkMain {
             6) (Optional) Move these instructions to a more appropriate place, if applicable.
          */
 
-        try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
+        try (PythonApiInterface svmApi = new PythonApiInterface(5001)) {
             // Use a separate cache when running the benchmark as opposed to when doing the data
             // generation, since this lets us keep the benchmark-only cache small. The data gen
             // one, especially when also using the Yahoo! data, ends up blowing up to several Gb,
@@ -57,13 +57,7 @@ public class BenchmarkMain {
             WATRequestCache watRequestCache = new WATRequestCache(
                 "watapi.benchmark.cache",
                 "Small WAT API cache (benchmark only)", 500);
-            // No Yahoo SGD
-//            svmApi.startPythonServer("models/m-no-yahoo-sgd-loss-log-pen-l1-niter-5-alpha-0.0005.pkl");
-            // No Yahoo SGD with better params maybe
-//            svmApi.startPythonServer("models/m-no-yahoo-sgd-loss-log-pen-l2-niter-5-alpha-0.01.pkl");
-//            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.1000-NONprobabilistic.pkl");
-            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.0005-probabilistic.pkl");
-//            m-no-yahoo-lr-c-0.001.pkl
+            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.1000-probabilistic.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
 //                new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
                 new SmaphSRemoteSvmPruner(svmApi),

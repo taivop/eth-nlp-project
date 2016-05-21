@@ -34,7 +34,7 @@ public class SmaphSRemoteSvmPruner implements SmaphSListPruner {
             }
 
             if (! pq.isEmpty()) {
-                logger.info("Best candidate score: " + pq.poll().getScore());
+                logger.info("Best candidate score: " + pq.peek().getScore());
             }
 
             List<SmaphCandidateScored> acceptedCandidates = new ArrayList<>();

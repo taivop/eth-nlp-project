@@ -495,13 +495,41 @@ After doing the refactor to support Taivo's changes
      * C2W	mac-P/R/F1: 0.404/0.684/0.423 mic-P/R/F1: 0.271/0.643/0.382 TP/FP/FN: 263/706/146 std-P/R/F1: 0.340/0.377/0.322	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.266/0.399/0.255 mic-P/R/F1: 0.145/0.345/0.204 TP/FP/FN: 141/829/268 std-P/R/F1: 0.346/0.418/0.323	SMAPH-S annotator
    * Numbers (with smaph-S pruning threshold 0.2; naive mention picker):
+     * smaph-S pruning == use SmaphSRemoteSvmPruner
      * C2W	mac-P/R/F1: 0.724/0.241/0.259 mic-P/R/F1: 0.433/0.191/0.265 TP/FP/FN: 78/102/331 std-P/R/F1: 0.422/0.367/0.378	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.693/0.212/0.231 mic-P/R/F1: 0.356/0.156/0.217 TP/FP/FN: 64/116/345 std-P/R/F1: 0.439/0.348/0.365	SMAPH-S annotator
-   * Numbers (with smaph-S pruning threshold 0.2; NO extra mention picker):
+     * Naive mention picker existence turns out not to matter.
+
+   * Numbers (with smaph-S pruning threshold 0.50; NO extra mention picker):
+     * C2W	mac-P/R/F1: 0.912/0.144/0.155 mic-P/R/F1: 0.472/0.061/0.108 TP/FP/FN: 25/28/384 std-P/R/F1: 0.275/0.321/0.333	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.904/0.140/0.150 mic-P/R/F1: 0.415/0.054/0.095 TP/FP/FN: 22/31/387 std-P/R/F1: 0.287/0.319/0.330	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.25; NO extra mention picker):
+     * C2W	mac-P/R/F1: 0.744/0.230/0.250 mic-P/R/F1: 0.436/0.176/0.251 TP/FP/FN: 72/93/337 std-P/R/F1: 0.413/0.359/0.371	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.716/0.205/0.225 mic-P/R/F1: 0.361/0.147/0.209 TP/FP/FN: 60/106/349 std-P/R/F1: 0.431/0.343/0.360	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.20; NO extra mention picker):
      * C2W	mac-P/R/F1: 0.724/0.241/0.259 mic-P/R/F1: 0.433/0.191/0.265 TP/FP/FN: 78/102/331 std-P/R/F1: 0.422/0.367/0.378	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.692/0.212/0.231 mic-P/R/F1: 0.354/0.156/0.217 TP/FP/FN: 64/117/345 std-P/R/F1: 0.440/0.348/0.365	SMAPH-S annotator
-   * Numbers (with smaph-S pruning threshold 0.1; NO extra mention picker):
-     * <now running>
+   * Numbers (with smaph-S pruning threshold 0.15; NO extra mention picker):
+     * C2W	mac-P/R/F1: 0.725/0.278/0.298 mic-P/R/F1: 0.467/0.225/0.304 TP/FP/FN: 92/105/317 std-P/R/F1: 0.418/0.380/0.389	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.673/0.232/0.252 mic-P/R/F1: 0.360/0.178/0.239 TP/FP/FN: 73/130/336 std-P/R/F1: 0.445/0.356/0.371	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.10; NO extra mention picker):
+     * C2W	mac-P/R/F1: 0.714/0.329/0.343 mic-P/R/F1: 0.484/0.267/0.344 TP/FP/FN: 109/116/300 std-P/R/F1: 0.417/0.396/0.398	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.623/0.251/0.264 mic-P/R/F1: 0.321/0.193/0.241 TP/FP/FN: 79/167/330 std-P/R/F1: 0.459/0.367/0.377	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.05; NO extra mention picker):
+     * C2W	mac-P/R/F1: 0.644/0.379/0.362 mic-P/R/F1: 0.466/0.315/0.376 TP/FP/FN: 129/148/280 std-P/R/F1: 0.433/0.403/0.388	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.503/0.261/0.241 mic-P/R/F1: 0.246/0.203/0.223 TP/FP/FN: 83/254/326 std-P/R/F1: 0.466/0.370/0.355	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.03; NO extra mention picker):
+     * C2W	mac-P/R/F1: 0.615/0.404/0.374 mic-P/R/F1: 0.451/0.337/0.386 TP/FP/FN: 138/168/271 std-P/R/F1: 0.433/0.404/0.382	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.451/0.265/0.233 mic-P/R/F1: 0.220/0.210/0.215 TP/FP/FN: 86/305/323 std-P/R/F1: 0.458/0.369/0.343	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.01; NO extra mention picker):
+     * C2W	mac-P/R/F1: 0.524/0.461/0.405 mic-P/R/F1: 0.424/0.389/0.406 TP/FP/FN: 159/216/250 std-P/R/F1: 0.429/0.405/0.378	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.287/0.279/0.209 mic-P/R/F1: 0.159/0.220/0.184 TP/FP/FN: 90/477/319 std-P/R/F1: 0.388/0.376/0.320	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.005; NO extra mention picker):
+     * C2W	mac-P/R/F1: 0.491/0.482/0.409 mic-P/R/F1: 0.409/0.408/0.409 TP/FP/FN: 167/241/242 std-P/R/F1: 0.423/0.401/0.373	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.228/0.283/0.193 mic-P/R/F1: 0.147/0.225/0.178 TP/FP/FN: 92/535/317 std-P/R/F1: 0.342/0.376/0.302	SMAPH-S annotator
+   * Numbers (with smaph-S pruning threshold 0.000; NO extra mention picker):
+     * C2W	mac-P/R/F1: 0.439/0.495/0.389 mic-P/R/F1: 0.387/0.421/0.403 TP/FP/FN: 172/273/237 std-P/R/F1: 0.412/0.399/0.360	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.161/0.283/0.161 mic-P/R/F1: 0.133/0.225/0.167 TP/FP/FN: 92/600/317 std-P/R/F1: 0.271/0.376/0.263	SMAPH-S annotator
 
  * SVC; C = 0.7; Non-probabilistic
    * Using naive annotation picker and NO Smaph-S-style pruning:
@@ -534,6 +562,7 @@ After doing the refactor to support Taivo's changes
 
  * SVC; C = 0.1; Probabilistic
    * models/m-no-yahoo-svc-c-0.1000-probabilistic.pkl.
+   * Using 'SmaphSRemoteSvmPruner'
    * Details:
      SVC(C=0.1, cache_size=200, class_weight='balanced', coef0=0.0,
        decision_function_shape=None, degree=3, gamma='auto', kernel='rbf',
@@ -542,8 +571,12 @@ After doing the refactor to support Taivo's changes
    * Train data confusion matrix:
        [[79518  2958]
         [   24   598]]
-   * Numbers:
-     * <PENDING>
+   * Numbers (threshold == 0.2):
+     * C2W	mac-P/R/F1: 0.757/0.346/0.331 mic-P/R/F1: 0.548/0.264/0.356 TP/FP/FN: 108/89/301 std-P/R/F1: 0.398/0.424/0.411	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.670/0.260/0.249 mic-P/R/F1: 0.349/0.178/0.236 TP/FP/FN: 73/136/336 std-P/R/F1: 0.447/0.386/0.378	SMAPH-S annotator
+   * Numbers (threshold == 0.1):
+     * C2W	mac-P/R/F1: 0.615/0.428/0.379 mic-P/R/F1: 0.469/0.364/0.410 TP/FP/FN: 149/169/260 std-P/R/F1: 0.429/0.426/0.395	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.510/0.312/0.274 mic-P/R/F1: 0.301/0.252/0.274 TP/FP/FN: 103/239/306 std-P/R/F1: 0.457/0.392/0.367	SMAPH-S annotator
 
  * SGDClassifier
    * Back to no yahoo data :(
