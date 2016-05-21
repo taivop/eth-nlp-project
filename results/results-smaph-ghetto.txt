@@ -490,9 +490,10 @@ After doing the refactor to support Taivo's changes
          max_iter=-1, probability=True, random_state=None, shrinking=True,
          tol=0.001, verbose=False)
    * Train data confusion matrix:
-
+        [[77307  5169]
+         [   99   523]]
    * Numbers:
-     *
+     * <pending>
 
  * SVC; C = 0.7; Non-probabilistic
    * Using naive annotation picker and NO Smaph-S-style pruning:
@@ -520,7 +521,8 @@ After doing the refactor to support Taivo's changes
        [[79518  2958]
         [   24   598]]
    * Numbers:
-    <pending>
+    C2W	mac-P/R/F1: 0.394/0.698/0.424 mic-P/R/F1: 0.332/0.672/0.444 TP/FP/FN: 275/554/134 std-P/R/F1: 0.318/0.388/0.313	SMAPH-S annotator
+    A2W-SAM	mac-P/R/F1: 0.276/0.458/0.276 mic-P/R/F1: 0.206/0.418/0.276 TP/FP/FN: 171/660/238 std-P/R/F1: 0.324/0.419/0.310	SMAPH-S annotator
 
  * SGDClassifier
    * Back to no yahoo data :(

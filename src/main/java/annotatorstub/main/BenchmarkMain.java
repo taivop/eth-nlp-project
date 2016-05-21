@@ -61,7 +61,8 @@ public class BenchmarkMain {
 //            svmApi.startPythonServer("models/m-no-yahoo-sgd-loss-log-pen-l1-niter-5-alpha-0.0005.pkl");
             // No Yahoo SGD with better params maybe
 //            svmApi.startPythonServer("models/m-no-yahoo-sgd-loss-log-pen-l2-niter-5-alpha-0.01.pkl");
-            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.1000-NONprobabilistic.pkl");
+//            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.1000-NONprobabilistic.pkl");
+            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.0005-probabilistic.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
                 new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
 //                new SmaphSRemoteSvmPruner(svmApi),
