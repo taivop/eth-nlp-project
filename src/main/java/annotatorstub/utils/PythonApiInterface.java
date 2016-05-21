@@ -88,7 +88,7 @@ public class PythonApiInterface implements Closeable {
     }
 
     public boolean binClassifyFlask(List<Double> features) throws IOException {
-        Double prediction = binClassifyFlask(features, 3, false);
+        Double prediction = binClassifyFlask(features, false, 3);
         if(prediction == 0.0) {
             return false;
         } else if(prediction == 1.0) {
@@ -102,17 +102,21 @@ public class PythonApiInterface implements Closeable {
 
     //TODO (Taivo) I know the method name sucks but backwards-compatibility, coherent naming and gangsta rap and made me do it
     public Double binClassifyFlaskProbabilistic(List<Double> features) throws IOException {
-        return binClassifyFlask(features, 3, true);
+        return binClassifyFlask(features, true, 3);
     }
 
     /**
      * Classify given list of features by calling the Python API.
      *
-     * TODO(andrei): Reuse same connection.
-     *
-     * @see http://stackoverflow.com/questions/1359689/how-to-send-http-request-in-java
+     * @see
+     *  <a href="http://stackoverflow.com/questions/1359689/how-to-send-http-request-in-java">
+     *    http://stackoverflow.com/questions/1359689/how-to-send-http-request-in-java
+     *  </a>
      */
-    private Double binClassifyFlask(List<Double> features, int retriesLeft, boolean probabilistic) throws IOException {
+    private Double binClassifyFlask(
+        List<Double> features,
+        boolean probabilistic,
+        int retriesLeft) throws IOException {
         if(retriesLeft == 0) {
             throw new RuntimeException("No more Flask API retries left. There's probably " +
                 "something wrong with the Python server.");
@@ -134,7 +138,6 @@ public class PythonApiInterface implements Closeable {
             connection.setUseCaches(false);
             connection.setDoOutput(true);
 
-            // TODO(andrei): Sometimes the Python API seems to act up. Consider implementing retries.
             // Read response
             InputStream is = connection.getInputStream();
             BufferedReader rd = new BufferedReader(new InputStreamReader(is));
@@ -152,14 +155,16 @@ public class PythonApiInterface implements Closeable {
             return Double.parseDouble(responseString);
         }
         catch(SocketTimeoutException timeout) {
-            System.err.println("Possible issue with Python API. Retrying connection.");
+            System.err.println("Possible issue with Python API (socket timeout). Retrying " +
+                    "connection.");
             timeout.printStackTrace();
-            return binClassifyFlask(features, retriesLeft - 1, probabilistic);
+            return binClassifyFlask(features, probabilistic, retriesLeft - 1);
         }
         catch(ConnectException connectException) {
-            System.err.println("Possible issue with Python API. Retrying connection.");
+            System.err.println("Possible issue with Python API (connect timeout). Retrying " +
+                    "connection.");
             connectException.printStackTrace();
-            return binClassifyFlask(features, retriesLeft - 1, probabilistic);
+            return binClassifyFlask(features, probabilistic, retriesLeft - 1);
         }
     }
 

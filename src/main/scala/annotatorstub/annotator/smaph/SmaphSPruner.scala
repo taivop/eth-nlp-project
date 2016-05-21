@@ -61,7 +61,7 @@ object SmaphSPruner {
 
     // TODO(andrei): Move feature creation to separate object.
     // Right now we create an annotator just to use it for feature generation.
-    val dummyAnnotator = new SmaphSAnnotator(Optional.empty[Smaph1Pruner]())
+    val dummyAnnotator = new SmaphSAnnotator(new SmaphSNoPruning)
 
     // The file where we will be saving our training data for safe keeping.
     val csvFileName = genCsvFileName()

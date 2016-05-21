@@ -439,3 +439,22 @@ Now also added MORE Yahoo! queries up to a total of 2.2k train queries
    * Numbers:
      * C2W	mac-P/R/F1: 0.480/0.668/0.467 mic-P/R/F1: 0.397/0.626/0.486 TP/FP/FN: 256/389/153 std-P/R/F1: 0.350/0.382/0.332	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.346/0.439/0.310 mic-P/R/F1: 0.256/0.403/0.313 TP/FP/FN: 165/480/244 std-P/R/F1: 0.376/0.418/0.346	SMAPH-S annotator
+
+
+========================================================================================================================
+After doing the refactor to support Taivo's changes
+========================================================================================================================
+
+ * SGDClassifier
+   * Still using SMV trained on part of Yahoo! WebScope data.
+   * Details:
+       SGDClassifier(alpha=0.01, average=False, class_weight='balanced', epsilon=0.1,
+              eta0=0.0, fit_intercept=True, l1_ratio=0.15,
+              learning_rate='optimal', loss='log', n_iter=5, n_jobs=1,
+              penalty='elasticnet', power_t=0.5, random_state=None, shuffle=True,
+              verbose=0, warm_start=False)
+   * Train data confusion matrix:
+       [[180881   9036]
+        [   306   2490]]
+   * Numbers:
+     * <PENDING>

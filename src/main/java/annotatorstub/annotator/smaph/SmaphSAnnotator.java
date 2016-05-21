@@ -41,15 +41,11 @@ public class SmaphSAnnotator extends FakeAnnotator {
     private final int topKSnippets;
     private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private Optional<Smaph1Pruner> pruner;
+    private SmaphSListPruner pruner;
     private CandidateEntitiesGenerator.QueryMethod generatorQueryMethod;
     private EntityToAnchors entityToAnchors;
 
-    public SmaphSAnnotator(Smaph1Pruner pruner) {
-        this(Optional.of(pruner));
-    }
-
-    public SmaphSAnnotator(Optional<Smaph1Pruner> pruner) {
+    public SmaphSAnnotator(SmaphSListPruner pruner) {
         this(pruner, QueryMethod.ALL_OVERLAP, DEFAULT_TOP_K_SNIPPETS);
     }
 
@@ -62,7 +58,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
      * {@link QueryMethod}}
      */
     public SmaphSAnnotator(
-        Optional<Smaph1Pruner> pruner,
+        SmaphSListPruner pruner,
         QueryMethod generatorQueryMethod,
         int topKSnippets
     ) {
@@ -71,7 +67,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         this.topKSnippets = topKSnippets;
 
         if (!new File(EntityToAnchors.DATASET_FILENAME).exists()) {
-            this.logger.error("Could not find directory {}. You should download and unzip the file at from https://groviera1.di.unipi.it:5001/sharing/HpajtMYjn");
+            logger.error("Could not find directory {}. You should download and unzip the file at from https://groviera1.di.unipi.it:5001/sharing/HpajtMYjn");
         }
         this.entityToAnchors = EntityToAnchors.e2a();
 
@@ -79,13 +75,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // This employs Andrei's key.
         BingSearchAPI.KEY = "eQ7iWx2in91LwcKKFKnTaOv+ZKgecyu6FVuBwwi/N7g";
         bingApi = BingSearchAPI.getInstance();
-
-        if(pruner.isPresent()) {
-            logger.info("Setting up SMAPH-S annotator with pruning.");
-        }
-        else {
-            logger.info("Setting up SMAPH-S annotator with NO pruning.");
-        }
 
         logger.info("Using top k snippets: {}", topKSnippets);
 
@@ -110,24 +99,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
             sum += element;
         }
         return sum / collection.size();
-    }
-
-    public static Double minIfNotEmpty(Collection<Double> collection) {
-        if(collection.isEmpty()) {
-            return 0.0;
-        }
-        else {
-            return Collections.min(collection);
-        }
-    }
-
-    public static Double maxIfNotEmpty(Collection<Double> collection) {
-        if(collection.isEmpty()) {
-            return 0.0;
-        }
-        else {
-            return Collections.max(collection);
-        }
     }
 
     /**
@@ -449,7 +420,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         HashSet<Tag> entities = new HashSet<Tag>();
 
         HashSet<Tag> entitiesQuery = (HashSet<Tag>) candidateEntities.getEntitiesQuery().stream().map(s -> new Tag(s)).collect(Collectors.toSet());
-        HashSet<Tag> entitiesQueryExtended = (HashSet<Tag>) candidateEntities.getEntitiesQueryExtended().stream().map(s -> new Tag(s)).collect(Collectors.toSet());
+        HashSet<Tag> entitiesQueryExtended = (HashSet<Tag>) candidateEntities.getEntitiesQueryExtended().stream().map(s -> new Tag(s)).collect(
+            Collectors.toSet());
         HashSet<Tag> entitiesQuerySnippetsTAGME = (HashSet<Tag>) candidateEntities.getEntitiesQuerySnippetsWAT().stream().map(s -> new Tag(s)).collect(Collectors.toSet());
 
         entities.addAll(entitiesQuery);
@@ -469,19 +441,25 @@ public class SmaphSAnnotator extends FakeAnnotator {
         List<SmaphCandidate> results = new ArrayList<>();
 
         // Calculate features for all possible pairs of <anchor, candidate entity>
-        for(MentionCandidate mention : mentions) {
-            for(Tag entity : entities) {
+        for(Tag entity : entities) {
+            Integer entityID = entity.getConcept();
 
-                Integer entityID = entity.getConcept();
-                if(entityID == -1) {
-                    throw new AnnotationException("Entity ID missing in candidate (received dummy value '-1').");
-                }
+            // Get per-entity features
+            List<Double> entityFeatures;
+            if(entityID == -1) {
+                throw new AnnotationException("Entity ID missing in candidate (received dummy value '-1').");
+            }
+            try {
+                entityFeatures = getEntityFeatures(entityID, query, bingResult, candidateEntities);
+            }
+            catch(IOException e) {
+                throw new AnnotationException(e.getMessage());
+            }
 
-                // Get both per-entity features and per-pair features.
-                List<Double> entityFeatures;
+            for(MentionCandidate mention : mentions) {
+                // Get per-pair features.
                 List<Double> mentionEntityFeatures;
                 try {
-                     entityFeatures = getEntityFeatures(entityID, query, bingResult, candidateEntities);
                      mentionEntityFeatures = getMentionEntityFeatures(mention, entityID, query);
                 } catch(IOException e) {
                     throw new AnnotationException(e.getMessage());
@@ -503,22 +481,11 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
     // We have to return a HashSet, not just a set, because that's how the interfaces higher up
     // are designed.
+    @Override
     public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
-        List<SmaphCandidate> allCandidates = getCandidatesWithFeatures(query);
-        List<SmaphCandidate> keptCandidates = pruner.map(p ->
-                allCandidates
-                    .stream()
-                    .filter(p::shouldKeep)
-                    .collect(Collectors.toList())
-        ).orElse(allCandidates);
-
-        logger.info("Kept " + keptCandidates.size() + " candidates.");
-        if(pruner.isPresent()) {
-            logger.info("Performed pruning.");
-        }
-        else {
-            logger.info("Performed NO pruning.");
-        }
+        List<SmaphCandidate> candidates = getCandidatesWithFeatures(query);
+        List<SmaphCandidate> keptCandidates = pruner.shouldKeep(candidates);
+        logger.info("Kept {}/{} candidates.", keptCandidates.size(), candidates.size());
 
         // Our SMAPH-{1, S} implementation does no scoring.
         float dummyScore = 1.0f;
@@ -555,5 +522,4 @@ public class SmaphSAnnotator extends FakeAnnotator {
     public String getName() {
         return "SMAPH-S annotator";
     }
-
 }

@@ -1,9 +1,6 @@
 package annotatorstub.main;
 
-import annotatorstub.annotator.smaph.CandidateEntitiesGenerator;
-import annotatorstub.annotator.smaph.Smaph1Pruner;
-import annotatorstub.annotator.smaph.Smaph1RemoteSvmPruner;
-import annotatorstub.annotator.smaph.SmaphSAnnotator;
+import annotatorstub.annotator.smaph.*;
 import annotatorstub.annotator.wat.HelperWATAnnotator;
 import annotatorstub.utils.PythonApiInterface;
 import annotatorstub.utils.Utils;
@@ -54,7 +51,7 @@ public class BenchmarkMain {
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
             svmApi.startPythonServer("models/m-2k-webscope-sgd-loss-log-pen-elasticnet-niter-5-alpha-0.01.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
-                Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
+                new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
                 CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
                 // look only at the top k = <below> snippets
                 25);

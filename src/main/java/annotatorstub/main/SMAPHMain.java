@@ -1,6 +1,7 @@
 package annotatorstub.main;
 
 import annotatorstub.annotator.smaph.SmaphSAnnotator;
+import annotatorstub.annotator.smaph.SmaphSNoPruning;
 
 import java.util.Optional;
 
@@ -23,8 +24,7 @@ public class SMAPHMain {
         System.out.printf("Using sample query: %s%n", sampleQuery);
 
         try {
-            // TODO(andrei) Use the pruner.
-            SmaphSAnnotator smaphSAnnotator = new SmaphSAnnotator(Optional.empty());
+            SmaphSAnnotator smaphSAnnotator = new SmaphSAnnotator(new SmaphSNoPruning());
             smaphSAnnotator.getCandidatesWithFeatures(sampleQuery);
         } catch (Exception e) {
             System.err.println("Something went wrong running the SMAPH-S annotator.");
