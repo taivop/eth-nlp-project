@@ -7,6 +7,7 @@ import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.WATRelatednessComputer;
 import annotatorstub.utils.bing.BingResult;
 import annotatorstub.utils.bing.BingSearchAPI;
+import annotatorstub.utils.caching.WATRequestCache;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
 import annotatorstub.utils.mention.SmaphCandidate;
@@ -45,8 +46,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
     private CandidateEntitiesGenerator.QueryMethod generatorQueryMethod;
     private EntityToAnchors entityToAnchors;
 
-    public SmaphSAnnotator(SmaphSListPruner pruner) {
-        this(pruner, QueryMethod.ALL_OVERLAP, DEFAULT_TOP_K_SNIPPETS);
+    public SmaphSAnnotator(SmaphSListPruner pruner, WATRequestCache watRequestCache) {
+        this(pruner, QueryMethod.ALL_OVERLAP, DEFAULT_TOP_K_SNIPPETS, watRequestCache);
     }
 
     /**
@@ -60,7 +61,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
     public SmaphSAnnotator(
         SmaphSListPruner pruner,
         QueryMethod generatorQueryMethod,
-        int topKSnippets
+        int topKSnippets,
+        WATRequestCache watRequestCache
     ) {
         this.pruner = pruner;
         this.generatorQueryMethod = generatorQueryMethod;
@@ -79,7 +81,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
         logger.info("Using top k snippets: {}", topKSnippets);
 
         this.wikiApi = WikipediaApiInterface.api();
-        candidateEntitiesGenerator = new CandidateEntitiesGenerator();
+        candidateEntitiesGenerator = new CandidateEntitiesGenerator(watRequestCache);
         try {
             WATRelatednessComputer.setCache("relatedness.cache");
         }
@@ -479,17 +481,66 @@ public class SmaphSAnnotator extends FakeAnnotator {
         return results;
     }
 
-    // We have to return a HashSet, not just a set, because that's how the interfaces higher up
-    // are designed.
-    @Override
-    public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
-        List<SmaphCandidate> candidates = getCandidatesWithFeatures(query);
-        List<SmaphCandidate> keptCandidates = pruner.shouldKeep(candidates);
-        logger.info("Kept {}/{} candidates.", keptCandidates.size(), candidates.size());
+    // TODO(andrei): Move this and 'overlapsSet' to their own utility.
+    private static class MentionSizeComparator implements Comparator<SmaphCandidate> {
+        @Override
+        public int compare(SmaphCandidate left, SmaphCandidate right) {
+            int leftSize = left.getMentionCandidate().getLength();
+            int rightSize = right.getMentionCandidate().getLength();
 
-        // Our SMAPH-{1, S} implementation does no scoring.
-        float dummyScore = 1.0f;
+            //noinspection SuspiciousNameCombination
+            return Integer.compare(leftSize, rightSize);
+        }
+    }
 
+    private static boolean overlapsSet(SmaphCandidate candidate, HashSet<ScoredAnnotation> set) {
+        // TODO(andrei): Unify 'MentionCandidate' and Mention, if possible.
+        Mention candidateMention = new Mention(
+            candidate.getMentionCandidate().getQueryStartPosition(),
+            candidate.getMentionCandidate().getLength());
+
+        for (ScoredAnnotation scoredAnnotation : set) {
+            if(scoredAnnotation.overlaps(candidateMention)) {
+                return true;
+            }
+        }
+
+        int candidateMentionEnd = candidateMention.getPosition() + candidateMention.getLength();
+        System.out.println("No overlap found. Candidate mention: " + candidateMention.getPosition
+                () + "-" + candidateMentionEnd + " " +
+                candidateMention);
+        System.out.println("Full mention: " + candidate.getMentionCandidate().getMention());
+        return false;
+    }
+
+    /**
+     * Takes a list of candidate annotations and greedily picks entities with non-overlapping
+     * mentions starting with the entity with the longest mention.
+     */
+    public static HashSet<ScoredAnnotation> greedyPick(List<SmaphCandidate> candidates) {
+        HashSet<ScoredAnnotation> result = new HashSet<>();
+
+        List<SmaphCandidate> sortedCandidates = new ArrayList<>(candidates);
+        sortedCandidates.sort(new MentionSizeComparator().reversed());
+
+        for (SmaphCandidate candidate: sortedCandidates) {
+            if(! overlapsSet(candidate, result)) {
+                result.add(new ScoredAnnotation(
+                    candidate.getMentionCandidate().getQueryStartPosition(),
+                    candidate.getMentionCandidate().getLength(),
+                    candidate.getEntityID(),
+                    dummyScore));
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * This is the original mention selection approach, which also allows overlapping mentions
+     * and simply picks the first mention for every entity ID it encounters.
+     */
+    private static HashSet<ScoredAnnotation> naivePick(List<SmaphCandidate> keptCandidates) {
         HashSet<ScoredAnnotation> annotations = new HashSet<>();
         // A simple hack to make SMAPH-1 output an A2W solution: for every entity, select just
         // its first mention.
@@ -504,13 +555,32 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
             seenEntityIds.add(id);
             ScoredAnnotation scoredAnnotation = new ScoredAnnotation(
-                    keptCandidate.getMentionCandidate().getQueryStartPosition(),
-                    keptCandidate.getMentionCandidate().getLength(),
-                    keptCandidate.getEntityID(),
-                    dummyScore);
+                keptCandidate.getMentionCandidate().getQueryStartPosition(),
+                keptCandidate.getMentionCandidate().getLength(),
+                keptCandidate.getEntityID(),
+                dummyScore);
             annotations.add(scoredAnnotation);
         }
 
+        return annotations;
+    }
+
+    // Our SMAPH-{1, S} implementation does no scoring.
+    // TODO(andrei): Constantify.
+    static float dummyScore = 1.0f;
+
+    // We have to return a HashSet, not just a set, because that's how the interfaces higher up
+    // are designed.
+    @Override
+    public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
+        List<SmaphCandidate> candidates = getCandidatesWithFeatures(query);
+        List<SmaphCandidate> keptCandidates = pruner.shouldKeep(candidates);
+        logger.info("Kept {}/{} candidates.", keptCandidates.size(), candidates.size());
+
+        System.out.println("Greedy pick for: " + query);
+        // TODO(andrei): Use flag to switch between these techniques.
+//        HashSet<ScoredAnnotation> annotations = greedyPick(keptCandidates);
+        HashSet<ScoredAnnotation> annotations = naivePick(keptCandidates);
         logger.info("Found {} final annotations.", annotations.size());
         return annotations;
     }
