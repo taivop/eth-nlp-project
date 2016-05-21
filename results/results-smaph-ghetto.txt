@@ -477,6 +477,7 @@ After doing the refactor to support Taivo's changes
    * Numbers (same as before):
      * C2W	mac-P/R/F1: 0.451/0.676/0.457 mic-P/R/F1: 0.365/0.633/0.463 TP/FP/FN: 259/451/150 std-P/R/F1: 0.336/0.381/0.318	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.327/0.463/0.312 mic-P/R/F1: 0.245/0.425/0.311 TP/FP/FN: 174/536/235 std-P/R/F1: 0.355/0.422/0.332	SMAPH-S annotator
-   * Numbers (using Taivo's Smaph-S pruning):
-     *
+   * Numbers (using Taivo's Smaph-S pruning with threshold 0.2):
+     * C2W	mac-P/R/F1: 0.382/0.518/0.375 mic-P/R/F1: 0.324/0.457/0.379 TP/FP/FN: 187/390/222 std-P/R/F1: 0.367/0.408/0.351	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.223/0.306/0.206 mic-P/R/F1: 0.170/0.240/0.199 TP/FP/FN: 98/480/311 std-P/R/F1: 0.325/0.388/0.304	SMAPH-S annotator
 

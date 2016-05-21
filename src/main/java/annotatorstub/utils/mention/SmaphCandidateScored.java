@@ -27,7 +27,8 @@ public class SmaphCandidateScored implements Comparable<SmaphCandidateScored> {
     }
 
     public int compareTo(SmaphCandidateScored that) {
-        return Double.compare(this.score, that.score);
+//        return Double.compare(this.score, that.score);
+        return Double.compare(that.score, this.score);
     }
 
     public boolean overlaps(SmaphCandidateScored that) {
