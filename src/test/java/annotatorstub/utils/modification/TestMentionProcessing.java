@@ -13,7 +13,7 @@ import annotatorstub.utils.mention.MentionIteratorFactory;
 import it.unipi.di.acube.batframework.datasetPlugins.DatasetBuilder;
 import it.unipi.di.acube.batframework.datasetPlugins.GERDAQDataset;
 
-public class TestMentionPrcessing {
+public class TestMentionProcessing {
 	
 	private static String itToString(GreedyMentionIterator it) {
 		String ret = "";
