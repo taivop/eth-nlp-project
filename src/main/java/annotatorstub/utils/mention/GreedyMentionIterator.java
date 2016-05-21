@@ -9,10 +9,10 @@ import java.util.*;
  */
 public class GreedyMentionIterator implements Iterator<MentionCandidate> {
 	private String[] words; // query split in words
-	private String query; // original query
-	private int pos = 0;
+	protected String query; // original query
+	protected int pos = 0;
 	private int n; // current shingle size
-	private boolean hasNext = true;
+	protected boolean hasNext = true;
 
 	public GreedyMentionIterator(String query) {
 		this.query = query;
@@ -38,6 +38,28 @@ public class GreedyMentionIterator implements Iterator<MentionCandidate> {
 		}
 		String mention = sb.toString();
 		int start = query.indexOf(mention);
-		return new MentionCandidate(start, start + mention.length(), mention);
+		
+		/* check if mention ends with " but does not start with one exclude " 
+		 * from the mention  (vice versa with starting and not ending)
+		 * This happens in queries like >"..... Champagne"< to generate the 
+		 * mention >Champagne"< does not make sense.
+		 */
+		if (mention.endsWith("\"") && !mention.startsWith("\"")) {
+			mention = mention.substring(0, mention.length()-1);
+		}
+		if (mention.startsWith("\"") && !mention.endsWith("\"")) {
+			mention = mention.substring(1, mention.length());
+			start++;
+		}
+		/* because of the  injected white spaces instead of special chars
+		 * it can happen that the mention consists only of one char which does
+		 * not make sense.. try to avoid this cases.
+		 * Only if the last mention has 1 char return it .... 
+		 * return null in this case would cause a lot of side effects*/
+		if (mention.length() < 2 && hasNext) {
+			return next();
+		}  else {
+			return new MentionCandidate(start, start + mention.length(), mention);
+		}
 	}
 }

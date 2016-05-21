@@ -6,6 +6,7 @@ import java.util.List;
 
 import annotatorstub.utils.WATRelatednessComputer;
 import annotatorstub.utils.bing.BingSearchAPI;
+import annotatorstub.utils.mention.GreedyMentionIterator;
 import it.unipi.di.acube.batframework.utils.AnnotationException;
 
 /*
@@ -71,6 +72,8 @@ public class QueryProcessing {
 			return query;
 		}
 
+		// we only get here if the query consists of a single word (or multiple unseparated (whitespaces) ones)
+		
 		/*
 		 * try splitting by special chars and digits
 		 */
@@ -84,7 +87,7 @@ public class QueryProcessing {
 					continue;
 				}
 				word = word.trim();
-				if (word.length()>2 && WATRelatednessComputer.getLp(query)>0) {
+				if (word.length()>2 && WATRelatednessComputer.getLp(word)>0) {
 					modified += word+" ";
 				} else if (word.length()>2) {
 					// try to split the word further
@@ -94,6 +97,8 @@ public class QueryProcessing {
 			return modified.trim();
 		}
 		
+		// we only get here if the query consists of a single word (or multiple unseparated (any special char) ones)
+			
 		/*
 		 * try to greedily find the biggest part of the word with a 
 		 * positive linking probability.  
@@ -122,7 +127,8 @@ public class QueryProcessing {
 	 * @param maxWindowSize the max length of sub-words to search for in the original word 
 	 * @return list of words found in original words (ordered!)
 	 */
-	private List<String> splitWordInSubWords(String word, int maxWindowSize) {
+	// WARNING side effect: this method is also used by the GreedySplitMentionIterator
+	public List<String> splitWordInSubWords(String word, int maxWindowSize) {
 		List<String> found = new ArrayList<>();
 		// check if substring is smaller than window size
 		if ((word.length() - 1) < maxWindowSize) {
