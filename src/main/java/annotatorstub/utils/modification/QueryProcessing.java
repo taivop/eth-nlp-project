@@ -38,7 +38,7 @@ public class QueryProcessing {
 		}
 	}
 	
-	public String alterAndSplitQuery(String query) throws Exception {
+	public String alterQueryForBingSearch(String query) throws Exception {
 		query = bingApi.query(query).getAlteredQueryString();
 		
 		/*
@@ -82,7 +82,7 @@ public class QueryProcessing {
 					modified += word+" ";
 				} else if (word.length()>2) {
 					// try to split the word further
-					modified += alterAndSplitQuery(word)+" ";
+					modified += alterQueryForBingSearch(word)+" ";
 				}
 			}
 			return modified.trim();
@@ -92,7 +92,7 @@ public class QueryProcessing {
 		 * try to greedily find the biggest part of the word with a 
 		 * positive linking probability.  
 		 */
-		List<String> result = split(query, query.length()-1);
+		List<String> result = splitWordInSubWords(query, query.length()-1);
 		
 		/* 
 		 * reconstruct query - do not only keep the found sub-words but split the original 
@@ -112,33 +112,32 @@ public class QueryProcessing {
 	}
 	
 	/*
-	 * recursive method for word splitting
-	 * @param query the query to split
-	 * @param maxWindowSize the max length of sub-words to search in the original word 
-	 * @return list of words found in query (ordered!)
+	 * @param word the word to split
+	 * @param maxWindowSize the max length of sub-words to search for in the original word 
+	 * @return list of words found in original words (ordered!)
 	 */
-	private List<String> split(String query,  int maxWindowSize) {
+	private List<String> splitWordInSubWords(String word, int maxWindowSize) {
 		List<String> found = new ArrayList<>();
 		// check if substring is smaller than window size
-		if ((query.length() - 1) < maxWindowSize) {
-			maxWindowSize = (query.length() - 1);
+		if ((word.length() - 1) < maxWindowSize) {
+			maxWindowSize = (word.length() - 1);
 		}
 		for (int i=maxWindowSize; i>2; i--) {
-			for (int j=0; j<=(query.length()-i); j++) {
-				String substring = query.substring(j, j+i);
+			for (int j=0; j<=(word.length()-i); j++) {
+				String substring = word.substring(j, j+i);
 				if (WATRelatednessComputer.getLp(substring) > 0) {
-					// keep query ordering!
+					// keep ordering of words!!
 					// first left substrings
-					String leftSubstring = query.substring(0, j);
+					String leftSubstring = word.substring(0, j);
 					if (leftSubstring.length() > 2) {
-						found.addAll(split(leftSubstring,i-1));
+						found.addAll(splitWordInSubWords(leftSubstring,i-1));
 					}
 					// then the found one
 					found.add(substring);
 					// then right substrings
-					String rightSubstring = query.substring(j+i);
+					String rightSubstring = word.substring(j+i);
 					if (rightSubstring.length() > 2) {
-						found.addAll(split(rightSubstring,i));
+						found.addAll(splitWordInSubWords(rightSubstring,i));
 					}
 					return found;
 				}
