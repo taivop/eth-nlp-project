@@ -149,8 +149,23 @@ public class PythonApiInterface implements Closeable {
             }
             rd.close();
 
+
             String responseString = response.toString().trim();
-//        logger.info(String.format("Response from Python server: %s", responseString));
+//            logger.info("Response from Python server: {}", responseString);
+
+            // If running a probabilistic classifier, the response will look like '[pNonRel
+            // pRel]', since the first class, '0', means "don't keep". Process to just keep the
+            // second probability.
+            if(probabilistic) {
+                String[] responseStringParts = responseString.split("\\s+");
+                responseString = responseStringParts[2].trim();
+                int endIndex = responseString.length();
+                if(responseString.endsWith("]")) {
+                    endIndex = endIndex - 1;
+                }
+                responseString = responseString.substring(0, endIndex);
+            }
+//            logger.info("Extracted: {}", responseString);
 
             return Double.parseDouble(responseString);
         }

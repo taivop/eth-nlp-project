@@ -456,6 +456,12 @@ Now also added MORE Yahoo! queries up to a total of 2.2k train queries
 ========================================================================================================================
 After doing the refactor to support Taivo's changes
 ========================================================================================================================
+ * SVC; C = 0.0005; Using naive annotation picker.
+   * Still using SMV trained on part of Yahoo! WebScope data.
+   * Details:
+   * Numbers:
+     C2W	mac-P/R/F1: 0.489/0.664/0.470 mic-P/R/F1: 0.407/0.623/0.492 TP/FP/FN: 255/372/154 std-P/R/F1: 0.355/0.384/0.334	SMAPH-S annotator
+     A2W-SAM	mac-P/R/F1: 0.345/0.439/0.307 mic-P/R/F1: 0.258/0.396/0.313 TP/FP/FN: 162/465/247 std-P/R/F1: 0.376/0.424/0.344	SMAPH-S annotator
 
  * SGDClassifier
    * Still using SMV trained on part of Yahoo! WebScope data.
@@ -468,5 +474,9 @@ After doing the refactor to support Taivo's changes
    * Train data confusion matrix:
        [[180881   9036]
         [   306   2490]]
-   * Numbers:
-     * <PENDING>
+   * Numbers (same as before):
+     * C2W	mac-P/R/F1: 0.451/0.676/0.457 mic-P/R/F1: 0.365/0.633/0.463 TP/FP/FN: 259/451/150 std-P/R/F1: 0.336/0.381/0.318	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.327/0.463/0.312 mic-P/R/F1: 0.245/0.425/0.311 TP/FP/FN: 174/536/235 std-P/R/F1: 0.355/0.422/0.332	SMAPH-S annotator
+   * Numbers (using Taivo's Smaph-S pruning):
+     *
+

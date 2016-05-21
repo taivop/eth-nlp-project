@@ -22,7 +22,7 @@ FEATURE_COUNT = 24
 np.random.seed(0xF00BA2)
 
 def usage():
-    print("Usage: train_smaph_model.py <csv_file> <dest_pickle_file_prefix> <C> <probabilistic>")
+    print("Usage: train_smaph_model.py <csv_file> <dest_pickle_file_prefix> <C> <1|0 (probabilistic)>")
     exit(1)
 
 
@@ -48,7 +48,7 @@ def main():
     csv_file = sys.argv[1]
     dest_pickle_file_prefix = sys.argv[2]
     C = float(sys.argv[3])
-    probabilistic = sys.argv[4] == "1"
+    probabilistic = (sys.argv[4] == "1")
 
     # A simple linear (for the time being) SVM classifier using the optimal
     # parameters established via grid search in the notebook.
@@ -56,6 +56,10 @@ def main():
     penalty = 'l1'
     n_iter = 5
     alpha = 0.0005
+    if probabilistic and loss != 'log':
+        raise ValueError("Cannot train SVM to ouput probabilistic results with"
+                         " loss that isn't log")
+
     clf = SGDClassifier(class_weight='balanced', loss=loss, penalty=penalty,
                         n_iter=n_iter, alpha=alpha)
     dest_pickle_file = "{}-sgd-loss-{}-pen-{}-niter-{}-alpha-{}.pkl".format(
@@ -64,8 +68,9 @@ def main():
 
     # The non-linear version. Much more expensive to train, but yields somewhat
     # better results, and corresponds to what is described in the paper.
-    dest_pickle_file = "{0}-svc-c-{1:6.4f}.pkl".format(dest_pickle_file_prefix, C)
-    clf = SVC(C=C, class_weight='balanced', probability=probabilistic)
+    # dest_pickle_file = "{0}-svc-c-{1:6.4f}.pkl".format(dest_pickle_file_prefix, C)
+    #   "probabilistic" if probabilistic else "NONprobabilistic")
+    # clf = SVC(C=C, class_weight='balanced', probability=probabilistic)
 
     print("Will read data from {0} and write the pickled model to "
           "{1}.".format(csv_file, dest_pickle_file))

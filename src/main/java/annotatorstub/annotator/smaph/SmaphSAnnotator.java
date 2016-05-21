@@ -577,7 +577,6 @@ public class SmaphSAnnotator extends FakeAnnotator {
         List<SmaphCandidate> keptCandidates = pruner.shouldKeep(candidates);
         logger.info("Kept {}/{} candidates.", keptCandidates.size(), candidates.size());
 
-        System.out.println("Greedy pick for: " + query);
         // TODO(andrei): Use flag to switch between these techniques.
 //        HashSet<ScoredAnnotation> annotations = greedyPick(keptCandidates);
         HashSet<ScoredAnnotation> annotations = naivePick(keptCandidates);

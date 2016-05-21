@@ -54,12 +54,14 @@ public class BenchmarkMain {
             // generation, since this lets us keep the benchmark-only cache small. The data gen
             // one, especially when also using the Yahoo! data, ends up blowing up to several Gb,
             // and takes around a minute to load.
-            WATRequestCache watRequestCache = new WATRequestCache("watapi.benchmark.cache",
-                "Small WAT API cache (benchmark only).", 500);
-//            svmApi.startPythonServer("models/m-2k-webscope-sgd-loss-log-pen-elasticnet-niter-5-alpha-0.01.pkl");
-            svmApi.startPythonServer("models/m-2k-webscope-svc-c-0.0005.pkl");
+            WATRequestCache watRequestCache = new WATRequestCache(
+                "watapi.benchmark.cache",
+                "Small WAT API cache (benchmark only)", 500);
+            svmApi.startPythonServer("models/m-2k-webscope-sgd-loss-log-pen-elasticnet-niter-5-alpha-0.01.pkl");
+//            svmApi.startPythonServer("models/m-2k-webscope-svc-c-0.0005.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
-                new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
+//                new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
+                new SmaphSRemoteSvmPruner(svmApi),
                 CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
                 // look only at the top k = <below> snippets
                 25,
@@ -90,7 +92,7 @@ public class BenchmarkMain {
                 resAnn,
                 ds.getA2WGoldStandardList(),
                 new StrongAnnotationMatch(wikiApi));
-            System.out.println("A2W-SAM:");
+            System.out.println("A2W-SAM results:");
             Utils.printMetricsResultSet("A2W-SAM", rsA2W, ann.getName());
 
             Utils.serializeResult(ann, ds, new File("annotations.bin"));
