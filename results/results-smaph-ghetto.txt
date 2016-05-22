@@ -663,10 +663,27 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
    * Train data confusion matrix:
        [[78241  4235]
         [   55   567]]
+   * Numbers (threshold = 0.85, with query preprocessing, splitByLP == false):
+     * C2W	mac-P/R/F1: 0.607/0.527/0.469 mic-P/R/F1: 0.537/0.501/0.518 TP/FP/FN: 205/177/204 std-P/R/F1: 0.428/0.415/0.404	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.569/0.495/0.436 mic-P/R/F1: 0.484/0.467/0.475 TP/FP/FN: 191/204/218 std-P/R/F1: 0.430/0.415/0.399	SMAPH-S annotator
+   * Numbers (threshold = 0.80, with query preprocessing, splitByLP == false):
+     * C2W	mac-P/R/F1: 0.599/0.562/0.496 mic-P/R/F1: 0.538/0.531/0.534 TP/FP/FN: 217/186/192 std-P/R/F1: 0.419/0.407/0.396	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.538/0.503/0.439 mic-P/R/F1: 0.463/0.474/0.469 TP/FP/FN: 194/225/215 std-P/R/F1: 0.430/0.414/0.397	SMAPH-S annotator
+   * Numbers (threshold = 0.75, with query preprocessing, splitByLP == false):
+     * C2W	mac-P/R/F1: 0.589/0.581/0.508 mic-P/R/F1: 0.529/0.550/0.540 TP/FP/FN: 225/200/184 std-P/R/F1: 0.413/0.399/0.384	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.512/0.512/0.439 mic-P/R/F1: 0.439/0.484/0.460 TP/FP/FN: 198/253/211 std-P/R/F1: 0.421/0.410/0.388	SMAPH-S annotator
+   * Numbers (threshold = 0.70, with query preprocessing, splitByLP == false):
+     * C2W	mac-P/R/F1: 0.578/0.592/0.508 mic-P/R/F1: 0.523/0.562/0.542 TP/FP/FN: 230/210/179 std-P/R/F1: 0.409/0.400/0.386	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.490/0.516/0.429 mic-P/R/F1: 0.422/0.489/0.453 TP/FP/FN: 200/274/209 std-P/R/F1: 0.414/0.412/0.386	SMAPH-S annotator
+   * Numbers (threshold = 0.65, with query preprocessing, splitByLP == false):
+     * C2W	mac-P/R/F1: 0.561/0.594/0.501 mic-P/R/F1: 0.507/0.565/0.534 TP/FP/FN: 231/225/178 std-P/R/F1: 0.406/0.398/0.383	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.464/0.516/0.416 mic-P/R/F1: 0.398/0.489/0.439 TP/FP/FN: 200/303/209 std-P/R/F1: 0.407/0.412/0.381	SMAPH-S annotator
    * Numbers (threshold = 0.60, with query preprocessing, splitByLP == false):
-    <left tab>
+     * C2W	mac-P/R/F1: 0.532/0.604/0.490 mic-P/R/F1: 0.490/0.577/0.530 TP/FP/FN: 236/246/173 std-P/R/F1: 0.397/0.396/0.378	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.427/0.521/0.399 mic-P/R/F1: 0.379/0.496/0.430 TP/FP/FN: 203/332/206 std-P/R/F1: 0.389/0.412/0.372	SMAPH-S annotator
    * Numbers (threshold = 0.55, with query preprocessing, splitByLP == false):
-    <right tab>
+     * C2W	mac-P/R/F1: 0.514/0.617/0.493 mic-P/R/F1: 0.475/0.589/0.526 TP/FP/FN: 241/266/168 std-P/R/F1: 0.391/0.395/0.375	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.394/0.522/0.389 mic-P/R/F1: 0.356/0.499/0.415 TP/FP/FN: 204/369/205 std-P/R/F1: 0.373/0.412/0.366	SMAPH-S annotator
    * Numbers (threshold = 0.50, with query preprocessing, splitByLP == false):
      * C2W	mac-P/R/F1: 0.501/0.626/0.490 mic-P/R/F1: 0.460/0.597/0.520 TP/FP/FN: 244/286/165 std-P/R/F1: 0.382/0.390/0.368	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.373/0.526/0.380 mic-P/R/F1: 0.338/0.501/0.404 TP/FP/FN: 205/402/204 std-P/R/F1: 0.359/0.412/0.359	SMAPH-S annotator
@@ -706,6 +723,21 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
      * A2W-SAM	mac-P/R/F1: 0.311/0.520/0.345 mic-P/R/F1: 0.279/0.494/0.357 TP/FP/FN: 202/521/207 std-P/R/F1: 0.322/0.407/0.336	SMAPH-S annotator
      * Odd. Gotta rerun.
      * Confirmed. Strange that the change is so small.
+
+
+ * Logistic Regression (C == 0.1)
+   * models/m-no-yahoo-lr-c-0.1.pkl
+   * Details:
+       LogisticRegression(C=0.1, class_weight='balanced', dual=False,
+                 fit_intercept=True, intercept_scaling=1, max_iter=100,
+                 multi_class='ovr', n_jobs=1, penalty='l2', random_state=None,
+                 solver='liblinear', tol=0.0001, verbose=0, warm_start=False)
+   * Train data confusion matrix:
+       [[78148  4328]
+        [   52   570]]
+   * Numbers (threshold = 0.40, with query preprocessing, splitByLP == false)):
+     * <pending>
+
 
  * SVC (C == 1.0):
    * models/m-no-yahoo-svc-c-1.0000-probabilistic.pkl

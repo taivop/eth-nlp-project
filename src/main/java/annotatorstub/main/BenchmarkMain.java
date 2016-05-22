@@ -49,7 +49,7 @@ public class BenchmarkMain {
             6) (Optional) Move these instructions to a more appropriate place, if applicable.
          */
 
-        try (PythonApiInterface svmApi = new PythonApiInterface(5001)) {
+        try (PythonApiInterface svmApi = new PythonApiInterface(5002)) {
             // Use a separate cache when running the benchmark as opposed to when doing the data
             // generation, since this lets us keep the benchmark-only cache small. The data gen
             // one, especially when also using the Yahoo! data, ends up blowing up to several Gb,
@@ -59,7 +59,7 @@ public class BenchmarkMain {
                 "Small WAT API cache (benchmark only)",
                 500);
 //            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.1000-probabilistic.pkl");
-            String modelPickle = "models/m-no-yahoo-lr-c-0.001.pkl";
+            String modelPickle = "models/m-no-yahoo-lr-c-0.1.pkl";
 //            String modelPickle = "models/m-no-yahoo-svc-c-1.0000-probabilistic.pkl";
             svmApi.startPythonServer(modelPickle);
             SmaphSAnnotator ann = new SmaphSAnnotator(
