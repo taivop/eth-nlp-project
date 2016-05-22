@@ -16,11 +16,19 @@ from sklearn.decomposition import PCA
 
 import matplotlib.pyplot as plt
 
+from multiprocessing import Process, Queue
+
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
+from sklearn.cross_validation import cross_val_score, cross_val_predict, KFold
+
+from sklearn.metrics import confusion_matrix
+
 from data_util import impute_nan_inf, load_training_data, rescale, load_dataset, pca_components, load_dataset_pca
+
+from ada_boost_cv_thread import AdaBoostCVThread
 
 # pylint: disable=missing-docstring, invalid-name
 
@@ -74,6 +82,9 @@ def train_svm(x_train,
         valid_acc_pos = eval_svm(svm_classifier, x_valid[y_valid == 1,:], y_valid[y_valid == 1])
         valid_acc_neg = eval_svm(svm_classifier, x_valid[y_valid == 0,:], y_valid[y_valid == 0])
 
+        print("Incremental confsion matrix at iteration {}.".format(iter))
+        print(confusion_matrix(y_valid, svm_classifier.predict(x_valid)))
+
         print("iter = " + str(iter+1) + " train acc = " + str(train_acc[0]) + " valid acc = " + str(valid_acc[0]))
 
         print("iter = " + str(iter+1) + " valid pos acc = " + str(valid_acc_pos[0]) + " valid neg acc = " + str(valid_acc_neg[0]))
@@ -84,6 +95,14 @@ def train_svm(x_train,
             #store_svm(svm_classifier,"../../tmp/svm_classifier.pkl")
 
     #svm_classifier_ret = load_svm("../../tmp/svm_classifier.pkl")
+
+    full_svm_classifier = SGDClassifier(loss=loss,
+                                   penalty=penalty,
+                                   alpha=alpha,
+                                   verbose=True,
+                                   class_weight='balanced', n_iter=100)
+    full_svm_classifier.fit(x_train, y_train)
+    print(confusion_matrix(y_valid, full_svm_classifier.predict(x_valid)))
 
     return svm_classifier
 
@@ -97,9 +116,10 @@ def eval_svm(svm_classifier,x,y):
 def train_ada_boost(x_train,
                     y_train,
                     n_estimators,
-                    learning_rate):
+                    learning_rate,
+                    max_tree_depth):
 
-    tree_classifier = DecisionTreeClassifier(max_depth=2,
+    tree_classifier = DecisionTreeClassifier(max_depth=max_tree_depth,
                                              class_weight="balanced")
 
 
@@ -139,6 +159,149 @@ def eval_ada_boost(ada_boost_classifier,
     eval_valid_neg = list(ada_boost_classifier.staged_score(x_valid_neg,y_valid_neg))
 
     return eval_train_pos, eval_train_neg, eval_valid_pos, eval_valid_neg
+
+def ada_boost_cv(x_train,
+                 y_train,
+                 cv,
+                 max_tree_depth,
+                 n_estimators,
+                 learning_rate):
+
+    tree_classifier = DecisionTreeClassifier(max_depth=max_tree_depth,
+                                             class_weight="balanced")
+
+
+    ada_boost_classifier = AdaBoostClassifier(base_estimator=tree_classifier,
+                                              n_estimators=n_estimators,
+                                              learning_rate=learning_rate)
+
+    '''
+    cv_scores = cross_val_score(estimator=ada_boost_classifier,
+                               X=x_train,
+                               y=y_train,
+                               scoring="accuracy",
+                               cv=cv)
+    '''
+
+    y_bar = cross_val_predict(estimator=ada_boost_classifier,
+                              X=x_train,
+                              y=y_train,
+                              cv=cv,
+                              n_jobs=cv)
+
+    y_bar_proba = ada_boost_classifier.predict_proba(x_train)
+    print(list(zip(y_bar,y_bar_proba)))
+
+    cm = confusion_matrix(y_train,y_bar)
+
+    accuracy_negative = cm[0,0] / np.sum(cm[0,:])
+    accuracy_positive = cm[1,1] / np.sum(cm[1,:])
+
+    precision = cm[1,1] / (cm[1,1] + cm[0,1])
+    recall = cm[1,1] / (cm[1,1] + cm[1,0])
+
+    f1_score = 2 * precision * recall / (precision + recall)
+
+    return accuracy_positive, accuracy_negative, precision, recall, f1_score
+
+def ada_boost_cv_process(ada_boost_classifier,
+                         x_train,
+                         y_train,
+                         x_test,
+                         y_test,
+                         pruning_threshold,
+                         queue):
+
+        ada_boost_classifier.fit(x_train,y_train)
+
+        y_bar_proba = ada_boost_classifier.predict_proba(X=x_test)
+        y_bar = np.array(y_bar_proba[:,1]>pruning_threshold,dtype=int)
+
+        cm = confusion_matrix(y_test,y_bar)
+
+        queue.put(cm)
+
+def ada_boost_cv_proba(x_train,
+                       y_train,
+                       cv,
+                       max_tree_depth,
+                       n_estimators,
+                       learning_rate,
+                       pruning_threshold):
+
+    tree_classifier = DecisionTreeClassifier(max_depth=max_tree_depth,
+                                             class_weight="balanced")
+
+
+    ada_boost_classifier = AdaBoostClassifier(base_estimator=tree_classifier,
+                                              n_estimators=n_estimators,
+                                              learning_rate=learning_rate)
+
+    N = x_train.shape[0]
+
+    kfold = KFold(n=N,n_folds=cv,shuffle=True)
+
+    cm_total = np.zeros([2,2])
+
+    queue = Queue()
+
+    ada_boost_cv_processes = []
+
+    for train_ids, test_ids in kfold:
+        x_train_cv = x_train[train_ids,:]
+        y_train_cv = y_train[train_ids]
+
+        x_test_cv = x_train[test_ids,:]
+        y_test_cv = y_train[test_ids]
+
+        ada_boost_cv_processes += [Process(target=ada_boost_cv_process,args=(ada_boost_classifier,
+                                                                             x_train_cv,
+                                                                             y_train_cv,
+                                                                             x_test_cv,
+                                                                             y_test_cv,
+                                                                             pruning_threshold,
+                                                                             queue))]
+
+        '''
+        ada_boost_cv_threads += [AdaBoostCVThread(ada_boost_classifier=ada_boost_classifier,
+                                                  x_train=x_train_cv,
+                                                  y_train=y_train_cv,
+                                                  x_test=x_test_cv,
+                                                  y_test=y_test_cv,
+                                                  pruning_threshold=pruning_threshold,
+                                                  lock=lock,
+                                                  cm_total=cm_total)]
+
+        threading._start_new_thread(ada_boost_cv_threads[iter].ada_boost_cv(),args=())
+
+        iter += 1
+
+        ada_boost_classifier_cv = ada_boost_classifier.fit(x_train_cv,y_train_cv)
+
+        y_bar_proba = ada_boost_classifier_cv.predict_proba(X=x_test_cv)
+        y_bar = np.array(y_bar_proba[:,1]>pruning_threshold,dtype=int)
+
+        cm = confusion_matrix(y_test_cv,y_bar)
+
+        cm_total += cm
+        '''
+
+    for process in ada_boost_cv_processes:
+        process.start()
+
+    for process in ada_boost_cv_processes:
+        cm_total += queue.get()
+        process.join()
+
+    accuracy_negative = cm_total[0,0] / np.sum(cm_total[0,:])
+    accuracy_positive = cm_total[1,1] / np.sum(cm_total[1,:])
+
+    precision = cm_total[1,1] / (cm_total[1,1] + cm_total[0,1])
+    recall = cm_total[1,1] / (cm_total[1,1] + cm_total[1,0])
+
+    f1_score = 2 * precision * recall / (precision + recall)
+
+    return accuracy_positive, accuracy_negative, precision, recall, f1_score
 
 def plot_ada_boost(eval_train_pos,eval_train_neg, eval_valid_pos, eval_valid_neg, image_file):
     n_estimators = len(eval_train_pos)
@@ -312,7 +475,7 @@ def pca_visualize(x_train,y_train,n_components):
 
     for i in range(n_components):
         explained_variance = np.sum(pca.explained_variance_ratio_[:(i+1)])
-        print("Principal components = " + str(i+1) + " Explained variance = " + str(explained_variance))
+        # print("Principal components = " + str(i+1) + " Explained variance = " + str(explained_variance))
 
     x_train_pca = pca.components_.T
 
@@ -343,36 +506,20 @@ def pca_visualize(x_train,y_train,n_components):
     plt.savefig("pca_1_2.png")
 
     plt.figure()
-    plt.scatter(x=x_pca_pos[:,0],y=x_pca_pos[:,1],c="b",marker="o",s=4)
-    # plt.xlim([-0.025,0.015])
-    # plt.ylim([-0.02,0.04])
-    plt.grid()
-    plt.savefig("pca_1_2_pos.png")
-
-    plt.figure()
-    plt.scatter(x=x_pca_neg[:,0],y=x_pca_neg[:,1],c="y",marker="o",s=4)
-    # plt.xlim([-0.025,0.015])
-    # plt.ylim([-0.02,0.04])
-    plt.grid()
-    plt.savefig("pca_1_2_neg.png")
-
-    '''
-    plt.figure()
-    plt.scatter(x=x_pca_neg[0,:],y=x_pca_neg[2,:],c="y",marker="o",s=4)
-    plt.scatter(x=x_pca_pos[0,:],y=x_pca_pos[2,:],c="b",marker="o",s=4)
+    plt.scatter(x=x_pca_neg[:,0],y=x_pca_neg[:,2],c="y",marker="o",s=4)
+    plt.scatter(x=x_pca_pos[:,0],y=x_pca_pos[:,2],c="b",marker="o",s=4)
     #plt.xlim([-0.1,0.1])
     #plt.ylim([-0.5,0.5])
     plt.grid()
     plt.savefig("pca_1_3.png")
 
     plt.figure()
-    plt.scatter(x=x_pca_neg[1,:],y=x_pca_neg[2,:],c="y",marker="o",s=4)
-    plt.scatter(x=x_pca_pos[1,:],y=x_pca_pos[2,:],c="b",marker="o",s=4)
+    plt.scatter(x=x_pca_neg[:,1],y=x_pca_neg[:,2],c="y",marker="o",s=4)
+    plt.scatter(x=x_pca_pos[:,1],y=x_pca_pos[:,2],c="b",marker="o",s=4)
     #plt.xlim([-0.1,0.1])
     #plt.ylim([-0.5,0.5])
     plt.grid()
     plt.savefig("pca_2_3.png")
-    '''
 
 # serializes classifier object to binary file
 def store_classifier(classifier,filename):
@@ -423,36 +570,66 @@ def main():
     pickle_check(open(dest_pickle_file, 'rb'), X_raw, y_raw)
 
 def main2():
-    x_train,y_train,x_valid,y_valid = load_dataset_pca(csv_file_name="../../../data/all-candidates-5-19-19-20.csv",
+
+    X_raw, y_raw = load_training_data(csv_file_name="../../../data/all-candidates-05-19-23-59.clean.csv",
+                                      feature_count=24)
+
+    X, y, _, _, _ = rescale(X=X_raw,y=y_raw)
+
+    n_components_list = range(10,24)
+    # max_tree_depth_list = [1,2,3,4,5]
+    # threshold_list = list(np.linspace(0.51,0.52,2))
+    for n_components in n_components_list:
+
+        X_pca = pca_components(x=X,n_components=n_components)
+
+        accuracy_positive, accuracy_negative, precision, recall, f1_score = \
+            ada_boost_cv_proba(x_train=X_pca,
+                               y_train=y,
+                               cv=4,
+                               max_tree_depth=10,
+                               n_estimators=100,
+                               learning_rate=0.1,
+                               pruning_threshold=0.5)
+        print(n_components,accuracy_positive,accuracy_negative,precision,recall,f1_score)
+
+    '''
+    x_train,y_train,x_valid,y_valid = load_dataset(csv_file_name="../../../data/all-candidates-5-19-19-20.csv",
                                                        feature_count=24,
-                                                       valid_set_ratio=0.01,
-                                                       neg_to_pos_ratio=1,
-                                                       n_components=18)
+                                                       valid_set_ratio=0.2,
+                                                       neg_to_pos_ratio=1)
+    '''
+
+    # pca_visualize(x_train=x_train,y_train=y_train,n_components=3)
 
     '''
     train_svm(x_train=x_train,
               y_train=y_train,
               x_valid=x_valid,
               y_valid=y_valid,
-              loss="hinge",
+              # loss="hinge",
+              loss="log",
               penalty="l2",
               alpha=0.0001,
-              n_iter=100)
-    x_train_pca = pca_components(x=x_train,n_components=2)
-    x_valid_pca = pca_components(x=x_valid,n_components=2)
-
+              n_iter=5)
+    # x_train_pca = pca_components(x=x_train,n_components=2)
+    # x_valid_pca = pca_components(x=x_valid,n_components=2)
+    return
     '''
-
+    '''
     ada_boost_classifier = train_ada_boost(x_train=x_train,
                                            y_train=y_train,
                                            n_estimators=500,
-                                           learning_rate=0.1)
-    store_classifier(ada_boost_classifier,"ada_boost_classifier.pkl")
+                                           learning_rate=0.1,
+                                           max_tree_depth=1)
+    store_classifier(ada_boost_classifier,"ada_boost_classifier_pca_10.pkl")
+    '''
 
     '''
     ada_boost_classifier = load_classifier("ada_boost_classifier.pkl")
     '''
 
+    '''
     eval_train_pos, eval_train_neg, eval_valid_pos, eval_valid_neg = \
                              eval_ada_boost(ada_boost_classifier=ada_boost_classifier,
                                             x_train=x_train,
@@ -464,7 +641,8 @@ def main2():
                    eval_train_neg=eval_train_neg,
                    eval_valid_pos=eval_valid_pos,
                    eval_valid_neg=eval_valid_neg,
-                   image_file="ada_boost_12.png")
+                   image_file="ada_boost_pca_20_2.png")
+    '''
 
     '''
     X = np.append(x_train,x_valid,axis=0)

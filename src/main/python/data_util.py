@@ -58,8 +58,8 @@ def load_training_data(csv_file_name, feature_count):
         else:
             print("Import was successful.")
 
-        print("Feature shape: {0}".format(X_raw.shape))
-        print("Label shape: {0}".format(y_raw.shape))
+        # print("Feature shape: {0}".format(X_raw.shape))
+        # print("Label shape: {0}".format(y_raw.shape))
 
         X_raw = impute_nan_inf(X_raw)
         return X_raw, y_raw
@@ -100,13 +100,13 @@ def rescale(X, y):
     return X, y, ranges, means, scaler
 
 def split_dataset(X_rescaled,y_rescaled,neg_to_pos_ratio,valid_set_ratio):
-    X, y = sklearn.utils.shuffle(X_rescaled, y_rescaled)
+    # X, y = sklearn.utils.shuffle(X_rescaled, y_rescaled)
 
-    pos_count = np.sum(y == 1)
-    neg_count = np.sum(y == 0)
+    pos_count = np.sum(y_rescaled == 1)
+    neg_count = np.sum(y_rescaled == 0)
 
-    print("We have {0} positive labels.".format(pos_count))
-    print("We have {0} negative labels.".format(neg_count))
+    # print("We have {0} positive labels.".format(pos_count))
+    # print("We have {0} negative labels.".format(neg_count))
 
     '''
     # Use a much smaller ratio of negative to positive samples in the validation
@@ -144,8 +144,8 @@ def split_dataset(X_rescaled,y_rescaled,neg_to_pos_ratio,valid_set_ratio):
     # TODO(andrei): Label better or remove.
     '''
 
-    pos_ids = np.where(y==1)[0]
-    neg_ids = np.where(y==0)[0]
+    pos_ids = np.where(y_rescaled==1)[0]
+    neg_ids = np.where(y_rescaled==0)[0]
 
     pos_count_valid = int(round(pos_count * valid_set_ratio))
     neg_count_valid = int(round(neg_count * valid_set_ratio))
@@ -160,15 +160,15 @@ def split_dataset(X_rescaled,y_rescaled,neg_to_pos_ratio,valid_set_ratio):
     neg_ids_train = np.delete(neg_ids,neg_ids_valid_idx)
 
     # oversample positive samples so that neg_to_pos_ratio is met
-    reps = int(np.ceil(neg_count / (pos_count * neg_to_pos_ratio)))
-    pos_ids_valid = np.tile(pos_ids_valid,reps=[reps])
+    # reps = int(np.ceil(neg_count / (pos_count * neg_to_pos_ratio)))
+    # pos_ids_valid = np.tile(pos_ids_valid,reps=[reps])
 
-    X_train_pos = X[pos_ids_train,:]
-    X_train_neg = X[neg_ids_train,:]
+    X_train_pos = X_rescaled[pos_ids_train,:]
+    X_train_neg = X_rescaled[neg_ids_train,:]
     X_train = np.append(X_train_pos,X_train_neg,axis=0)
 
-    y_train_pos = y[pos_ids_train]
-    y_train_neg = y[neg_ids_train]
+    y_train_pos = y_rescaled[pos_ids_train]
+    y_train_neg = y_rescaled[neg_ids_train]
     y_train = np.append(y_train_pos,y_train_neg)
 
     y_train_exp = np.expand_dims(y_train,axis=1)
@@ -183,8 +183,8 @@ def split_dataset(X_rescaled,y_rescaled,neg_to_pos_ratio,valid_set_ratio):
     X_valid_neg = X_rescaled[neg_ids_valid,:]
     X_valid = np.append(X_valid_pos,X_valid_neg,axis=0)
 
-    y_valid_pos = y[pos_ids_valid]
-    y_valid_neg = y[neg_ids_valid]
+    y_valid_pos = y_rescaled[pos_ids_valid]
+    y_valid_neg = y_rescaled[neg_ids_valid]
 
     y_valid = np.append(y_valid_pos,y_valid_neg)
 
@@ -227,7 +227,7 @@ def pca_components(x,n_components):
 
     for i in range(n_components):
         explained_variance = np.sum(pca.explained_variance_ratio_[:(i+1)])
-        print("Principal components = " + str(i+1) + " Explained variance = " + str(explained_variance))
+        # print("Principal components = " + str(i+1) + " Explained variance = " + str(explained_variance))
 
     return pca_components
 
