@@ -9,7 +9,7 @@ import sys
 import numpy as np
 import sklearn
 from sklearn.linear_model import SGDClassifier, LogisticRegression
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import *
 from sklearn.svm import SVC
 
 from data_util import impute_nan_inf, load_training_data, rescale
@@ -33,7 +33,11 @@ def pickle_check(pickle_file, X_raw, y_raw):
     X = scaler.transform((X_raw - means) / ranges)
     y = y_raw
     y_pred = loaded_clf.predict(X)
+    print("Train set metrics")
     print(confusion_matrix(y, y_pred))
+    print("F1:       ", f1_score(y, y_pred))
+    print("Precision:", precision_score(y, y_pred))
+    print("Recall:   ", recall_score(y, y_pred))
 
 
 def main():
