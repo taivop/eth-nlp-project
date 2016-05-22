@@ -663,16 +663,26 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
    * Train data confusion matrix:
        [[78241  4235]
         [   55   567]]
-   * Numbers (threshold = 0.50):
-     < TODO >
+   * Numbers (threshold = 0.60, with query preprocessing, splitByLP == false):
+    <left tab>
+   * Numbers (threshold = 0.55, with query preprocessing, splitByLP == false):
+    <right tab>
+   * Numbers (threshold = 0.50, with query preprocessing, splitByLP == false):
+     * C2W	mac-P/R/F1: 0.501/0.626/0.490 mic-P/R/F1: 0.460/0.597/0.520 TP/FP/FN: 244/286/165 std-P/R/F1: 0.382/0.390/0.368	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.373/0.526/0.380 mic-P/R/F1: 0.338/0.501/0.404 TP/FP/FN: 205/402/204 std-P/R/F1: 0.359/0.412/0.359	SMAPH-S annotator
    * Numbers (threshold = 0.45):
      * C2W	mac-P/R/F1: 0.496/0.624/0.489 mic-P/R/F1: 0.448/0.592/0.510 TP/FP/FN: 242/298/167 std-P/R/F1: 0.376/0.393/0.364	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.368/0.516/0.376 mic-P/R/F1: 0.319/0.489/0.386 TP/FP/FN: 200/426/209 std-P/R/F1: 0.355/0.409/0.355	SMAPH-S annotator
    * Numbers (threshold = 0.40):
      * C2W	mac-P/R/F1: 0.487/0.634/0.489 mic-P/R/F1: 0.443/0.604/0.511 TP/FP/FN: 247/310/162 std-P/R/F1: 0.368/0.389/0.358	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.355/0.518/0.371 mic-P/R/F1: 0.310/0.491/0.380 TP/FP/FN: 201/448/208 std-P/R/F1: 0.345/0.409/0.349	SMAPH-S annotator
-     * After merging Berni's changes but not using them:
-      * <Pending>
+     * After merging Berni's changes but not using them: CONFIRMED SAME NUMBERS
+     * After also using Berni's util before submitting to Bing (splitByLP == false):
+       * C2W	mac-P/R/F1: 0.482/0.649/0.498 mic-P/R/F1: 0.447/0.619/0.519 TP/FP/FN: 253/313/156 std-P/R/F1: 0.372/0.381/0.361	SMAPH-S annotator
+       * A2W-SAM	mac-P/R/F1: 0.344/0.536/0.377 mic-P/R/F1: 0.319/0.509/0.392 TP/FP/FN: 208/445/201 std-P/R/F1: 0.341/0.411/0.354	SMAPH-S annotator
+     * After also using Berni's util + splitByLP == true (slightly worse):
+       * C2W	mac-P/R/F1: 0.468/0.645/0.491 mic-P/R/F1: 0.439/0.616/0.513 TP/FP/FN: 252/322/157 std-P/R/F1: 0.366/0.382/0.358	SMAPH-S annotator
+       * A2W-SAM	mac-P/R/F1: 0.338/0.533/0.374 mic-P/R/F1: 0.312/0.509/0.387 TP/FP/FN: 208/459/201 std-P/R/F1: 0.337/0.410/0.351	SMAPH-S annotator
    * Numbers (threshold = 0.35):
      * C2W	mac-P/R/F1: 0.468/0.636/0.485 mic-P/R/F1: 0.437/0.606/0.508 TP/FP/FN: 248/320/161 std-P/R/F1: 0.363/0.387/0.355	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.333/0.520/0.363 mic-P/R/F1: 0.297/0.494/0.371 TP/FP/FN: 202/477/207 std-P/R/F1: 0.334/0.407/0.344	SMAPH-S annotator

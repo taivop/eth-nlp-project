@@ -10,7 +10,9 @@ import annotatorstub.utils.bing.BingSearchAPI;
 import annotatorstub.utils.caching.WATRequestCache;
 import annotatorstub.utils.mention.GreedyMentionIterator;
 import annotatorstub.utils.mention.MentionCandidate;
+import annotatorstub.utils.mention.MentionIteratorFactory;
 import annotatorstub.utils.mention.SmaphCandidate;
+import annotatorstub.utils.modification.QueryProcessing;
 import it.unipi.di.acube.batframework.data.Mention;
 import it.unipi.di.acube.batframework.data.ScoredAnnotation;
 import it.unipi.di.acube.batframework.data.Tag;
@@ -401,7 +403,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         //region Get bing results and create candidate entities set (union of E1, E2 and E3)
         try {
-            bingResult = bingApi.query(query);
+//            bingResult = bingApi.query(query);
+            // This is using Bernhard's improved preprocessor.
+            bingResult = bingApi.query(QueryProcessing.getInstance().alterQueryForBingSearch(query));
             candidateEntities =
                     candidateEntitiesGenerator.generateCandidateEntities(bingResult, topKSnippets,
                         generatorQueryMethod);
@@ -437,7 +441,10 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         // Find all potential mentions
         Set<MentionCandidate> mentions = new HashSet<>();                // Seg(q) in the paper
-        GreedyMentionIterator it = new GreedyMentionIterator(query);
+//        GreedyMentionIterator it = new GreedyMentionIterator(query);
+        boolean splitByLP = false;
+        // This is using Bernhard's improved mention iterator.
+        GreedyMentionIterator it = MentionIteratorFactory.getMentionIteratorForQuery(query, splitByLP);
         while (it.hasNext()) {
             MentionCandidate mention = it.next();
             mentions.add(mention);
