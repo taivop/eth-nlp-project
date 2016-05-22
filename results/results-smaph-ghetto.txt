@@ -518,9 +518,15 @@ After doing the refactor to support Taivo's changes
    * Numbers (with smaph-S pruning threshold 0.05; NO extra mention picker):
      * C2W	mac-P/R/F1: 0.644/0.379/0.362 mic-P/R/F1: 0.466/0.315/0.376 TP/FP/FN: 129/148/280 std-P/R/F1: 0.433/0.403/0.388	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.503/0.261/0.241 mic-P/R/F1: 0.246/0.203/0.223 TP/FP/FN: 83/254/326 std-P/R/F1: 0.466/0.370/0.355	SMAPH-S annotator
+     * After bugfix:
+       * C2W	mac-P/R/F1: 0.570/0.534/0.456 mic-P/R/F1: 0.510/0.506/0.508 TP/FP/FN: 207/199/202 std-P/R/F1: 0.417/0.411/0.392	SMAPH-S annotator
+       * A2W-SAM	mac-P/R/F1: 0.472/0.450/0.368 mic-P/R/F1: 0.374/0.421/0.396 TP/FP/FN: 172/288/237 std-P/R/F1: 0.425/0.412/0.381	SMAPH-S annotator
    * Numbers (with smaph-S pruning threshold 0.03; NO extra mention picker):
      * C2W	mac-P/R/F1: 0.615/0.404/0.374 mic-P/R/F1: 0.451/0.337/0.386 TP/FP/FN: 138/168/271 std-P/R/F1: 0.433/0.404/0.382	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.451/0.265/0.233 mic-P/R/F1: 0.220/0.210/0.215 TP/FP/FN: 86/305/323 std-P/R/F1: 0.458/0.369/0.343	SMAPH-S annotator
+     * After bugfix:
+       * C2W	mac-P/R/F1: 0.558/0.561/0.472 mic-P/R/F1: 0.506/0.531/0.518 TP/FP/FN: 217/212/192 std-P/R/F1: 0.412/0.403/0.385	SMAPH-S annotator
+       * A2W-SAM	mac-P/R/F1: 0.443/0.460/0.368 mic-P/R/F1: 0.348/0.433/0.386 TP/FP/FN: 177/331/232 std-P/R/F1: 0.417/0.410/0.377	SMAPH-S annotator
    * Numbers (with smaph-S pruning threshold 0.01; NO extra mention picker):
      * C2W	mac-P/R/F1: 0.524/0.461/0.405 mic-P/R/F1: 0.424/0.389/0.406 TP/FP/FN: 159/216/250 std-P/R/F1: 0.429/0.405/0.378	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.287/0.279/0.209 mic-P/R/F1: 0.159/0.220/0.184 TP/FP/FN: 90/477/319 std-P/R/F1: 0.388/0.376/0.320	SMAPH-S annotator

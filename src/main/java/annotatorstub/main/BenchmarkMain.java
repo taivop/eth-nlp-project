@@ -57,7 +57,8 @@ public class BenchmarkMain {
             WATRequestCache watRequestCache = new WATRequestCache(
                 "watapi.benchmark.cache",
                 "Small WAT API cache (benchmark only)", 500);
-            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.1000-probabilistic.pkl");
+//            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.1000-probabilistic.pkl");
+            svmApi.startPythonServer("models/m-no-yahoo-svc-c-0.0005-probabilistic.pkl");
             SmaphSAnnotator ann = new SmaphSAnnotator(
 //                new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
                 new SmaphSRemoteSvmPruner(svmApi),

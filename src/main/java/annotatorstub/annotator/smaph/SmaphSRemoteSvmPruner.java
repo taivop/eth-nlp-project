@@ -17,7 +17,7 @@ public class SmaphSRemoteSvmPruner implements SmaphSListPruner {
     private static Logger logger = LoggerFactory.getLogger(SmaphSRemoteSvmPruner.class);
 
     private PythonApiInterface svmApi;
-    public static final Double PRUNING_THRESHOLD = 0.1;
+    public static final Double PRUNING_THRESHOLD = 0.2;
 
     public SmaphSRemoteSvmPruner(PythonApiInterface svmApi) {
         this.svmApi = svmApi;
