@@ -653,8 +653,52 @@ After fixing major Smaph-S bug
 
 Everything past this point always trained on GERDAQ-{A,B} data only.
 
- * Logistic Regression
+ * Logistic Regression (C = 0.00025)
+  * Using Smaph-S style pruning
+  * models/m-no-yahoo-lr-c-0.00025.pkl.
+  * Details:
+      LogisticRegression(C=0.00025, class_weight='balanced', dual=False,
+                fit_intercept=True, intercept_scaling=1, max_iter=100,
+                multi_class='ovr', n_jobs=1, penalty='l2', random_state=None,
+                solver='liblinear', tol=0.0001, verbose=0, warm_start=False)
+  * Train data confusion matrix:
+      [[77635  4841]
+       [   56   566]]
+  * Numbers (threshold = 0.80, with query preprocessing, splitByLP == false):
+     * C2W	mac-P/R/F1: 0.614/0.539/0.478 mic-P/R/F1: 0.547/0.511/0.528 TP/FP/FN: 209/173/200 std-P/R/F1: 0.420/0.413/0.397	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.566/0.491/0.433 mic-P/R/F1: 0.479/0.467/0.473 TP/FP/FN: 191/208/218 std-P/R/F1: 0.429/0.415/0.396	SMAPH-S annotator
+  * Numbers (threshold = 0.75, with query preprocessing, splitByLP == false):
+    * C2W	mac-P/R/F1: 0.596/0.554/0.484 mic-P/R/F1: 0.538/0.523/0.530 TP/FP/FN: 214/184/195 std-P/R/F1: 0.416/0.409/0.394	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.536/0.495/0.426 mic-P/R/F1: 0.456/0.472/0.464 TP/FP/FN: 193/230/216 std-P/R/F1: 0.428/0.414/0.393	SMAPH-S annotator
+  * Numbers (threshold = 0.70, with query preprocessing, splitByLP == false):
+    * C2W	mac-P/R/F1: 0.593/0.587/0.511 mic-P/R/F1: 0.539/0.557/0.548 TP/FP/FN: 228/195/181 std-P/R/F1: 0.408/0.399/0.384	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.504/0.506/0.430 mic-P/R/F1: 0.430/0.484/0.456 TP/FP/FN: 198/262/211 std-P/R/F1: 0.421/0.411/0.387	SMAPH-S annotator
+  * Numbers (threshold = 0.65, with query preprocessing, splitByLP == false):
+    * C2W	mac-P/R/F1: 0.580/0.600/0.514 mic-P/R/F1: 0.525/0.570/0.546 TP/FP/FN: 233/211/176 std-P/R/F1: 0.399/0.396/0.378	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.478/0.512/0.423 mic-P/R/F1: 0.405/0.489/0.443 TP/FP/FN: 200/294/209 std-P/R/F1: 0.409/0.413/0.382	SMAPH-S annotator
+    * Rechecking numbers after moving score directly to 'SmaphCandidate': A-OK!
+    * By doing smarter entity trimming in the end (better A2W):
+      * C2W	mac-P/R/F1: 0.580/0.600/0.514 mic-P/R/F1: 0.525/0.570/0.546 TP/FP/FN: 233/211/176 std-P/R/F1: 0.399/0.396/0.378	SMAPH-S annotator
+      * A2W-SAM	mac-P/R/F1: 0.509/0.512/0.439 mic-P/R/F1: 0.450/0.489/0.469 TP/FP/FN: 200/244/209 std-P/R/F1: 0.422/0.413/0.392	SMAPH-S annotator
+  * Numbers (threshold = 0.60, with query preprocessing, splitByLP == false):
+    * C2W	mac-P/R/F1: 0.565/0.615/0.514 mic-P/R/F1: 0.515/0.584/0.548 TP/FP/FN: 239/225/170 std-P/R/F1: 0.394/0.394/0.375	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.447/0.516/0.409 mic-P/R/F1: 0.378/0.494/0.428 TP/FP/FN: 202/333/207 std-P/R/F1: 0.399/0.414/0.378	SMAPH-S annotator
+  * Numbers (threshold = 0.55, with query preprocessing, splitByLP == false):
+    * C2W	mac-P/R/F1: 0.521/0.616/0.493 mic-P/R/F1: 0.488/0.587/0.533 TP/FP/FN: 240/252/169 std-P/R/F1: 0.387/0.393/0.371	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.401/0.517/0.387 mic-P/R/F1: 0.354/0.496/0.413 TP/FP/FN: 203/371/206 std-P/R/F1: 0.378/0.414/0.367	SMAPH-S annotator
+  * Numbers (threshold = 0.50, with query preprocessing, splitByLP == false):
+    * C2W	mac-P/R/F1: 0.506/0.628/0.494 mic-P/R/F1: 0.472/0.594/0.526 TP/FP/FN: 243/272/166 std-P/R/F1: 0.380/0.390/0.366	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.372/0.521/0.376 mic-P/R/F1: 0.332/0.499/0.399 TP/FP/FN: 204/410/205 std-P/R/F1: 0.360/0.413/0.359	SMAPH-S annotator
+  * Numbers (threshold = 0.40, with query preprocessing, splitByLP == false):
+    * C2W	mac-P/R/F1: 0.483/0.655/0.500 mic-P/R/F1: 0.460/0.619/0.528 TP/FP/FN: 253/297/156 std-P/R/F1: 0.366/0.379/0.355	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.329/0.530/0.365 mic-P/R/F1: 0.302/0.506/0.378 TP/FP/FN: 207/479/202 std-P/R/F1: 0.333/0.413/0.349	SMAPH-S annotator
+  * Numbers (threshold = 0.30, with query preprocessing, splitByLP == false):
+    * C2W	mac-P/R/F1: 0.473/0.659/0.497 mic-P/R/F1: 0.452/0.621/0.523 TP/FP/FN: 254/308/155 std-P/R/F1: 0.363/0.377/0.353	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.316/0.530/0.357 mic-P/R/F1: 0.291/0.506/0.369 TP/FP/FN: 207/505/202 std-P/R/F1: 0.325/0.413/0.345	SMAPH-S annotator
+
+ * Logistic Regression (C = 0.00100)
    * Using Smaph-S style pruning
+   * Unless mentioned, no query preprocessing used.
    * Details:
        LogisticRegression(C=0.001, class_weight='balanced', dual=False,
                  fit_intercept=True, intercept_scaling=1, max_iter=100,
@@ -724,6 +768,43 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
      * Odd. Gotta rerun.
      * Confirmed. Strange that the change is so small.
 
+ * Logistic Regression (C == 0.01)
+   * models/m-no-yahoo-lr-c-0.01.pkl
+   * Details:
+       LogisticRegression(C=0.01, class_weight='balanced', dual=False,
+                 fit_intercept=True, intercept_scaling=1, max_iter=100,
+                 multi_class='ovr', n_jobs=1, penalty='l2', random_state=None,
+                 solver='liblinear', tol=0.0001, verbose=0, warm_start=False)
+   * Train data confusion matrix:
+       [[78203  4273]
+        [   55   567]]
+   * Numbers (threshold = 0.80, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.568/0.577/0.495 mic-P/R/F1: 0.515/0.545/0.530 TP/FP/FN: 223/210/186 std-P/R/F1: 0.420/0.407/0.393	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.502/0.514/0.434 mic-P/R/F1: 0.437/0.484/0.459 TP/FP/FN: 198/255/211 std-P/R/F1: 0.426/0.416/0.394	SMAPH-S annotator
+   * Numbers (threshold = 0.75, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.550/0.584/0.492 mic-P/R/F1: 0.499/0.553/0.524 TP/FP/FN: 226/227/183 std-P/R/F1: 0.414/0.404/0.390	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.472/0.514/0.421 mic-P/R/F1: 0.412/0.484/0.445 TP/FP/FN: 198/283/211 std-P/R/F1: 0.416/0.416/0.390	SMAPH-S annotator
+   * Numbers (threshold = 0.70, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.541/0.591/0.489 mic-P/R/F1: 0.488/0.562/0.523 TP/FP/FN: 230/241/179 std-P/R/F1: 0.411/0.405/0.390	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.456/0.520/0.414 mic-P/R/F1: 0.397/0.491/0.439 TP/FP/FN: 201/305/208 std-P/R/F1: 0.408/0.417/0.387	SMAPH-S annotator
+   * Numbers (threshold = 0.65, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.512/0.602/0.483 mic-P/R/F1: 0.474/0.575/0.519 TP/FP/FN: 235/261/174 std-P/R/F1: 0.404/0.403/0.387	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.417/0.524/0.399 mic-P/R/F1: 0.381/0.499/0.432 TP/FP/FN: 204/332/205 std-P/R/F1: 0.392/0.418/0.381	SMAPH-S annotator
+   * Numbers (threshold = 0.60, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.503/0.604/0.479 mic-P/R/F1: 0.460/0.579/0.513 TP/FP/FN: 237/278/172 std-P/R/F1: 0.400/0.403/0.384	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.405/0.524/0.393 mic-P/R/F1: 0.364/0.499/0.421 TP/FP/FN: 204/357/205 std-P/R/F1: 0.386/0.418/0.377	SMAPH-S annotator
+   * Numbers (threshold = 0.55, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.486/0.612/0.478 mic-P/R/F1: 0.446/0.584/0.506 TP/FP/FN: 239/297/170 std-P/R/F1: 0.391/0.401/0.378	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.381/0.524/0.384 mic-P/R/F1: 0.348/0.499/0.410 TP/FP/FN: 204/382/205 std-P/R/F1: 0.372/0.418/0.371	SMAPH-S annotator
+   * Numbers (threshold = 0.50, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.480/0.616/0.477 mic-P/R/F1: 0.440/0.592/0.505 TP/FP/FN: 242/308/167 std-P/R/F1: 0.386/0.399/0.375	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.366/0.525/0.379 mic-P/R/F1: 0.337/0.501/0.403 TP/FP/FN: 205/403/204 std-P/R/F1: 0.363/0.419/0.367	SMAPH-S annotator
+   * Numbers (threshold = 0.45, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.473/0.624/0.476 mic-P/R/F1: 0.434/0.601/0.504 TP/FP/FN: 246/321/163 std-P/R/F1: 0.380/0.397/0.371	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.357/0.526/0.374 mic-P/R/F1: 0.325/0.504/0.395 TP/FP/FN: 206/428/203 std-P/R/F1: 0.357/0.419/0.364	SMAPH-S annotator
+   * Numbers (threshold = 0.40, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.464/0.632/0.478 mic-P/R/F1: 0.429/0.606/0.503 TP/FP/FN: 248/330/161 std-P/R/F1: 0.374/0.395/0.366	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.348/0.535/0.376 mic-P/R/F1: 0.321/0.509/0.394 TP/FP/FN: 208/440/201 std-P/R/F1: 0.350/0.419/0.361	SMAPH-S annotator
 
  * Logistic Regression (C == 0.1)
    * models/m-no-yahoo-lr-c-0.1.pkl
@@ -735,11 +816,22 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
    * Train data confusion matrix:
        [[78148  4328]
         [   52   570]]
+   * Numbers (threshold = 0.55, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.481/0.609/0.474 mic-P/R/F1: 0.441/0.582/0.502 TP/FP/FN: 238/302/171 std-P/R/F1: 0.392/0.404/0.380	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.377/0.524/0.382 mic-P/R/F1: 0.346/0.499/0.408 TP/FP/FN: 204/386/205 std-P/R/F1: 0.371/0.421/0.371	SMAPH-S annotator
+   * Numbers (threshold = 0.50, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.477/0.616/0.475 mic-P/R/F1: 0.434/0.589/0.500 TP/FP/FN: 241/314/168 std-P/R/F1: 0.388/0.401/0.376	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.363/0.524/0.377 mic-P/R/F1: 0.333/0.499/0.399 TP/FP/FN: 204/409/205 std-P/R/F1: 0.363/0.421/0.368	SMAPH-S annotator
+   * Numbers (threshold = 0.45, with query preprocessing, splitByLP == false)):
+     * C2W	mac-P/R/F1: 0.473/0.617/0.474 mic-P/R/F1: 0.429/0.592/0.497 TP/FP/FN: 242/322/167 std-P/R/F1: 0.385/0.401/0.375	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.357/0.524/0.373 mic-P/R/F1: 0.323/0.499/0.392 TP/FP/FN: 204/428/205 std-P/R/F1: 0.361/0.421/0.366	SMAPH-S annotator
    * Numbers (threshold = 0.40, with query preprocessing, splitByLP == false)):
-     * <pending>
+     * C2W	mac-P/R/F1: 0.464/0.626/0.473 mic-P/R/F1: 0.422/0.599/0.495 TP/FP/FN: 245/336/164 std-P/R/F1: 0.378/0.398/0.369	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.348/0.534/0.372 mic-P/R/F1: 0.316/0.506/0.389 TP/FP/FN: 207/448/202 std-P/R/F1: 0.353/0.421/0.361	SMAPH-S annotator
 
 
  * SVC (C == 1.0):
+   * Data may have been affected by existing smaph-S selection bug.
    * models/m-no-yahoo-svc-c-1.0000-probabilistic.pkl
    * Details:
        SVC(C=1.0, cache_size=200, class_weight='balanced', coef0=0.0,
