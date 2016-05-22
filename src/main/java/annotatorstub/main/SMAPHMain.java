@@ -1,6 +1,7 @@
 package annotatorstub.main;
 
 import annotatorstub.annotator.smaph.SmaphSAnnotator;
+import annotatorstub.annotator.smaph.SmaphSNoPruning;
 
 import java.util.Optional;
 
@@ -14,20 +15,19 @@ import java.util.Optional;
 
 public class SMAPHMain {
 
-
     public static void main(String[] args) throws Exception {
 		/*WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
         A2WDataset dataSet = DatasetBuilder.getGerdaqTrainB();
 		SMAPHAnnotator smaphAnnotator = new SMAPHAnnotator();
-	
+
 		WATRelatednessComputer.setCache("relatedness.cache");
-		
+
 		List<HashSet<Tag>> resTag = BenchmarkCache.doC2WTags(smaphAnnotator, dataSet);
-		
+
 		Metrics<Tag> metricsTag = new Metrics<>();
 		MetricsResultSet C2WRes = metricsTag.getResult(resTag, dataSet.getC2WGoldStandardList(), new StrongTagMatch(wikiApi));
 		Utils.printMetricsResultSet("C2W", C2WRes, smaphAnnotator.getName());
-		
+
 		wikiApi.flush();
 		WATRelatednessComputer.flush();*/
     }

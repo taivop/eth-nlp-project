@@ -67,7 +67,7 @@ public class PythonApiInterface implements Closeable {
         }
     }
 
-    private String makeSeparatedString(List<Double> features) {
+    private String makeSeparatedFeatureString(List<Double> features) {
         String separatedString = "";
         Integer index = 0;
         for(Double f : features) {
@@ -81,25 +81,51 @@ public class PythonApiInterface implements Closeable {
         return separatedString;
     }
 
+    private String makeProbabilisticFlagString(boolean isProbabilistic) {
+        String flagString = "probabilistic=";
+        flagString += isProbabilistic ? "1" : "0";
+        return flagString;
+    }
+
     public boolean binClassifyFlask(List<Double> features) throws IOException {
-        return binClassifyFlask(features, 3);
+        Double prediction = binClassifyFlask(features, false, 3);
+        if(prediction == 0.0) {
+            return false;
+        } else if(prediction == 1.0) {
+            return true;
+        } else {
+            throw new RuntimeException(
+                    String.format("Could not parse classifier output [%.3f] as a 0/1 boolean.", prediction)
+            );
+        }
+    }
+
+    //TODO (Taivo) I know the method name sucks but backwards-compatibility, coherent naming and gangsta rap and made me do it
+    public Double binClassifyFlaskProbabilistic(List<Double> features) throws IOException {
+        return binClassifyFlask(features, true, 3);
     }
 
     /**
      * Classify given list of features by calling the Python API.
      *
-     * TODO(andrei): Reuse same connection.
-     *
-     * @see http://stackoverflow.com/questions/1359689/how-to-send-http-request-in-java
+     * @see
+     *  <a href="http://stackoverflow.com/questions/1359689/how-to-send-http-request-in-java">
+     *    http://stackoverflow.com/questions/1359689/how-to-send-http-request-in-java
+     *  </a>
      */
-    public boolean binClassifyFlask(List<Double> features, int retriesLeft) throws IOException {
+    private Double binClassifyFlask(
+        List<Double> features,
+        boolean probabilistic,
+        int retriesLeft) throws IOException {
         if(retriesLeft == 0) {
             throw new RuntimeException("No more Flask API retries left. There's probably " +
                 "something wrong with the Python server.");
         }
 
-        String urlParameters = "?features_string=" + makeSeparatedString(features);
+        String urlParameters = "?features_string=" + makeSeparatedFeatureString(features) + "&" +
+                makeProbabilisticFlagString(probabilistic);
         String queryUrl = API_ADDRESS + ":" + API_PORT + "/" + API_ENDPOINT;
+        String responseString = null;
 
         try {
             // Set up connection and send the request
@@ -113,7 +139,6 @@ public class PythonApiInterface implements Closeable {
             connection.setUseCaches(false);
             connection.setDoOutput(true);
 
-            // TODO(andrei): Sometimes the Python API seems to act up. Consider implementing retries.
             // Read response
             InputStream is = connection.getInputStream();
             BufferedReader rd = new BufferedReader(new InputStreamReader(is));
@@ -125,32 +150,42 @@ public class PythonApiInterface implements Closeable {
             }
             rd.close();
 
-            String responseString = response.toString().trim();
-//        logger.info(String.format("Response from Python server: %s", responseString));
 
-            // Note: `Boolean.parseBoolean(responseString);` expects 'true'/'false' strings.
-            if (responseString.equals("0")) {
-                return false;
+            responseString = response.toString().trim();
+//            logger.info("Response from Python server: {}", responseString);
+
+            // If running a probabilistic classifier, the response will look like '[pNonRel
+            // pRel]', since the first class, '0', means "don't keep". Process to just keep the
+            // second probability.
+            if(probabilistic) {
+                String[] responseStringParts = responseString.split("\\s+");
+                responseString = responseStringParts[2].trim();
+                int endIndex = responseString.length();
+                if(responseString.endsWith("]")) {
+                    endIndex = endIndex - 1;
+                }
+                responseString = responseString.substring(0, endIndex);
             }
-            else if (responseString.equals("1")) {
-                return true;
-            }
-            else {
-                throw new RuntimeException(
-                    String.format(
-                        "Could not parse classifier output [%s] as a 0/1 boolean.",
-                        responseString));
-            }
+//            logger.info("Extracted: {}", responseString);
+
+            return Double.parseDouble(responseString);
         }
         catch(SocketTimeoutException timeout) {
-            System.err.println("Possible issue with Python API. Retrying connection.");
+            System.err.println("Possible issue with Python API (socket timeout). Retrying " +
+                    "connection.");
             timeout.printStackTrace();
-            return binClassifyFlask(features, retriesLeft - 1);
+            return binClassifyFlask(features, probabilistic, retriesLeft - 1);
         }
         catch(ConnectException connectException) {
-            System.err.println("Possible issue with Python API. Retrying connection.");
+            System.err.println("Possible issue with Python API (connect timeout). Retrying " +
+                    "connection.");
             connectException.printStackTrace();
-            return binClassifyFlask(features, retriesLeft - 1);
+            return binClassifyFlask(features, probabilistic, retriesLeft - 1);
+        }
+        catch(Exception e) {
+            System.err.println("Critical error interfacing with Python.");
+            System.err.println("Latest known response string: " + responseString);
+            throw e;
         }
     }
 

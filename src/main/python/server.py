@@ -29,6 +29,7 @@ def hello():
 def predict():
     try:
         features_string = request.args.get("features_string")
+        probabilistic = int(request.args.get("probabilistic"))
         features = [float(x) for x in features_string.split(SEPARATOR)]
 
         # Ensure that our data is a one row matrix, as expected by sklearn.
@@ -37,7 +38,10 @@ def predict():
         x = impute_nan_inf(x)
         x = scaler.transform((x - means) / magnitudes)
         try:
-            s = classifier.predict(x)
+            if probabilistic:
+                s = classifier.predict_proba(x)
+            else:
+                s = classifier.predict(x)
         except ValueError as err:
             print("Predict exception:", err, file=sys.stderr)
 
