@@ -49,7 +49,7 @@ public class BenchmarkMain {
             6) (Optional) Move these instructions to a more appropriate place, if applicable.
          */
 
-        try (PythonApiInterface svmApi = new PythonApiInterface(5008)) {
+        try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
             // Use a separate cache when running the benchmark as opposed to when doing the data
             // generation, since this lets us keep the benchmark-only cache small. The data gen
             // one, especially when also using the Yahoo! data, ends up blowing up to several Gb,

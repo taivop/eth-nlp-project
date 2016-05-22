@@ -664,13 +664,15 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
        [[78241  4235]
         [   55   567]]
    * Numbers (threshold = 0.50):
-    < in middle tab >
+     < TODO >
    * Numbers (threshold = 0.45):
      * C2W	mac-P/R/F1: 0.496/0.624/0.489 mic-P/R/F1: 0.448/0.592/0.510 TP/FP/FN: 242/298/167 std-P/R/F1: 0.376/0.393/0.364	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.368/0.516/0.376 mic-P/R/F1: 0.319/0.489/0.386 TP/FP/FN: 200/426/209 std-P/R/F1: 0.355/0.409/0.355	SMAPH-S annotator
    * Numbers (threshold = 0.40):
-    <in left tab>
-
+     * C2W	mac-P/R/F1: 0.487/0.634/0.489 mic-P/R/F1: 0.443/0.604/0.511 TP/FP/FN: 247/310/162 std-P/R/F1: 0.368/0.389/0.358	SMAPH-S annotator
+     * A2W-SAM	mac-P/R/F1: 0.355/0.518/0.371 mic-P/R/F1: 0.310/0.491/0.380 TP/FP/FN: 201/448/208 std-P/R/F1: 0.345/0.409/0.349	SMAPH-S annotator
+     * After merging Berni's changes but not using them:
+      * <Pending>
    * Numbers (threshold = 0.35):
      * C2W	mac-P/R/F1: 0.468/0.636/0.485 mic-P/R/F1: 0.437/0.606/0.508 TP/FP/FN: 248/320/161 std-P/R/F1: 0.363/0.387/0.355	SMAPH-S annotator
      * A2W-SAM	mac-P/R/F1: 0.333/0.520/0.363 mic-P/R/F1: 0.297/0.494/0.371 TP/FP/FN: 202/477/207 std-P/R/F1: 0.334/0.407/0.344	SMAPH-S annotator

@@ -125,6 +125,7 @@ public class PythonApiInterface implements Closeable {
         String urlParameters = "?features_string=" + makeSeparatedFeatureString(features) + "&" +
                 makeProbabilisticFlagString(probabilistic);
         String queryUrl = API_ADDRESS + ":" + API_PORT + "/" + API_ENDPOINT;
+        String responseString = null;
 
         try {
             // Set up connection and send the request
@@ -150,7 +151,7 @@ public class PythonApiInterface implements Closeable {
             rd.close();
 
 
-            String responseString = response.toString().trim();
+            responseString = response.toString().trim();
 //            logger.info("Response from Python server: {}", responseString);
 
             // If running a probabilistic classifier, the response will look like '[pNonRel
@@ -180,6 +181,11 @@ public class PythonApiInterface implements Closeable {
                     "connection.");
             connectException.printStackTrace();
             return binClassifyFlask(features, probabilistic, retriesLeft - 1);
+        }
+        catch(Exception e) {
+            System.err.println("Critical error interfacing with Python.");
+            System.err.println("Latest known response string: " + responseString);
+            throw e;
         }
     }
 
