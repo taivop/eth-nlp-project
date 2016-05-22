@@ -8,11 +8,11 @@ import java.util.*;
  *  - shingles left in query before shingles right in the query
  */
 public class GreedyMentionIterator implements Iterator<MentionCandidate> {
-	private String[] words; // query split in words
-	private String query; // original query
-	private int pos = 0;
-	private int n; // current shingle size
-	private boolean hasNext = true;
+	protected String[] words; // query split in words
+	protected String query; // original query
+	protected int pos = 0;
+	protected int n; // current shingle size
+	protected boolean hasNext = true;
 
 	public GreedyMentionIterator(String query) {
 		this.query = query;
@@ -38,6 +38,7 @@ public class GreedyMentionIterator implements Iterator<MentionCandidate> {
 		}
 		String mention = sb.toString();
 		int start = query.indexOf(mention);
+		
 		return new MentionCandidate(start, start + mention.length(), mention);
 	}
 }
