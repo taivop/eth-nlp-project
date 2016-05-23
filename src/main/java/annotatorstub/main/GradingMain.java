@@ -46,7 +46,8 @@ public class GradingMain {
             System.out.println("A discrepancy is normal because of duplicate common queries such " +
                     "as 'facebook or 'twilight green day'.");
 
-            List<String> gradedQueryList = new ArrayList<>(unannotated.getTextInstanceList());
+            // These are the components of our newly-generated dataset.
+            List<String> gradedQueryList = new ArrayList<>();
             List<HashSet<Annotation>> subsampledGold = new ArrayList<>();
 
             // Add only those annotated queries from the ground truth which are in the subset
@@ -54,8 +55,11 @@ public class GradingMain {
             for (int i = 0; i < fullyAnnotated.getA2WGoldStandardList().size(); i++) {
                 if (gradedQuerySet.contains(fullyAnnotated.getTextInstanceList().get(i))) {
                     subsampledGold.add(fullyAnnotated.getA2WGoldStandardList().get(i));
+                    gradedQueryList.add(fullyAnnotated.getTextInstanceList().get(i));
                 }
             }
+
+            System.out.println("Final dataset size: " + gradedQueryList.size());
 
             A2WDataset out = new A2WDataset() {
                 @Override

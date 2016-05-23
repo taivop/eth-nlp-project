@@ -416,7 +416,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         //region Get bing results and create candidate entities set (union of E1, E2 and E3)
         try {
-//            bingResult = bingApi.query(query);
+            //bingResult = bingApi.query(query);
             // This is using Bernhard's improved preprocessor.
             bingResult = bingApi.query(QueryProcessing.getInstance().alterQueryForBingSearch(query));
             candidateEntities =
@@ -427,7 +427,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
             return null;
         }
         catch (RuntimeException e){
-            if (e.getCause().getCause() instanceof IOException){
+            if (null != e.getCause() && e.getCause().getCause() instanceof IOException){
                 logger.warn(e.getMessage());
                 return null;
             }
