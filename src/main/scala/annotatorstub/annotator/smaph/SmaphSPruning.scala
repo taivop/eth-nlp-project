@@ -4,21 +4,19 @@ import java.io.FileWriter
 
 import annotatorstub.annotator.wat.HelperWATAnnotator
 import annotatorstub.utils.caching.WATRequestCache
-import annotatorstub.utils.mention.{SmaphCandidate, MentionCandidate}
+import annotatorstub.utils.mention.SmaphCandidate
 import it.unipi.di.acube.batframework.data.Annotation
 import it.unipi.di.acube.batframework.problems.A2WDataset
-import it.unipi.di.acube.batframework.systemPlugins.WATAnnotator
 
 import collection.JavaConverters._
 
 import java.util.{HashSet => JHashSet, Optional, Calendar, GregorianCalendar, Date}
 import scala.collection.{mutable, Set}
 
-object SmaphSPruner {
+object SmaphSPruning {
   /**
-   * Generates training data from the given datasets, and dumps it to a CSV file for later use.
-   *
-   * Note: SVM training not attempted, as is currently VERY slow using Smile.
+   * Generates Smaph-S training data from the given datasets, and dumps it to a CSV file for later 
+   * use.
    */
   def genPrunerData(datasets: A2WDataset*): Unit = {
     // HERE BE DRAGONS: Make sure that you're not mixing up Java and Scala containers when
@@ -121,7 +119,7 @@ object SmaphSPruner {
               positiveCandidates.contains(_)
             }
             println(
-              s"Missing IDs that are in the gold standard:",
+              "Missing IDs that are in the gold standard:",
               missing.map {
                 _.getConcept
               }.mkString(","))
@@ -144,8 +142,6 @@ object SmaphSPruner {
           negativeCandidates.foreach { candidate =>
             dumpTrainingLine(csvFileName, candidate, relevant = false)
           }
-
-          //      positiveCandidates.map { c => (c, true) } ++ negativeCandidates.map { c => (c, false) }
         }
         catch {
           case e: Exception =>
@@ -178,7 +174,8 @@ object SmaphSPruner {
     appendCsvLine(fileName, s"${formatCandidate(smaphCandidate)},$relevant\n")
 
    private def formatCandidate(smaphCandidate: SmaphCandidate): String = {
-     // TODO(andrei): Escape commas in mention.
+     // TODO(andrei): Escape commas in mention; low priority since this doesn't happen in the
+     // Gerdaq datasets.
      val featureString = smaphCandidate.getFeatures.asScala.toList.mkString(", ")
      val mc = smaphCandidate.getMentionCandidate
      s"${smaphCandidate.getEntityID}, ${mc.getMention}, ${mc.getQueryStartPosition}, " +

@@ -1,4 +1,4 @@
-package annotatorstub.main;
+package annotatorstub.main.old;
 
 import java.util.Iterator;
 import java.util.Set;

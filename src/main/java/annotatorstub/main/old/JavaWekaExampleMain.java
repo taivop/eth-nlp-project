@@ -1,4 +1,4 @@
-package annotatorstub.main;
+package annotatorstub.main.old;
 
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils;

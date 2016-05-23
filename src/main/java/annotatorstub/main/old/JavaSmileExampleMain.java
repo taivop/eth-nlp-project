@@ -1,4 +1,4 @@
-package annotatorstub.main;
+package annotatorstub.main.old;
 
 import smile.classification.SVM;
 import smile.data.Attribute;

@@ -52,8 +52,6 @@ public class TagMeAnnotator extends FakeAnnotator {
 	 * EPSILON = 0.3 as described in paper
 	 * PRUNING_THRESHOLD = 0.15 no description in paper just set by intuition 
 	 * 
-	 * TODO: maybe some proper tuning would help - especially once we 
-	 * use it with bing results instead of the small queries
 	 */
 	
 	/**

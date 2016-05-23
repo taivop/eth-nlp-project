@@ -1,12 +1,12 @@
-package annotatorstub.main
+package annotatorstub.main.old
 
-import java.io.{File, BufferedWriter, FileWriter}
+import java.io.{BufferedWriter, File, FileWriter}
 
 import com.thoughtworks.xstream.XStream
 import smile.classification._
 import smile.data._
 import smile.io._
-import smile.math.kernel.{GaussianKernel, LinearKernel}
+import smile.math.kernel.GaussianKernel
 import smile.util.time
 import smile.validation._
 
