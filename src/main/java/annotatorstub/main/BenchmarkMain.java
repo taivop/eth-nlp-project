@@ -66,7 +66,8 @@ public class BenchmarkMain {
 
             // Disabling this seems to lead to slightly better overall F1 scores.
             boolean splitMentionsByLP = false;
-            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
+//            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
+            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
 //            String modelPickle = "models/m-no-yahoo-svc-c-1.0000-probabilistic.pkl";
             svmApi.startPythonServer(modelPickle);
             SmaphSAnnotator ann = new SmaphSAnnotator(
