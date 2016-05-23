@@ -653,6 +653,9 @@ After fixing major Smaph-S bug
 
 Everything past this point always trained on GERDAQ-{A,B} data only.
 
+ * Logistic Regression (C = 0.00005)
+  * Using Smaph-S style pruning
+
  * Logistic Regression (C = 0.00025)
   * Using Smaph-S style pruning
   * models/m-no-yahoo-lr-c-0.00025.pkl.

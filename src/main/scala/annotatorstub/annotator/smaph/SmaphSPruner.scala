@@ -9,12 +9,6 @@ import it.unipi.di.acube.batframework.data.Annotation
 import it.unipi.di.acube.batframework.problems.A2WDataset
 import it.unipi.di.acube.batframework.systemPlugins.WATAnnotator
 
-import smile.classification._
-import smile.data._
-import smile.io._
-import smile.math.kernel.LinearKernel
-import smile.validation._
-
 import collection.JavaConverters._
 
 import java.util.{HashSet => JHashSet, Optional, Calendar, GregorianCalendar, Date}
@@ -54,7 +48,11 @@ object SmaphSPruner {
     val queries: List[String] = datasets.flatMap { _.getTextInstanceList.asScala }.toList
 
     println(s"We have a total of ${queries.length} queries from ${datasets.length} datasets:")
-    datasets.map { _.getName }.zipWithIndex.map { case (name, i) => s" - $i $name" }  foreach println
+    datasets
+      .map { ds => (ds.getName, ds.getSize) }
+      .zipWithIndex
+      .map { case ((name, size), i) => s" - $i $name ($size queries)" }
+      . foreach { println(_) }
     println(s"Sanity check: gold standard length is ${goldStandard.length}")
 
     val totalQueries = goldStandard.length
@@ -69,12 +67,10 @@ object SmaphSPruner {
     val csvFileName = genCsvFileName()
     val start = System.nanoTime()
 
-//    val allTrainingData: List[(SmaphCandidate, Boolean)] = queryGroundTruths
       queryGroundTruths
       .zipWithIndex
       .foreach { case ((query, goldAnnotations), index) =>
         try {
-          // TODO(andrei): Wrap this block in generic try catch and skip all problematic queries.
           val now = System.nanoTime()
           val elapsedSeconds = (now - start).toDouble / 1000 / 1000 / 1000
 
@@ -89,7 +85,6 @@ object SmaphSPruner {
           println(f"Elapsed time: $elapsedSeconds%2.2f s")
           println(s"All computed candidates: ${allCandidates.length}")
           println(s"Gold standard has: ${goldAnnotations.size}")
-          // TODO(andrei): Find nice way of getting the actual entity title, for more informative data dumps.
           goldAnnotations.map {
             "\t" + _.getConcept
           } foreach println
@@ -167,49 +162,6 @@ object SmaphSPruner {
     exceptions.map { e => s"\t-${e.getMessage}" } foreach println
 
     println("All done!")
-  }
-
-  /**
-   * Loads pre-computed training data from the specified CSV file.
-   */
-  def loadTrainingData(csvFileName: String): List[(SmaphCandidate, Boolean)] =
-    scala.io.Source.fromFile(csvFileName).getLines.map(parseCsvLine).toList
-
-  val ExpectedLineLength = 18
-  // TODO(andrei): Keep this up to date as we add more and more features into our pipeline.
-  val FeatureCount = 10
-
-  def parseCsvLine(line: String): (SmaphCandidate, Boolean) = {
-    throw new RuntimeException("This method is deprecated. Please use Python.")
-
-    val segments = line.split("\\s*,\\s*").ensuring(
-      _.length == ExpectedLineLength,
-      s"Bad component length in line: ${line} (expected $ExpectedLineLength)")
-
-    // Sample line (May 10):
-    // 364646, lumet familt, 7, 19, 12, featureStart, [feature_count features], featureEnd, true
-    val smaphCandidate = new SmaphCandidate(
-      segments(0).toInt,
-      new MentionCandidate(segments(2).toInt, segments(3).toInt, segments(1)),
-      segments.slice(6, 6 + FeatureCount)
-        // Convert the strings to doubles.
-        .map { _.toDouble }
-        // Fix up bad values.
-        .map { feature: Double =>
-          if (feature.isInfinite || feature.isNaN)
-            0.0
-          else
-            feature
-        }
-        // Convert to the expected Java format.
-        .map { raw => java.lang.Double.valueOf(raw) }
-        .toList
-        .asJava
-    ).ensuring { candidate => candidate.getFeatures.size() == FeatureCount }
-
-    val relevance = segments(segments.length - 1).toBoolean
-
-    (smaphCandidate, relevance)
   }
 
   /**
