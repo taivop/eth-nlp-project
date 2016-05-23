@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,22 +36,28 @@ import java.util.stream.Collectors;
 public class SmaphSAnnotator extends FakeAnnotator {
 
     // Our SMAPH-{1, S} implementation does no scoring.
-    private static final float DUMMY_SCORE = 1.0f;
+    public static final float DUMMY_SCORE = 1.0f;
     private static final int DEFAULT_TOP_K_SNIPPETS = 25;
+    private static final Logger logger = LoggerFactory.getLogger(SmaphSAnnotator.class);
 
     private static BingSearchAPI bingApi;
 
     private WikipediaApiInterface wikiApi;
     private CandidateEntitiesGenerator candidateEntitiesGenerator;
     private final int topKSnippets;
-    private final static Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private final boolean splitMentionsByLP;
 
     private SmaphSListPruner pruner;
     private CandidateEntitiesGenerator.QueryMethod generatorQueryMethod;
     private EntityToAnchors entityToAnchors;
 
-    public SmaphSAnnotator(SmaphSListPruner pruner, WATRequestCache watRequestCache) {
-        this(pruner, QueryMethod.ALL_OVERLAP, DEFAULT_TOP_K_SNIPPETS, watRequestCache);
+    public SmaphSAnnotator(
+        SmaphSListPruner pruner,
+        boolean splitMentionsByLP,
+        WATRequestCache watRequestCache
+    ) {
+        this(pruner, QueryMethod.ALL_OVERLAP, DEFAULT_TOP_K_SNIPPETS, splitMentionsByLP,
+            watRequestCache);
     }
 
     /**
@@ -67,11 +72,13 @@ public class SmaphSAnnotator extends FakeAnnotator {
         SmaphSListPruner pruner,
         QueryMethod generatorQueryMethod,
         int topKSnippets,
+        boolean splitMentionsByLP,
         WATRequestCache watRequestCache
     ) {
         this.pruner = pruner;
         this.generatorQueryMethod = generatorQueryMethod;
         this.topKSnippets = topKSnippets;
+        this.splitMentionsByLP = splitMentionsByLP;
 
         if (!new File(EntityToAnchors.DATASET_FILENAME).exists()) {
             logger.error("Could not find directory {}. You should download and unzip the file at from https://groviera1.di.unipi.it:5001/sharing/HpajtMYjn");
@@ -441,10 +448,10 @@ public class SmaphSAnnotator extends FakeAnnotator {
 
         // Find all potential mentions
         Set<MentionCandidate> mentions = new HashSet<>();                // Seg(q) in the paper
-//        GreedyMentionIterator it = new GreedyMentionIterator(query);
-        boolean splitByLP = false;
         // This is using Bernhard's improved mention iterator.
-        GreedyMentionIterator it = MentionIteratorFactory.getMentionIteratorForQuery(query, splitByLP);
+        GreedyMentionIterator it = MentionIteratorFactory.getMentionIteratorForQuery(
+            query,
+            splitMentionsByLP);
         while (it.hasNext()) {
             MentionCandidate mention = it.next();
             mentions.add(mention);
@@ -546,6 +553,41 @@ public class SmaphSAnnotator extends FakeAnnotator {
         return result;
     }
 
+    public static ScoredAnnotation toScoredAnnotation(SmaphCandidate smaphCandidate) {
+        return new ScoredAnnotation(
+            smaphCandidate.getMentionCandidate().getQueryStartPosition(),
+            smaphCandidate.getMentionCandidate().getLength(),
+            smaphCandidate.getEntityID(),
+            (float) smaphCandidate.getScore()
+        );
+    }
+
+    /**
+     * Similar to {@link #naivePick(List)}, but for every entity, keeps the mention which yields
+     * the (mention, entity) pair with the highest (Smaph-S) score.
+     */
+    public static HashSet<ScoredAnnotation> lessNaivePick(List<SmaphCandidate> candidates) {
+        Map<Integer, PriorityQueue<SmaphCandidate>> seenEntityIds = new HashMap<>();
+        for (SmaphCandidate candidate : candidates) {
+            Integer id = candidate.getEntityID();
+
+            // We already saw this entity.
+            if (! seenEntityIds.containsKey(id)) {
+                seenEntityIds.put(id, new PriorityQueue<>());
+            }
+
+            seenEntityIds.get(id).add(candidate);
+        }
+
+        HashSet<ScoredAnnotation> annotations = new HashSet<>();
+        for (PriorityQueue<SmaphCandidate> anEntitysMentions : seenEntityIds.values()) {
+            // Only keep the (mention, entity) pair with the highest score.
+            annotations.add(toScoredAnnotation(anEntitysMentions.peek()));
+        }
+
+        return annotations;
+    }
+
     /**
      * This is the original mention selection approach, which also allows overlapping mentions
      * and simply picks the first mention for every entity ID it encounters.
@@ -604,7 +646,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
         // TODO(andrei): Use flag to switch between these techniques.
 //        HashSet<ScoredAnnotation> annotations = greedyPick(keptCandidates);
 //        HashSet<ScoredAnnotation> annotations = naivePick(keptCandidates);
-        HashSet<ScoredAnnotation> annotations = convertCandidates(keptCandidates);
+//        HashSet<ScoredAnnotation> annotations = convertCandidates(keptCandidates);
+        HashSet<ScoredAnnotation> annotations = lessNaivePick(keptCandidates);
         logger.info("Found {} final annotations.", annotations.size());
         return annotations;
     }
