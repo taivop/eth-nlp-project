@@ -30,12 +30,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * SMAPH-S annotator from the paper "A Piggyback System for Joint Entity Mention Detection and Linking in Web Queries".
+ * SMAPH-S annotator from the paper "A Piggyback System for Joint Entity Mention Detection and
+ * Linking in Web Queries".
+ *
  * @see <a href="http://www2016.net/proceedings/proceedings/p567.pdf">the original publication</a>.
  */
 public class SmaphSAnnotator extends FakeAnnotator {
 
-    // Our SMAPH-{1, S} implementation does no scoring.
+    // Our SMAPH-{1, S} implementation does no scoring by default.
     public static final float DUMMY_SCORE = 1.0f;
     private static final int DEFAULT_TOP_K_SNIPPETS = 25;
     private static final Logger logger = LoggerFactory.getLogger(SmaphSAnnotator.class);
@@ -61,12 +63,16 @@ public class SmaphSAnnotator extends FakeAnnotator {
     }
 
     /**
-     * @param pruner An optional pruner. Passing 'Optional.empty()' disables pruning altogether,
-     *               leading to an annotator with (hopefully) very high recall, but horrible
-     *               precision.
-     *
+     * @param pruner The pruner which selects which of the (mention, entity) pairs are actually
+     *               relevant to the current query.
      * @param generatorQueryMethod How to generate candidates using the WAT annotator. {@see
-     * {@link QueryMethod}}
+     *                             {@link QueryMethod}}
+     * @param topKSnippets How many top Bing snippets to look at when doing the piggybacking.
+     * @param splitMentionsByLP Whether to use smart linking-probability-based splitting when
+     *                          processing queries which likely consist of words unseparated by
+     *                          whitespace.
+     * @param watRequestCache The cache used for the WAT service requests, useful in dramatically
+     *                        reducing the overall annotation time.
      */
     public SmaphSAnnotator(
         SmaphSListPruner pruner,
