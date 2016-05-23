@@ -28,6 +28,11 @@ public class MentionIteratorFactory {
 			return new ImprovedGreedyMentionIterator(query);
 		}
 
+		// dirty split no url... 
+		if (query.endsWith(".com") || query.startsWith("www.")) {
+			return new ImprovedGreedyMentionIterator(query); 
+		}
+		
 		/*
 		 * for #1 go through string and replace separating chars by blanks
 		 * 		adam/jesus/ --> "adam jesus", "adam", "jesus"
