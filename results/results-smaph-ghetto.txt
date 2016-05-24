@@ -659,6 +659,13 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
 
  * Logistic Regression (C = 0.00025)
   * Using Smaph-S style pruning
+  * Trained on train-A, train-B, and devel
+  * models/m-with-devel-lr-c-0.00025.pkl
+  * Numbers:
+    *
+
+ * Logistic Regression (C = 0.00025)
+  * Using Smaph-S style pruning
   * models/m-no-yahoo-lr-c-0.00025.pkl.
   * Details:
       LogisticRegression(C=0.00025, class_weight='balanced', dual=False,
@@ -702,6 +709,14 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
   * Numbers (threshold = 0.30, with query preprocessing, splitByLP == false):
     * C2W	mac-P/R/F1: 0.473/0.659/0.497 mic-P/R/F1: 0.452/0.621/0.523 TP/FP/FN: 254/308/155 std-P/R/F1: 0.363/0.377/0.353	SMAPH-S annotator
     * A2W-SAM	mac-P/R/F1: 0.316/0.530/0.357 mic-P/R/F1: 0.291/0.506/0.369 TP/FP/FN: 207/505/202 std-P/R/F1: 0.325/0.413/0.345	SMAPH-S annotator
+
+   * Numbers on Y! data subsample (threshold = 0.65, w/ preprocessing):
+    * C2W	mac-P/R/F1: 0.731/0.699/0.683 mic-P/R/F1: 0.688/0.632/0.659 TP/FP/FN: 665/301/387 std-P/R/F1: 0.368/0.374/0.361	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.631/0.590/0.585 mic-P/R/F1: 0.591/0.541/0.565 TP/FP/FN: 571/395/484 std-P/R/F1: 0.424/0.417/0.411	SMAPH-S annotator
+   * Numbers on Y! data subsample (after no-url-splitting improvement):
+    * C2W	mac-P/R/F1: 0.732/0.680/0.665 mic-P/R/F1: 0.686/0.622/0.652 TP/FP/FN: 654/300/398 std-P/R/F1: 0.368/0.383/0.370	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.650/0.590/0.585 mic-P/R/F1: 0.599/0.541/0.568 TP/FP/FN: 571/383/484 std-P/R/F1: 0.418/0.417/0.411	SMAPH-S annotator
+
 
  * Logistic Regression (C = 0.00100)
    * Using Smaph-S style pruning
