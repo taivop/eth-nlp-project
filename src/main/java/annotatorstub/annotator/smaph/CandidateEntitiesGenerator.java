@@ -61,7 +61,6 @@ public class CandidateEntitiesGenerator {
 	
 	public CandidateEntitiesGenerator(WATRequestCache watRequestCache) {
 		wikipediaApiInterface = WikipediaApiInterface.api();
-		// TODO(andrei): Pass components as parameters for better modularization.
 		helperWatAnnotator = new HelperWATAnnotator(
             WAT_IP,WAT_PORT,
             this.watMethod,
@@ -148,8 +147,8 @@ public class CandidateEntitiesGenerator {
 			}
 			else if (queryMethod.equals(QueryMethod.HIGHLIGHTED)){
 				List<String> highlightedWords = wikiResult.getHighlightedWords();
-                // TODO(andrei): Make sure this doesn't kill all spaces, because then WAT would
-                // only return garbage.
+                // TODO-LOW(andrei): Make sure this doesn't kill all spaces, because then WAT would
+                // only return garbage (currently this is unused anyway).
 				watQuery = highlightedWords.stream().reduce("", (a,b) -> a + b);
 				scoredAnnotations = helperWatAnnotator.solveSa2W(watQuery);
 			}
