@@ -26,7 +26,6 @@ object ScalaSmileExampleMain {
 
   val IrisDataFile = "data/misc/iris.arff"
 
-
   // We can just as well create a dataset from "scratch" on the fly (e.g. from the computed WAT
   // features) and shove that into our classifier directly.
   val classificationData: AttributeDataset = readArff(IrisDataFile, responseIndex = 4)
