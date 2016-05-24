@@ -45,7 +45,7 @@ public class SimpleCache<K, V> implements Closeable {
      * @throws IOException If a flush is triggered buy fails.
      */
     public boolean put(K key, V value) throws IOException {
-        // TODO(andrei): This should maybe also be synchronized in a general use case.
+        // TODO-LOW(andrei): This should maybe also be synchronized in a general use case.
         cache.put(key, value);
         flushCounter += 1;
 
