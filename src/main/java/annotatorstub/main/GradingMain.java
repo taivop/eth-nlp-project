@@ -114,32 +114,52 @@ public class GradingMain {
         }
     }
 
-    public static void main(String[] args) {
-        WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
-
-        // This is the dataset distributed for grading by the instructors.
-        String gradingDataFile = "../data/out-domain-dataset-good-format-new.xml";
-        String yahooFullFile = "../data/yahoo-webscope/ydata-search-query-log-to-entities-v1_0.xml";
-        boolean useGoldStandard = true;
-        A2WDataset ds;
+    /**
+     * Loads the to-be-evaluated dataset for grading.
+     *
+     * @param useGoldStandard If set, pre-annotates the grading dataset with data from the Yahoo!
+     *                        WebScope dataset ground truth. Note that the grading dataset is
+     *                        just a subset of the full Yahoo! one. Please don't use the
+     *                        resulting numbers (if this is true) for model tuning, as that will
+     *                        lead to overfitting.
+     */
+    private static A2WDataset loadDataset(
+        String yahooFullFile,
+        String gradingDataFile,
+        boolean useGoldStandard
+    ) {
         try {
             if (useGoldStandard) {
                 // Also load the gold standard for the given queries, so that we may compute the
                 // actual F1 (and other) metrics.
-                ds = goldStandardYahooSubset(yahooFullFile, gradingDataFile);
+                return goldStandardYahooSubset(yahooFullFile, gradingDataFile);
             }
             else {
                 // Only load the "blind" grading dataset, which does not contain any gold
                 // standard on which to evaluate our pipeline.
-                ds = new YahooWebscopeL24Dataset(gradingDataFile);
+                return new YahooWebscopeL24Dataset(gradingDataFile);
             }
         }
         catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException e) {
             throw new RuntimeException("Could not load grading dataset.", e);
         }
+    }
+
+    public static void main(String[] args) {
+        WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
+
+        // This is the dataset distributed for grading by the instructors.
+        String gradingDataFile = "../data/out-domain-dataset-good-format-new.xml";
+
+        // This is the fully annotated dataset.
+        String yahooFullFile = "../data/yahoo-webscope/ydata-search-query-log-to-entities-v1_0.xml";
+
+        boolean useGoldStandard = true;
+        A2WDataset ds = loadDataset(yahooFullFile, gradingDataFile, useGoldStandard);
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
-            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
+//            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
+            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
             svmApi.startPythonServer(modelPickle);
 
             // Use a separate cache when running the benchmark as opposed to when doing the data
@@ -168,29 +188,32 @@ public class GradingMain {
             List<HashSet<Tag>> resTag = BenchmarkCache.doC2WTags(ann, ds);
             System.out.println("\nDoing D2W annotations:\n");
             List<HashSet<Annotation>> resAnn = BenchmarkCache.doA2WAnnotations(ann, ds);
-            DumpData.dumpCompareList(
-                ds.getTextInstanceList(),
-                ds.getA2WGoldStandardList(),
-                resAnn,
-                wikiApi);
+            if(useGoldStandard) {
+                DumpData.dumpCompareList(
+                    ds.getTextInstanceList(),
+                    ds.getA2WGoldStandardList(),
+                    resAnn,
+                    wikiApi);
 
-            // TODO(andrei): These probably have to go, since we don't have any ground truth for
-            // the eval data.
-            Metrics<Tag> metricsTag = new Metrics<>();
-            MetricsResultSet C2WRes = metricsTag.getResult(
-                resTag,
-                ds.getC2WGoldStandardList(),
-                new StrongTagMatch(wikiApi));
-            System.out.println("C2W results:");
-            Utils.printMetricsResultSet("C2W", C2WRes, ann.getName());
+                Metrics<Tag> metricsTag = new Metrics<>();
+                MetricsResultSet C2WRes = metricsTag.getResult(
+                    resTag,
+                    ds.getC2WGoldStandardList(),
+                    new StrongTagMatch(wikiApi));
+                System.out.println("C2W results:");
+                Utils.printMetricsResultSet("C2W", C2WRes, ann.getName());
 
-            Metrics<Annotation> metricsAnn = new Metrics<>();
-            MetricsResultSet rsA2W = metricsAnn.getResult(
-                resAnn,
-                ds.getA2WGoldStandardList(),
-                new StrongAnnotationMatch(wikiApi));
-            System.out.println("A2W-SAM results:");
-            Utils.printMetricsResultSet("A2W-SAM", rsA2W, ann.getName());
+                Metrics<Annotation> metricsAnn = new Metrics<>();
+                MetricsResultSet rsA2W = metricsAnn.getResult(
+                    resAnn,
+                    ds.getA2WGoldStandardList(),
+                    new StrongAnnotationMatch(wikiApi));
+                System.out.println("A2W-SAM results:");
+                Utils.printMetricsResultSet("A2W-SAM", rsA2W, ann.getName());
+            }
+            else {
+                System.out.println("No ground truth available, so no metrics to print.");
+            }
 
             Utils.serializeResult(
                 ann,

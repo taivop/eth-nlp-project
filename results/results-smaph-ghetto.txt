@@ -731,6 +731,9 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
    * Numbers on Y! data subsample (after no-url-splitting improvement):
     * C2W	mac-P/R/F1: 0.732/0.680/0.665 mic-P/R/F1: 0.686/0.622/0.652 TP/FP/FN: 654/300/398 std-P/R/F1: 0.368/0.383/0.370	SMAPH-S annotator
     * A2W-SAM	mac-P/R/F1: 0.650/0.590/0.585 mic-P/R/F1: 0.599/0.541/0.568 TP/FP/FN: 571/383/484 std-P/R/F1: 0.418/0.417/0.411	SMAPH-S annotator
+   * Numbers on Y! data subsample (same params, but also trained on devel):
+    * C2W	mac-P/R/F1: 0.730/0.688/0.677 mic-P/R/F1: 0.688/0.627/0.656 TP/FP/FN: 660/300/392 std-P/R/F1: 0.373/0.378/0.367	SMAPH-S annotator
+    * A2W-SAM	mac-P/R/F1: 0.638/0.593/0.589 mic-P/R/F1: 0.598/0.544/0.570 TP/FP/FN: 574/386/481 std-P/R/F1: 0.423/0.416/0.411	SMAPH-S annotator
 
 
  * Logistic Regression (C = 0.00100)
