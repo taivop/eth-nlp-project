@@ -645,7 +645,7 @@ After doing the refactor to support Taivo's changes
     * C2W	mac-P/R/F1: 0.372/0.701/0.405 mic-P/R/F1: 0.299/0.670/0.413 TP/FP/FN: 274/643/135 std-P/R/F1: 0.301/0.377/0.294	SMAPH-S annotator
     * A2W-SAM	mac-P/R/F1: 0.247/0.428/0.245 mic-P/R/F1: 0.173/0.389/0.240 TP/FP/FN: 159/758/250 std-P/R/F1: 0.312/0.421/0.296	SMAPH-S annotator
    * Numbers using Smaph-S probability pruning:
-    * <pending>
+    * <unimportant; see more up to date numbers below>
 
 ========================================================================================================================
 After fixing major Smaph-S bug
@@ -655,6 +655,7 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
 
  * Logistic Regression (C = 0.00005)
   * Using Smaph-S style pruning
+  * <pending> unless AdaBoost is overall better (which it should be)
 
  * Logistic Regression (C = 0.00025)
   * Using Smaph-S style pruning
@@ -683,6 +684,9 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
     * By doing smarter entity trimming in the end (better A2W):
       * C2W	mac-P/R/F1: 0.580/0.600/0.514 mic-P/R/F1: 0.525/0.570/0.546 TP/FP/FN: 233/211/176 std-P/R/F1: 0.399/0.396/0.378	SMAPH-S annotator
       * A2W-SAM	mac-P/R/F1: 0.509/0.512/0.439 mic-P/R/F1: 0.450/0.489/0.469 TP/FP/FN: 200/244/209 std-P/R/F1: 0.422/0.413/0.392	SMAPH-S annotator
+      * AND also training on devel:
+        * C2W	mac-P/R/F1: 0.585/0.601/0.517 mic-P/R/F1: 0.531/0.572/0.551 TP/FP/FN: 234/207/175 std-P/R/F1: 0.402/0.395/0.379	SMAPH-S annotator
+        * A2W-SAM	mac-P/R/F1: 0.513/0.512/0.441 mic-P/R/F1: 0.454/0.489/0.471 TP/FP/FN: 200/241/209 std-P/R/F1: 0.425/0.413/0.393	SMAPH-S annotator
   * Numbers (threshold = 0.60, with query preprocessing, splitByLP == false):
     * C2W	mac-P/R/F1: 0.565/0.615/0.514 mic-P/R/F1: 0.515/0.584/0.548 TP/FP/FN: 239/225/170 std-P/R/F1: 0.394/0.394/0.375	SMAPH-S annotator
     * A2W-SAM	mac-P/R/F1: 0.447/0.516/0.409 mic-P/R/F1: 0.378/0.494/0.428 TP/FP/FN: 202/333/207 std-P/R/F1: 0.399/0.414/0.378	SMAPH-S annotator

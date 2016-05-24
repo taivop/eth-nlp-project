@@ -1,4 +1,4 @@
-package annotatorstub.main;
+package annotatorstub.main.old;
 
 import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;

@@ -1,4 +1,4 @@
-package annotatorstub.main;
+package annotatorstub.main.old;
 
 import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.datasetPlugins.YahooWebscopeL24Dataset;
@@ -27,10 +27,15 @@ public class WebScopeXMLProcessing {
 
     }
 
+    // Will not use this dataset since it's what we get graded on, so we would end up overfitting
+    // quite badly and being unethical in the process.
     public static void main(String[] args) {
+        if (true) {
+            throw new RuntimeException("Don't train on WebScope, please.");
+        }
+
         A2WDataset bonusData = getWebscope();
         System.out.println("Loaded WebScope data: " + bonusData.getSize() + " data points");
-
 
         int limit = Math.min(5, bonusData.getSize());
         for (int i = 0; i < limit; i++) {

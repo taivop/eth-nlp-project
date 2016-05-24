@@ -1,4 +1,4 @@
-package annotatorstub.main;
+package annotatorstub.main.old;
 
 import annotatorstub.annotator.smaph.SmaphSAnnotator;
 import annotatorstub.annotator.smaph.SmaphSNoPruning;

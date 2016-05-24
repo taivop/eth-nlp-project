@@ -25,6 +25,7 @@ import java.util.Optional;
 
 public class BenchmarkMain {
     public static void main(String[] args) throws Exception {
+        // Initialize the Wikipedia API and its cache.
         WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
 
         // We are evaluating only on the GERDAQ-Test dataset.
@@ -49,6 +50,10 @@ public class BenchmarkMain {
             6) (Optional) Move these instructions to a more appropriate place, if applicable.
          */
 
+        /*
+         * We perform our predictions using scikit-learn in Python, and we use a lightweight
+         * Flask service to expose the trained classifier to our Java pipeline.
+         */
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
             // Use a separate cache when running the benchmark as opposed to when doing the data
             // generation, since this lets us keep the benchmark-only cache small. The data gen
@@ -61,7 +66,8 @@ public class BenchmarkMain {
 
             // Disabling this seems to lead to slightly better overall F1 scores.
             boolean splitMentionsByLP = false;
-            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
+//            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
+            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
 //            String modelPickle = "models/m-no-yahoo-svc-c-1.0000-probabilistic.pkl";
             svmApi.startPythonServer(modelPickle);
             SmaphSAnnotator ann = new SmaphSAnnotator(
