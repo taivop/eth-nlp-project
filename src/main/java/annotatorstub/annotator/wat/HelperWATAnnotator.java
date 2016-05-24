@@ -114,7 +114,7 @@ public class HelperWATAnnotator implements
         this.sortBy = sortBy;
         this.relatedness = relatedness;
 
-            this.requestCache = requestCache;
+        this.requestCache = requestCache;
 //            this.fullCache = new SimpleCache<>("watapi.nojson.cache", "WAT native cache", 250);
     }
 
@@ -453,7 +453,7 @@ public class HelperWATAnnotator implements
 
             Pair<URL, String> cacheKey = Pair.of(wikiSenseApi, parameters);
             if(requestCache.containsKey(cacheKey)) {
-                System.out.println("<cached> " + wikiSenseApi.toString());
+//                System.out.println("<cached> " + wikiSenseApi.toString());
                 return new JSONObject(requestCache.get(cacheKey));
             }
 
