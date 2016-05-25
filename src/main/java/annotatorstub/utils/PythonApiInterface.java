@@ -31,7 +31,7 @@ public class PythonApiInterface implements Closeable {
      */
     public void startPythonServer(String modelPickleFile) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder(
-                "python",
+                "python3",
                 "src/main/python/server.py",
                 String.valueOf(API_PORT),
                 SEPARATOR,
