@@ -136,11 +136,11 @@ public class SmaphSAnnotator extends FakeAnnotator {
      * @return vector of per-entity features
      */
     private List<Double> getEntityFeatures(Integer entity, String query, BingResult bingResult, CandidateEntities candidateEntities) throws IOException {
-        // TODO have a cache for this so if we query the same entity again, we won't recalculate stuff.
+        // TODO-LOW(andrei): have a cache for this so if we query the same entity again, we won't
+        // recalculate stuff.
         ArrayList<Double> features = new ArrayList<>();
         List<HashMap<Mention, HashMap<String, Double>>> watAdditionalAnnotationInfoList =
                 candidateEntities.getAdditionalInfoList();
-        // TODO use this list to calculate our features
 
         // ====================================================================================
         // region Features drawn from all sources
@@ -170,8 +170,8 @@ public class SmaphSAnnotator extends FakeAnnotator {
                 urlFoundInResult = bingPageTitle.equals(wikiApi.getTitlebyId(entity));
             }
             catch(IOException ex) {
-                // TODO(andrei): Keep track and see if this happens often.
                 System.err.println("IOException while getting a title ID from Wikipedia API. Entity: " + entity);
+                System.err.println("Bing page title: " + bingPageTitle);
                 System.err.println("Please check that you're not making bad requests to Wikipedia.");
             }
 
@@ -289,7 +289,9 @@ public class SmaphSAnnotator extends FakeAnnotator {
                         watAdditionalAnnotationInfoList.get(snippetRank).get(mentionInSnippet);
 
                 if(snippetAdditionalInfo == null) {
-                    // TODO(andrei): Find out why this happens.
+                    // This happens usually when using buggy caching in 'HelperWATAnnotator',
+                    // which doesn't populate a WAT annotation's additional info
+                    // ('snippetAdditionalInfo' here).
                     logger.error("null snippet info for snippet rank {}, mention in snippet {}",
                         snippetRank, mentionInSnippet);
                     throw new RuntimeException("null snippet info should not occur when the " +

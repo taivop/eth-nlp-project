@@ -16,6 +16,7 @@
 
 // Originally from:
 // package it.unipi.di.acube.batframework.systemPlugins;
+
 package annotatorstub.annotator.wat;
 
 import annotatorstub.utils.Pair;
@@ -43,7 +44,8 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 
 /**
- * Copy of WATAnnotator from bat framework, modified to use some additional caching.
+ * Copy of WATAnnotator from bat framework, modified to use some additional caching and parameter
+ * tweaks.
  */
 public class HelperWATAnnotator implements
         Sa2WSystem, MentionSpotter, CandidatesSpotter {
@@ -68,14 +70,6 @@ public class HelperWATAnnotator implements
      * The key consists of (URL, Parameters) tuples.
      */
     private WATRequestCache requestCache;
-
-    /**
-     * More elaborate cache, which sits one level above the JSON cache, allowing faster caching
-     * of preprocessed 'ScoredAnnotation' objects, which avoids the JSON processing overhead
-     * (significant, as confirmed by VisualVM).
-     */
-    // Disabled because it leads to subtle bugs.
-//    private SimpleCache<String, HashSet<ScoredAnnotation>> fullCache;
 
     public HelperWATAnnotator(
         String ip,
@@ -115,7 +109,6 @@ public class HelperWATAnnotator implements
         this.relatedness = relatedness;
 
         this.requestCache = requestCache;
-//            this.fullCache = new SimpleCache<>("watapi.nojson.cache", "WAT native cache", 250);
     }
 
     @Override
@@ -292,15 +285,6 @@ public class HelperWATAnnotator implements
         // Note: I currently seems that this is the only method used by the SMAPH-S annotator for
         // generating the E3 set.
 
-        // TODO(andrei): Make sure 'additionalInfo' still populated when item is cached,
-        // otherwise we get lots of garbage results.
-        // TODO(andrei): Consider adding other things to key to avoid subtle errors.
-        String fullCacheKey = text + "-" + method;
-//        if(fullCache.containsKey(fullCacheKey)) {
-//            lastTime = 0;
-//            return fullCache.get(fullCacheKey);
-//        }
-
         HashSet<ScoredAnnotation> res = new HashSet<ScoredAnnotation>();
         JSONObject obj = null;
         try {
@@ -356,18 +340,12 @@ public class HelperWATAnnotator implements
             throw new AnnotationException(e.getMessage());
         }
 
-//        try {
-//            fullCache.put(fullCacheKey, res);
-//        }
-//        catch(IOException ex) {
-//            throw new RuntimeException("Error while caching scored annotations.", ex);
-//        }
         return res;
     }
 
     @Override
     public HashSet<Mention> getSpottedMentions(String text) {
-        HashSet<Mention> res = new HashSet<Mention>();
+        HashSet<Mention> res = new HashSet<>();
         JSONObject obj = null;
         String getParameters = String.format("lang=%s", "en", method);
         try {

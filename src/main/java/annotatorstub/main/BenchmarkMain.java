@@ -10,10 +10,7 @@ import it.unipi.di.acube.batframework.cache.BenchmarkCache;
 import it.unipi.di.acube.batframework.data.Annotation;
 import it.unipi.di.acube.batframework.data.Tag;
 import it.unipi.di.acube.batframework.datasetPlugins.DatasetBuilder;
-import it.unipi.di.acube.batframework.metrics.Metrics;
-import it.unipi.di.acube.batframework.metrics.MetricsResultSet;
-import it.unipi.di.acube.batframework.metrics.StrongAnnotationMatch;
-import it.unipi.di.acube.batframework.metrics.StrongTagMatch;
+import it.unipi.di.acube.batframework.metrics.*;
 import it.unipi.di.acube.batframework.problems.A2WDataset;
 import it.unipi.di.acube.batframework.utils.DumpData;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
@@ -69,8 +66,9 @@ public class BenchmarkMain {
             // Only uses GERDAQ-Train A and B.
 //            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
             // Also use the development dataset (GERDAQ-Devel).
-            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
-//            String modelPickle = "models/m-no-yahoo-svc-c-1.0000-probabilistic.pkl";
+//            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
+            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
+
             svmApi.startPythonServer(modelPickle);
             SmaphSAnnotator ann = new SmaphSAnnotator(
 //                new SmaphSIndividualPruner(new Smaph1RemoteSvmPruner(svmApi)),
