@@ -66,7 +66,9 @@ public class BenchmarkMain {
 
             // Disabling this seems to lead to slightly better overall F1 scores.
             boolean splitMentionsByLP = false;
+            // Only uses GERDAQ-Train A and B.
 //            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
+            // Also use the development dataset (GERDAQ-Devel).
             String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
 //            String modelPickle = "models/m-no-yahoo-svc-c-1.0000-probabilistic.pkl";
             svmApi.startPythonServer(modelPickle);
