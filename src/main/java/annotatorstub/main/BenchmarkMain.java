@@ -25,6 +25,7 @@ import java.util.Optional;
 
 public class BenchmarkMain {
     public static void main(String[] args) throws Exception {
+        // Initialize the Wikipedia API and its cache.
         WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
 
         // We are evaluating only on the GERDAQ-Test dataset.
@@ -49,8 +50,11 @@ public class BenchmarkMain {
             6) (Optional) Move these instructions to a more appropriate place, if applicable.
          */
 
+        /*
+         * We perform our predictions using scikit-learn in Python, and we use a lightweight
+         * Flask service to expose the trained classifier to our Java pipeline.
+         */
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
-<<<<<<< HEAD
             // Use a separate cache when running the benchmark as opposed to when doing the data
             // generation, since this lets us keep the benchmark-only cache small. The data gen
             // one, especially when also using the Yahoo! data, ends up blowing up to several Gb,
@@ -62,7 +66,10 @@ public class BenchmarkMain {
 
             // Disabling this seems to lead to slightly better overall F1 scores.
             boolean splitMentionsByLP = false;
-            String modelPickle = "models/ada_boost_est_100_tree_depth_3.pkl";
+            // Only uses GERDAQ-Train A and B.
+//            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
+            // Also use the development dataset (GERDAQ-Devel).
+            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
 //            String modelPickle = "models/m-no-yahoo-svc-c-1.0000-probabilistic.pkl";
             svmApi.startPythonServer(modelPickle);
             SmaphSAnnotator ann = new SmaphSAnnotator(
@@ -72,17 +79,7 @@ public class BenchmarkMain {
                 // look only at the top k = <below> snippets
                 25,
                 splitMentionsByLP,
-                watRequestCache,
-                ds.getSize());
-=======
-            svmApi.startPythonServer("models/m-svc-c-0.0010.pkl");
-            SmaphSAnnotator ann = new SmaphSAnnotator(
-                Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
-                CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
-                // look only at the top k = <below> snippets
-                25);
-//            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
->>>>>>> 19f4a6b126bd293b30a37d599b533a4d8ee10634
+                watRequestCache);
 
             WATRelatednessComputer.setCache("relatedness.cache");
 
@@ -109,11 +106,7 @@ public class BenchmarkMain {
                 resAnn,
                 ds.getA2WGoldStandardList(),
                 new StrongAnnotationMatch(wikiApi));
-<<<<<<< HEAD
             System.out.println("A2W-SAM results:");
-=======
-            System.out.println("A2W-SAM:");
->>>>>>> 19f4a6b126bd293b30a37d599b533a4d8ee10634
             Utils.printMetricsResultSet("A2W-SAM", rsA2W, ann.getName());
 
             Utils.serializeResult(ann, ds, new File("annotations.bin"));

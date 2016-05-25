@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.util.*;
 
 public class GradingMain {
-	
-	private static int totalQueries;
 
     public static A2WDataset goldStandardYahooSubset(
         String yahooFullFile,
@@ -40,12 +38,9 @@ public class GradingMain {
         try {
             A2WDataset unannotated = new YahooWebscopeL24Dataset(gradingDataFile);
             A2WDataset fullyAnnotated = new YahooWebscopeL24Dataset(yahooFullFile);
-            
+
             // Keep a dataset with annotated queries which only occur in the grading set.
             Set<String> gradedQuerySet = new HashSet<>(unannotated.getTextInstanceList());
-            
-            totalQueries = gradedQuerySet.size();
-            
             System.out.println("Unannotated query count: " + unannotated.getTextInstanceList().size());
             System.out.println("Unique unannotated query count: " + gradedQuerySet.size());
             System.out.println("A discrepancy is normal because of duplicate common queries such " +
@@ -154,17 +149,17 @@ public class GradingMain {
         WikipediaApiInterface wikiApi = WikipediaApiInterface.api();
 
         // This is the dataset distributed for grading by the instructors.
-        String gradingDataFile = "data/out-domain-dataset-new.xml";
+        String gradingDataFile = "../data/out-domain-dataset-good-format-new.xml";
 
         // This is the fully annotated dataset.
-        String yahooFullFile = "data/yahoo-webscope/ydata-search-query-log-to-entities-v1_0.xml";
+        String yahooFullFile = "../data/yahoo-webscope/ydata-search-query-log-to-entities-v1_0.xml";
 
         boolean useGoldStandard = true;
         A2WDataset ds = loadDataset(yahooFullFile, gradingDataFile, useGoldStandard);
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
 //            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
-            String modelPickle = "models/ada_boost_est_100_tree_depth_3.pkl";
+            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
             svmApi.startPythonServer(modelPickle);
 
             // Use a separate cache when running the benchmark as opposed to when doing the data
@@ -185,8 +180,7 @@ public class GradingMain {
                 // look only at the top k = <below> snippets
                 25,
                 splitMentionsByLP,
-                watRequestCache,
-                totalQueries);
+                watRequestCache);
 
             WATRelatednessComputer.setCache("relatedness.cache");
 

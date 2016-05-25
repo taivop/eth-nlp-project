@@ -52,18 +52,14 @@ public class SmaphSAnnotator extends FakeAnnotator {
     private SmaphSListPruner pruner;
     private CandidateEntitiesGenerator.QueryMethod generatorQueryMethod;
     private EntityToAnchors entityToAnchors;
-    
-    int queryCnt = 0;
-    int totalQueries;
 
     public SmaphSAnnotator(
         SmaphSListPruner pruner,
         boolean splitMentionsByLP,
-        WATRequestCache watRequestCache,
-        int totalQueries
+        WATRequestCache watRequestCache
     ) {
         this(pruner, QueryMethod.ALL_OVERLAP, DEFAULT_TOP_K_SNIPPETS, splitMentionsByLP,
-            watRequestCache,totalQueries);
+            watRequestCache);
     }
 
     /**
@@ -83,25 +79,21 @@ public class SmaphSAnnotator extends FakeAnnotator {
         QueryMethod generatorQueryMethod,
         int topKSnippets,
         boolean splitMentionsByLP,
-        WATRequestCache watRequestCache,
-        int totalQueries
+        WATRequestCache watRequestCache
     ) {
         this.pruner = pruner;
         this.generatorQueryMethod = generatorQueryMethod;
         this.topKSnippets = topKSnippets;
         this.splitMentionsByLP = splitMentionsByLP;
-        this.totalQueries = totalQueries;
 
         if (!new File(EntityToAnchors.DATASET_FILENAME).exists()) {
             logger.error("Could not find directory {}. You should download and unzip the file at from https://groviera1.di.unipi.it:5001/sharing/HpajtMYjn");
         }
         this.entityToAnchors = EntityToAnchors.e2a();
 
-        // BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
+        BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
         // This employs Andrei's key.
-        // BingSearchAPI.KEY = "eQ7iWx2in91LwcKKFKnTaOv+ZKgecyu6FVuBwwi/N7g";
-        // Andreas's key :
-        BingSearchAPI.KEY = "WXbFNwGvnuxO7tpp7mLdvaEInWRr0RaCdzPR0Fz66aA";
+        BingSearchAPI.KEY = "eQ7iWx2in91LwcKKFKnTaOv+ZKgecyu6FVuBwwi/N7g";
         bingApi = BingSearchAPI.getInstance();
 
         logger.info("Using top k snippets: {}", topKSnippets);
@@ -435,11 +427,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
             return null;
         }
         catch (RuntimeException e){
-        	if (null != e.getCause() && e.getCause() instanceof IOException){
-                logger.warn(e.getMessage());
-                return null;
-            }
-        	else if (null != e.getCause() && e.getCause().getCause() instanceof IOException){
+            if (null != e.getCause() && e.getCause().getCause() instanceof IOException){
                 logger.warn(e.getMessage());
                 return null;
             }
@@ -564,7 +552,7 @@ public class SmaphSAnnotator extends FakeAnnotator {
                     candidate.getMentionCandidate().getQueryStartPosition(),
                     candidate.getMentionCandidate().getLength(),
                     candidate.getEntityID(),
-                    DUMMY_SCORE));
+                        DUMMY_SCORE));
             }
         }
 
@@ -656,13 +644,11 @@ public class SmaphSAnnotator extends FakeAnnotator {
     // are designed.
     @Override
     public HashSet<ScoredAnnotation> solveSa2W(String query) throws AnnotationException {
-    	queryCnt += 1;
-    	
         List<SmaphCandidate> candidates = getCandidatesWithFeatures(query);
         List<SmaphCandidate> keptCandidates = pruner.shouldKeep(candidates);
         logger.info("Kept {}/{} candidates.", keptCandidates.size(), candidates.size());
 
-        logger.info("Now processing: {} ({}/{})", query,queryCnt,totalQueries);
+        logger.info("Now processing: {}", query);
         // TODO(andrei): Use flag to switch between these techniques.
 //        HashSet<ScoredAnnotation> annotations = greedyPick(keptCandidates);
 //        HashSet<ScoredAnnotation> annotations = naivePick(keptCandidates);

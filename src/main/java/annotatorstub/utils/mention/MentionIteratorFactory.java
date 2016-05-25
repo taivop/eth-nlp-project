@@ -28,10 +28,11 @@ public class MentionIteratorFactory {
 			return new ImprovedGreedyMentionIterator(query);
 		}
 
-		// dirty split no url... 
-		if (query.endsWith(".com") || query.startsWith("www.")) {
-			return new ImprovedGreedyMentionIterator(query); 
-		}
+		// dirty split no url...
+		// Note: doesn't really help improve overall F1, so disabled.
+//		if (query.endsWith(".com") || query.startsWith("www.")) {
+//			return new ImprovedGreedyMentionIterator(query);
+//		}
 		
 		/*
 		 * for #1 go through string and replace separating chars by blanks
