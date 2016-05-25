@@ -3,6 +3,7 @@ package annotatorstub.annotator.smaph;
 import annotatorstub.annotator.FakeAnnotator;
 import annotatorstub.annotator.smaph.CandidateEntitiesGenerator.QueryMethod;
 import annotatorstub.utils.EntityToAnchors;
+import annotatorstub.utils.SmaphProperties;
 import annotatorstub.utils.StringUtils;
 import annotatorstub.utils.WATRelatednessComputer;
 import annotatorstub.utils.bing.BingResult;
@@ -22,6 +23,7 @@ import it.unipi.di.acube.batframework.utils.Pair;
 import it.unipi.di.acube.batframework.utils.WikipediaApiInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import weka.Run;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,9 +93,15 @@ public class SmaphSAnnotator extends FakeAnnotator {
         }
         this.entityToAnchors = EntityToAnchors.e2a();
 
-        BingSearchAPI.KEY = "crECheFN9wPg0oAJWRZM7nfuJ69ETJhMzxXXjchNMSM";
-        // This employs Andrei's key.
-        BingSearchAPI.KEY = "eQ7iWx2in91LwcKKFKnTaOv+ZKgecyu6FVuBwwi/N7g";
+        SmaphProperties properties;
+        try {
+            properties = new SmaphProperties("config.properties");
+        } catch(IOException ex) {
+            throw new RuntimeException("Could not load properties file.", ex);
+        }
+
+        BingSearchAPI.KEY = properties.getBingApiKey();
+        logger.info("Bing API key: " + BingSearchAPI.KEY);
         bingApi = BingSearchAPI.getInstance();
 
         logger.info("Using top k snippets: {}", topKSnippets);
