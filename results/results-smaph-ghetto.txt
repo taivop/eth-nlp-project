@@ -897,3 +897,11 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
  * Using Andreas' AdaBoost (trained on A+B) on test:
    * C2W	mac-P/R/F1: 0.615/0.585/0.512 mic-P/R/F1: 0.553/0.557/0.555 TP/FP/FN: 228/184/181 std-P/R/F1: 0.413/0.409/0.398	SMAPH-S annotator
    * A2W-SAM	mac-P/R/F1: 0.573/0.543/0.472 mic-P/R/F1: 0.510/0.513/0.512 TP/FP/FN: 210/202/199 std-P/R/F1: 0.425/0.420/0.403	SMAPH-S annotator
+
+ * Using Andreas' AdaBoost (trained on A+B) on Y! subset:
+   * C2W	mac-P/R/F1: 0.723/0.646/0.645 mic-P/R/F1: 0.671/0.590/0.628 TP/FP/FN: 621/304/431 std-P/R/F1: 0.388/0.400/0.390	SMAPH-S annotator
+   * A2W-SAM	mac-P/R/F1: 0.661/0.582/0.585 mic-P/R/F1: 0.611/0.536/0.571 TP/FP/FN: 565/360/490 std-P/R/F1: 0.423/0.423/0.417	SMAPH-S annotator*
+ * RECAP, best Y! numbers using LogReg:
+   * C2W	mac-P/R/F1: 0.731/0.699/0.683 mic-P/R/F1: 0.688/0.632/0.659 TP/FP/FN: 665/301/387 std-P/R/F1: 0.368/0.374/0.361	SMAPH-S annotator
+   * A2W-SAM	mac-P/R/F1: 0.631/0.590/0.585 mic-P/R/F1: 0.591/0.541/0.565 TP/FP/FN: 571/395/484 std-P/R/F1: 0.424/0.417/0.411	SMAPH-S annotator
+
