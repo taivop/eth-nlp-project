@@ -3,7 +3,7 @@ Abstract:
 
 SMAPH-S is a precursor of [SMAPH-2](http://www2016.net/proceedings/proceedings/p567.pdf), a state-of-the-art system for joint entity mention detection and linking in web queries. Both systems use a piggyback approach to annotate queries. A set of candidate entities is drawn directly from Bing search results or annotations of Bing snippets and therefore performance depends heavily on the accuracy of Bing itself. Our system improves on SMAPH-S by systematically detecting queries which produce uninformative Bing results and rewrites them to extract better candidate entities. To this end, we split query strings into smaller chunks based on their linking probability. We also improve the way mention candidates are generated so that the system is able to handle noisy inputs as they are very common in web queries. Finally, we report the results of experimenting with different regressors in the pruning phase, such as Probabilistic Logistic Regression and AdaBoost.
 
-See paper [TODO link paper here]().
+The [piggyback paper](http://www2016.net/proceedings/proceedings/p567.pdf) contains additional details.
 
 
 This project is based on [marcocor](https://github.com/marcocor)'s [query annotator stub](https://github.com/marcocor/query-annotator-stub). The project is mavenized.
