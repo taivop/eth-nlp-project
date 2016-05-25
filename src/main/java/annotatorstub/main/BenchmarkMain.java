@@ -50,6 +50,7 @@ public class BenchmarkMain {
          */
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
+<<<<<<< HEAD
             // Use a separate cache when running the benchmark as opposed to when doing the data
             // generation, since this lets us keep the benchmark-only cache small. The data gen
             // one, especially when also using the Yahoo! data, ends up blowing up to several Gb,
@@ -73,6 +74,15 @@ public class BenchmarkMain {
                 splitMentionsByLP,
                 watRequestCache,
                 ds.getSize());
+=======
+            svmApi.startPythonServer("models/m-svc-c-0.0010.pkl");
+            SmaphSAnnotator ann = new SmaphSAnnotator(
+                Optional.of(new Smaph1RemoteSvmPruner(svmApi)),
+                CandidateEntitiesGenerator.QueryMethod.ALL_OVERLAP,
+                // look only at the top k = <below> snippets
+                25);
+//            SmaphSAnnotator ann = new SmaphSAnnotator(Optional.empty());
+>>>>>>> 19f4a6b126bd293b30a37d599b533a4d8ee10634
 
             WATRelatednessComputer.setCache("relatedness.cache");
 
@@ -99,7 +109,11 @@ public class BenchmarkMain {
                 resAnn,
                 ds.getA2WGoldStandardList(),
                 new StrongAnnotationMatch(wikiApi));
+<<<<<<< HEAD
             System.out.println("A2W-SAM results:");
+=======
+            System.out.println("A2W-SAM:");
+>>>>>>> 19f4a6b126bd293b30a37d599b533a4d8ee10634
             Utils.printMetricsResultSet("A2W-SAM", rsA2W, ann.getName());
 
             Utils.serializeResult(ann, ds, new File("annotations.bin"));
