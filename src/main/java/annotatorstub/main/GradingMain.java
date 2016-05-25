@@ -159,7 +159,8 @@ public class GradingMain {
 
         try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
 //            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
-            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
+//            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
+            String modelPickle = "models/ada_boost_est_100_tree_depth_3.pkl";
             svmApi.startPythonServer(modelPickle);
 
             // Use a separate cache when running the benchmark as opposed to when doing the data
