@@ -154,12 +154,13 @@ public class GradingMain {
         // This is the fully annotated dataset.
         String yahooFullFile = "../data/yahoo-webscope/ydata-search-query-log-to-entities-v1_0.xml";
 
-        boolean useGoldStandard = true;
+        boolean useGoldStandard = false;
         A2WDataset ds = loadDataset(yahooFullFile, gradingDataFile, useGoldStandard);
 
-        try (PythonApiInterface svmApi = new PythonApiInterface(5000)) {
+        try (PythonApiInterface svmApi = new PythonApiInterface(5001)) {
 //            String modelPickle = "models/m-no-yahoo-lr-c-0.00025.pkl";
-            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
+//            String modelPickle = "models/m-with-devel-lr-c-0.00025.pkl";
+            String modelPickle = "models/ada_boost_est_100_tree_depth_3.pkl";
             svmApi.startPythonServer(modelPickle);
 
             // Use a separate cache when running the benchmark as opposed to when doing the data
@@ -218,7 +219,7 @@ public class GradingMain {
             Utils.serializeResult(
                 ann,
                 ds,
-                new File("annotation-barsan-kratzwald-georgiadis-pungas.bin"));
+                new File("adaboost-annotation-barsan-kratzwald-georgiadis-pungas.bin"));
             wikiApi.flush();
             WATRelatednessComputer.flush();
 

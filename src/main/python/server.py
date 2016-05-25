@@ -18,7 +18,6 @@ magnitudes = None
 means = None
 scaler = None
 
-np.random.seed(0xF00BA2)
 
 @app.route("/")
 def hello():
