@@ -13,9 +13,10 @@
 # OS X
 .DS_Storelib/
 lib/
+
 data/
-*.pkl
 watapi.cache.old
 
-mapdb/
 log/
+mapdb/
+models/
