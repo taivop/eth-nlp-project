@@ -699,10 +699,12 @@ Everything past this point always trained on GERDAQ-{A,B} data only.
     * A2W-SAM	mac-P/R/F1: 0.504/0.506/0.430 mic-P/R/F1: 0.430/0.484/0.456 TP/FP/FN: 198/262/211 std-P/R/F1: 0.421/0.411/0.387	SMAPH-S annotator
 
   * Numbers (threshold = 0.65, with query preprocessing, splitByLP == false):
+
     * C2W	mac-P/R/F1: 0.580/0.600/0.514 mic-P/R/F1: 0.525/0.570/0.546 TP/FP/FN: 233/211/176 std-P/R/F1: 0.399/0.396/0.378	SMAPH-S annotator
     * A2W-SAM	mac-P/R/F1: 0.478/0.512/0.423 mic-P/R/F1: 0.405/0.489/0.443 TP/FP/FN: 200/294/209 std-P/R/F1: 0.409/0.413/0.382	SMAPH-S annotator
     * Rechecking numbers after moving score directly to 'SmaphCandidate': A-OK!
     * By doing smarter entity trimming in the end (better A2W):
+      * Confirmation of results (May 25): Confirmed.
       * C2W	mac-P/R/F1: 0.580/0.600/0.514 mic-P/R/F1: 0.525/0.570/0.546 TP/FP/FN: 233/211/176 std-P/R/F1: 0.399/0.396/0.378	SMAPH-S annotator
       * A2W-SAM	mac-P/R/F1: 0.509/0.512/0.439 mic-P/R/F1: 0.450/0.489/0.469 TP/FP/FN: 200/244/209 std-P/R/F1: 0.422/0.413/0.392	SMAPH-S annotator
       * AND also training on devel:
