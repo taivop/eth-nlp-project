@@ -3,26 +3,21 @@
 
 from __future__ import print_function
 
+from multiprocessing import Process, Queue
 import pickle
 import sys
 
-import numpy as np
-from sklearn.linear_model import SGDClassifier
-from sklearn.svm import SVC
-
-from sklearn.decomposition import PCA
 
 import matplotlib.pyplot as plt
-
-from multiprocessing import Process, Queue
-
-from sklearn.tree import DecisionTreeClassifier
+import numpy as np
+from sklearn.cross_validation import cross_val_predict, KFold
+from sklearn.decomposition import PCA
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.linear_model import SGDClassifier, LogisticRegression
+from sklearn.metrics import *
 from sklearn.neighbors import KNeighborsClassifier
-
-from sklearn.cross_validation import  cross_val_predict, KFold
-
-from sklearn.metrics import confusion_matrix
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 
 from data_util import impute_nan_inf, load_training_data, rescale, load_dataset, pca_components, load_dataset_pca
 
@@ -625,4 +620,4 @@ def main2():
     '''
 
 if __name__ == '__main__':
-    main2()
+    main()
